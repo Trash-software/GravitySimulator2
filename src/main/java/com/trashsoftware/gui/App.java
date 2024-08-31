@@ -1,6 +1,7 @@
 package com.trashsoftware.gui;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -8,13 +9,9 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.niftygui.NiftyJmeDisplay;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.*;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
@@ -46,12 +43,14 @@ public class App extends SimpleApplication {
     private float scale = 1.0f;
     private float centerX, centerY;
     private double refOffsetX, refOffsetY;
+    private double focusingLastX, focusingLastY;
 
     //    private final Map<CelestialObject, Geometry> lineGeometries = new HashMap<>();
     private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private boolean showLabel = true;
+    private CelestialObject focusing;
 
     public static App getInstance() {
         return instance;
@@ -88,6 +87,10 @@ public class App extends SimpleApplication {
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 loadObjectsToView();
             }
+            
+            if (focusing != null) {
+                moveScreenWithFocus();
+            }
         }
 
         updateModelPositions();
@@ -105,8 +108,8 @@ public class App extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
-        solarSystemTest();
+        simpleTest2();
+//        solarSystemTest();
     }
 
     void loadObjectsToView() {
@@ -183,6 +186,10 @@ public class App extends SimpleApplication {
 
         // Add listeners for zooming
         inputManager.addListener(analogListener, "ZoomIn", "ZoomOut");
+
+//        // Add a mouse click listener
+//        inputManager.addMapping("Select", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+//        inputManager.addListener(clickListener, "Select");
     }
 
     private void putTestBox() {
@@ -207,6 +214,48 @@ public class App extends SimpleApplication {
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals("LeftClick")) {
                 leftButtonPressed = isPressed;
+                if (!isPressed) {
+                    // Get the mouse click position
+                    Vector2f click2d = inputManager.getCursorPosition();
+                    Vector3f click3d = cam.getWorldCoordinates(click2d, 0f).clone();
+                    Vector3f dir = cam.getWorldCoordinates(click2d, 1f).subtractLocal(click3d).normalizeLocal();
+
+                    // Adjust the ray's origin to match the camera's actual position
+                    click3d = cam.getLocation().clone();
+
+                    // Create a ray from the camera's position in the direction of the click
+                    Ray ray = new Ray(click3d, dir);
+
+                    // Collect intersections between the ray and the scene
+                    CollisionResults results = new CollisionResults();
+
+                    // Iterate through all root node children (which are the object Nodes)
+                    for (Spatial spatial : rootNode.getChildren()) {
+                        if (spatial instanceof Node objectNode) {
+
+                            // Check each child Geometry in the Node
+                            for (Spatial child : objectNode.getChildren()) {
+                                if (child instanceof Geometry geom) {
+
+                                    // Only check collision for the sphere geometry
+                                    if (geom.getMesh() instanceof Sphere) {
+                                        geom.collideWith(ray, results);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Check if there's a hit
+                    if (results.size() > 0) {
+                        // Get the closest collision result
+                        Geometry target = results.getClosestCollision().getGeometry();
+                        if (target != null) {
+                            // Handle the click on the geometry
+                            onGeometryClicked(target);
+                        }
+                    }
+                }
             } else if (name.equals("RightClick")) {
                 rightButtonPressed = isPressed;
             } else if (name.equals("MiddleClick")) {
@@ -329,6 +378,36 @@ public class App extends SimpleApplication {
 //        for (CelestialObject object : simulator.getObjects()) {
 //            object.setScale(scale);
 //        }
+    }
+
+    // Method to handle the geometry click event
+    private void onGeometryClicked(Geometry geom) {
+        System.out.println("Clicked on: " + geom.getName());
+        
+        for (ObjectModel objectModel : modelMap.values()) {
+            CelestialObject object = objectModel.object;
+            if (object.isExist()) {
+                if (object.getName().equals(geom.getName())) {
+                    focusing = object;
+                    System.out.println("Focused on " + object.getName());
+                }
+            }
+        }
+
+//        // Change color of the clicked geometry
+//        Material mat = geom.getMaterial();
+//        mat.setColor("Color", ColorRGBA.Red);
+    }
+
+    private void moveScreenWithFocus() {
+        double deltaX = (focusing.getX() - refOffsetX) - focusingLastX;
+        double deltaY = (focusing.getY() - refOffsetY) - focusingLastY;
+
+        centerX += (float) (deltaX * scale);
+        centerY += (float) (deltaY * scale);
+
+        focusingLastX = focusing.getX() - refOffsetX;
+        focusingLastY = focusing.getY() - refOffsetY;
     }
 
     public float paneX(double realX) {
@@ -520,7 +599,7 @@ public class App extends SimpleApplication {
                 new double[3],
                 scale
         );
-        earth.forceSetMass(earth.getMass() * 10);
+//        earth.forceSetMass(earth.getMass() * 10);
         simulator.addObject(earth);
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
