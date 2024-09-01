@@ -34,20 +34,20 @@ public class App extends SimpleApplication {
     private float verticalSpeed = 50.0f;
     private float rotationSpeed = 3.0f;
     private float zoomSpeed = 2f; // Speed of zooming in/out
-    private Vector3f pivotPoint = Vector3f.ZERO;  // Assuming the object is at the origin
+//    private Vector3f pivotPoint = Vector3f.ZERO;  // Assuming the object is at the origin
 
     boolean initialized = false;
 
     protected Simulator simulator;
     protected double speed = 1.0;
     protected boolean playing = true;
-    protected float scale = 1.0f;
+    protected double scale = 1.0;
     private float centerX, centerY, centerZ;
     private double refOffsetX, refOffsetY, refOffsetZ;
     private double focusingLastX, focusingLastY, focusingLastZ;
 
     private Vector3f lookAtPoint = new Vector3f(0, 0, 0);
-    private Vector3f worldUp = Vector3f.UNIT_Y;
+    private Vector3f worldUp = Vector3f.UNIT_Z;
 
     //    private final Map<CelestialObject, Geometry> lineGeometries = new HashMap<>();
     private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
@@ -240,16 +240,6 @@ public class App extends SimpleApplication {
                     for (Spatial spatial : rootNode.getChildren()) {
                         if (spatial instanceof ObjectNode objectNode) {
                             objectNode.collideWith(ray, results);
-//                            // Check each child Geometry in the Node
-//                            for (Spatial child : objectNode.getChildren()) {
-//                                if (child instanceof Geometry geom) {
-//
-//                                    // Only check collision for the sphere geometry
-//                                    if (geom.getMesh() instanceof Sphere) {
-//                                        geom.collideWith(ray, results);
-//                                    }
-//                                }
-//                            }
                         }
                     }
 
@@ -274,40 +264,34 @@ public class App extends SimpleApplication {
     private AnalogListener analogListener = new AnalogListener() {
         @Override
         public void onAnalog(String name, float value, float tpf) {
-//            if (leftButtonPressed) {
-//                System.out.println(name + " " + value + " " + tpf);
-//            }
             if (leftButtonPressed) {
                 if (name.equals("MouseMoveX-")) {
                     // Move the camera horizontally when dragging the left button
                     Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
                     cam.setLocation(cam.getLocation().add(left));
                     lookAtPoint.addLocal(left);
-//                    centerX += horizontalSpeed * value;
                 } else if (name.equals("MouseMoveX+")) {
                     // Move the camera horizontally when dragging the left button
                     Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
                     cam.setLocation(cam.getLocation().add(left));
                     lookAtPoint.addLocal(left);
-//                    centerX -= horizontalSpeed * value;
                 } else if (name.equals("MouseMoveY-")) {
-                    // Adjust the viewing angle vertically when dragging the right button
+                    // Move the camera vertically when dragging the left button
                     Vector3f up = cam.getUp().mult(verticalSpeed * value);
                     cam.setLocation(cam.getLocation().add(up));
                     lookAtPoint.addLocal(up);
-//                    centerY += horizontalSpeed * value;
                 } else if (name.equals("MouseMoveY+")) {
-                    // Adjust the viewing angle vertically when dragging the right button
+                    // Move the camera vertically when dragging the left button
                     Vector3f up = cam.getUp().mult(-verticalSpeed * value);
                     cam.setLocation(cam.getLocation().add(up));
                     lookAtPoint.addLocal(up);
-//                    centerY -= horizontalSpeed * value;
                 }
                 cam.lookAt(lookAtPoint, worldUp);
 
             }
             if (rightButtonPressed) {
                 float rotationAmount = rotationSpeed * value;
+//                System.out.println(cam.getLeft());
                 if (name.equals("MouseMoveY-")) {
                     rotateAroundPivot(rotationAmount, cam.getLeft());
                 } else if (name.equals("MouseMoveY+")) {
@@ -343,33 +327,33 @@ public class App extends SimpleApplication {
         Quaternion rotation = new Quaternion().fromAngleAxis(amount, axis);
 
         // Calculate the direction vector from the pivot point to the camera
-        Vector3f direction = cam.getLocation().subtract(pivotPoint);
+        Vector3f direction = cam.getLocation().subtract(lookAtPoint);
 
         // Apply the rotation to the direction vector
         direction = rotation.mult(direction);
 
         // Calculate the new camera position based on the rotated direction
-        Vector3f newCamPos = pivotPoint.add(direction);
+        Vector3f newCamPos = lookAtPoint.add(direction);
 
-        // Calculate the new up vector for the camera
-        Vector3f newUp = cam.getUp();
-        if (axis.equals(Vector3f.UNIT_Y)) {
-            // For horizontal rotation, the up vector should remain consistent
-            newUp = rotation.mult(newUp);
-        } else {
-            // For vertical rotation, the up vector is recalculated to avoid flipping
-            newUp = axis.cross(direction).normalizeLocal();
-        }
+//        // Calculate the new up vector for the camera
+//        Vector3f newUp = cam.getUp();
+//        if (axis.equals(Vector3f.UNIT_Y)) {
+//            // For horizontal rotation, the up vector should remain consistent
+//            newUp = rotation.mult(newUp);
+//        } else {
+//            // For vertical rotation, the up vector is recalculated to avoid flipping
+//            newUp = axis.cross(direction).normalizeLocal();
+//        }
 
         // Set the new camera location and update its orientation
         cam.setLocation(newCamPos);
-        cam.lookAt(pivotPoint, newUp);
+        cam.lookAt(lookAtPoint, worldUp);
 
 //        System.out.println(cam.getLocation());
     }
     
     private void scaleScene(float scaleFactor) {
-        float newScale = scale * scaleFactor;
+        double newScale = scale * scaleFactor;
         Vector3f newLookAt = lookAtPoint.mult(scaleFactor);
         moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
         lookAtPoint = newLookAt;
@@ -484,11 +468,7 @@ public class App extends SimpleApplication {
         float deltaY = (float) ((focusing.getY() - refOffsetY - focusingLastY) * scale);
         float deltaZ = (float) ((focusing.getZ() - refOffsetZ - focusingLastZ) * scale);
         Vector3f delta = new Vector3f(deltaX, deltaY, deltaZ);
-//
-//        centerX += (float) (deltaX * scale);
-//        centerY += (float) (deltaY * scale);
-//        centerZ += (float) (deltaZ * scale);
-//
+
         focusingLastX = focusing.getX() - refOffsetX;
         focusingLastY = focusing.getY() - refOffsetY;
         focusingLastZ = focusing.getZ() - refOffsetZ;

@@ -98,8 +98,8 @@ public class ObjectModel {
     public void updateModelPosition(Function<Double, Float> xMapper,
                                     Function<Double, Float> yMapper,
                                     Function<Double, Float> zMapper,
-                                    float scale) {
-        model.setLocalScale(scale);
+                                    double scale) {
+        model.setLocalScale((float) scale);
 
         float shift = (float) (scale * object.getPolarRadius());
 
