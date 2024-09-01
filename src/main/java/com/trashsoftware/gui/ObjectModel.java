@@ -23,7 +23,7 @@ public class ObjectModel {
     protected final CelestialObject object;
     protected final ColorRGBA color;
     protected final App app;
-    protected Node objectNode;
+    protected ObjectNode objectNode;
     protected Geometry model;
     protected Node labelNode;
     protected Geometry path;
@@ -65,14 +65,14 @@ public class ObjectModel {
         labelNode.addControl(billboardControl);
         labelNode.setLocalScale(0.1f);
 
-        objectNode = new Node();
+        objectNode = new ObjectNode();
         objectNode.attachChild(model);
         objectNode.attachChild(labelNode);
 
         System.out.println(object.getName() + " " + color);
         
         // Create a geometry, apply the mesh, and set the material
-        path = new Geometry("Path");
+        path = new Geometry("Path", new Mesh());
         Material matLine = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         matLine.setColor("Color", color);
         path.setMaterial(matLine);
@@ -140,12 +140,15 @@ public class ObjectModel {
     public Mesh createOrbitMesh(double[] barycenter, 
                                 OrbitalElements oe,
                                 int samples) {
-        float bcx = (float) barycenter[0];
-        float bcy = (float) barycenter[1];
-        float bcz = (float) barycenter[2];
+//        float bcx = (float) barycenter[0];
+//        float bcy = (float) barycenter[1];
+//        float bcz = (float) barycenter[2];
+        float bcx = app.paneX(barycenter[0]);
+        float bcy = app.paneY(barycenter[1]);
+        float bcz = app.paneZ(barycenter[2]);
 //        Vector3f bc = new Vector3f(bcx * scale, bcy * scale, bcz * scale);
         
-        float a = (float) oe.semiMajorAxis;
+        float a = (float) (oe.semiMajorAxis * app.scale);
         float e = (float) oe.eccentricity;
         float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
         float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
@@ -168,9 +171,9 @@ public class ObjectModel {
             point = UiVectorUtils.rotateAroundXAxis(point, i);     // Rotate by inclination
             point = UiVectorUtils.rotateAroundZAxis(point, omegaBig); // Rotate by longitude of the ascending node
             
-            point.setX(app.paneX(point.x + bcx));
-            point.setY(app.paneY(point.y + bcy));
-            point.setZ(app.paneZ(point.z + bcz));
+            point.setX(point.x + bcx);
+            point.setY(point.y + bcy);
+            point.setZ(point.z + bcz);
             
             vertices[j] = point;
         }

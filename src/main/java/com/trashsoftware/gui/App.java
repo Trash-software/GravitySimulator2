@@ -3,6 +3,7 @@ package com.trashsoftware.gui;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
@@ -40,10 +41,13 @@ public class App extends SimpleApplication {
     protected Simulator simulator;
     protected double speed = 1.0;
     protected boolean playing = true;
-    private float scale = 1.0f;
-    private float centerX, centerY;
-    private double refOffsetX, refOffsetY;
-    private double focusingLastX, focusingLastY;
+    protected float scale = 1.0f;
+    private float centerX, centerY, centerZ;
+    private double refOffsetX, refOffsetY, refOffsetZ;
+    private double focusingLastX, focusingLastY, focusingLastZ;
+
+    private Vector3f lookAtPoint = new Vector3f(0, 0, 0);
+    private Vector3f worldUp = Vector3f.UNIT_Y;
 
     //    private final Map<CelestialObject, Geometry> lineGeometries = new HashMap<>();
     private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
@@ -96,7 +100,7 @@ public class App extends SimpleApplication {
         updateModelPositions();
 
 //        rootNode.getChildren().removeAll(tempGeom);
-        drawFullPaths();
+//        drawFullPaths();
         drawOrbits();
 
 //        drawNameTexts();
@@ -159,7 +163,8 @@ public class App extends SimpleApplication {
 
     private void setupMouses() {
         cam.setFrustumNear(1f);
-        cam.setFrustumFar(10000f);
+        cam.setFrustumFar(1e6f);
+        
         cam.setLocation(new Vector3f(0, 0, 100));
 
         // Disable flyCam
@@ -233,18 +238,18 @@ public class App extends SimpleApplication {
 
                     // Iterate through all root node children (which are the object Nodes)
                     for (Spatial spatial : rootNode.getChildren()) {
-                        if (spatial instanceof Node objectNode) {
-
-                            // Check each child Geometry in the Node
-                            for (Spatial child : objectNode.getChildren()) {
-                                if (child instanceof Geometry geom) {
-
-                                    // Only check collision for the sphere geometry
-                                    if (geom.getMesh() instanceof Sphere) {
-                                        geom.collideWith(ray, results);
-                                    }
-                                }
-                            }
+                        if (spatial instanceof ObjectNode objectNode) {
+                            objectNode.collideWith(ray, results);
+//                            // Check each child Geometry in the Node
+//                            for (Spatial child : objectNode.getChildren()) {
+//                                if (child instanceof Geometry geom) {
+//
+//                                    // Only check collision for the sphere geometry
+//                                    if (geom.getMesh() instanceof Sphere) {
+//                                        geom.collideWith(ray, results);
+//                                    }
+//                                }
+//                            }
                         }
                     }
 
@@ -275,25 +280,30 @@ public class App extends SimpleApplication {
             if (leftButtonPressed) {
                 if (name.equals("MouseMoveX-")) {
                     // Move the camera horizontally when dragging the left button
-//                    Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(left));
-                    centerX += horizontalSpeed * value;
+                    Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
+                    cam.setLocation(cam.getLocation().add(left));
+                    lookAtPoint.addLocal(left);
+//                    centerX += horizontalSpeed * value;
                 } else if (name.equals("MouseMoveX+")) {
                     // Move the camera horizontally when dragging the left button
-//                    Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(left));
-                    centerX -= horizontalSpeed * value;
+                    Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
+                    cam.setLocation(cam.getLocation().add(left));
+                    lookAtPoint.addLocal(left);
+//                    centerX -= horizontalSpeed * value;
                 } else if (name.equals("MouseMoveY-")) {
                     // Adjust the viewing angle vertically when dragging the right button
-//                    Vector3f up = cam.getUp().mult(verticalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(up));
-                    centerY += horizontalSpeed * value;
+                    Vector3f up = cam.getUp().mult(verticalSpeed * value);
+                    cam.setLocation(cam.getLocation().add(up));
+                    lookAtPoint.addLocal(up);
+//                    centerY += horizontalSpeed * value;
                 } else if (name.equals("MouseMoveY+")) {
                     // Adjust the viewing angle vertically when dragging the right button
-//                    Vector3f up = cam.getUp().mult(-verticalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(up));
-                    centerY -= horizontalSpeed * value;
+                    Vector3f up = cam.getUp().mult(-verticalSpeed * value);
+                    cam.setLocation(cam.getLocation().add(up));
+                    lookAtPoint.addLocal(up);
+//                    centerY -= horizontalSpeed * value;
                 }
+                cam.lookAt(lookAtPoint, worldUp);
 
             }
             if (rightButtonPressed) {
@@ -357,13 +367,34 @@ public class App extends SimpleApplication {
 
 //        System.out.println(cam.getLocation());
     }
+    
+    private void scaleScene(float scaleFactor) {
+        float newScale = scale * scaleFactor;
+        Vector3f newLookAt = lookAtPoint.mult(scaleFactor);
+        moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
+        lookAtPoint = newLookAt;
+//        System.out.println(newScale);
+//        System.out.println(lookAtPoint + " " + cam.getLocation());
+        
+        scale = newScale;
+        
+        updateLabelShowing();
+    }
 
     public void zoomInAction() {
-        scale /= 0.8f;
-        centerX /= 0.8f;
-        centerY /= 0.8f;
+        scaleScene(1.25f);
+//        scale /= 0.8f;
+//        centerX /= 0.8f;
+//        centerY /= 0.8f;
+//        centerZ /= 0.8f;
+        
+//        zoomByRatio(0.8f);
+        
+//        Vector3f direction = cam.getDirection();
+//        cam.setLocation(cam.getLocation().add(direction.mult(5f)));
+//        cam.lookAt(lookAtPoint, worldUp);
 
-        updateLabelShowing();
+//        updateLabelShowing();
 
 //        for (CelestialObject object : simulator.getObjects()) {
 //            object.setScale(scale);
@@ -371,26 +402,49 @@ public class App extends SimpleApplication {
     }
 
     public void zoomOutAction() {
-        scale *= 0.8f;
-        centerX *= 0.8f;
-        centerY *= 0.8f;
-
-        updateLabelShowing();
+        scaleScene(0.8f);
+//        scale *= 0.8f;
+//        centerX *= 0.8f;
+//        centerY *= 0.8f;
+//        centerZ *= 0.8f;
+//        zoomByRatio(1.2f);
+        
+//        updateLabelShowing();
 
 //        for (CelestialObject object : simulator.getObjects()) {
 //            object.setScale(scale);
 //        }
     }
+    
+    private void zoomByRatio(float ratio) {
+        float dt = cam.getLocation().distance(lookAtPoint);
+        float newDt = dt * ratio;
+        
+        Vector3f direction = cam.getDirection();
+        Vector3f newLocation = lookAtPoint.subtract(direction.mult(newDt));
+        cam.setLocation(newLocation);
+        cam.lookAt(lookAtPoint, worldUp);
+    }
+    
+//    private Vector3f getLookAtPoint() {
+//        
+//    }
 
     // Method to handle the geometry click event
     private void onGeometryClicked(Geometry geom) {
-        System.out.println("Clicked on: " + geom.getName());
+        System.out.println("Clicked on: " + geom.getName() + ", " + geom.getClass());
         
         for (ObjectModel objectModel : modelMap.values()) {
             CelestialObject object = objectModel.object;
             if (object.isExist()) {
                 if (object.getName().equals(geom.getName())) {
                     focusOn(object);
+                    break;
+                }
+                BitmapText bt = (BitmapText) objectModel.labelNode.getChildren().get(0);
+                if (geom == bt.getChildren().get(0)) {
+                    focusOn(object);
+                    break;
                 }
             }
         }
@@ -404,33 +458,64 @@ public class App extends SimpleApplication {
         System.out.println("Focused on " + object.getName());
 
         focusing = object;
+//        Vector3f newLookAt = new Vector3f(paneX(focusing.getX()),
+//                paneY(focusing.getY()),
+//                paneZ(focusing.getZ()));
+//        moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
+//        lookAtPoint = newLookAt;
+//        cam.lookAt(lookAtPoint, worldUp);
         focusingLastX = focusing.getX() - refOffsetX;
         focusingLastY = focusing.getY() - refOffsetY;
-        centerX = (float) (focusingLastX * scale);
-        centerY = (float) (focusingLastY * scale);
+        focusingLastZ = focusing.getZ() - refOffsetZ;
+        
+        Vector3f newLookAt = new Vector3f((float) (focusingLastX * scale),
+                (float) (focusingLastY * scale),
+                (float) (focusingLastZ * scale));
+        moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
+        lookAtPoint = newLookAt;
+        
+//        centerX = (float) (focusingLastX * scale);
+//        centerY = (float) (focusingLastY * scale);
+//        centerZ = (float) (focusingLastZ * scale);
     }
 
     private void moveScreenWithFocus() {
-        double deltaX = (focusing.getX() - refOffsetX) - focusingLastX;
-        double deltaY = (focusing.getY() - refOffsetY) - focusingLastY;
-
-        centerX += (float) (deltaX * scale);
-        centerY += (float) (deltaY * scale);
-
+        float deltaX = (float) ((focusing.getX() - refOffsetX - focusingLastX) * scale);
+        float deltaY = (float) ((focusing.getY() - refOffsetY - focusingLastY) * scale);
+        float deltaZ = (float) ((focusing.getZ() - refOffsetZ - focusingLastZ) * scale);
+        Vector3f delta = new Vector3f(deltaX, deltaY, deltaZ);
+//
+//        centerX += (float) (deltaX * scale);
+//        centerY += (float) (deltaY * scale);
+//        centerZ += (float) (deltaZ * scale);
+//
         focusingLastX = focusing.getX() - refOffsetX;
         focusingLastY = focusing.getY() - refOffsetY;
+        focusingLastZ = focusing.getZ() - refOffsetZ;
+        
+        cam.setLocation(cam.getLocation().add(delta));
+        lookAtPoint.addLocal(delta);
+    }
+    
+    private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
+        float dt = cam.getLocation().distance(oldLookAt);
+
+        Vector3f direction = cam.getDirection();
+        Vector3f newLocation = newLookAt.subtract(direction.mult(dt));
+        cam.setLocation(newLocation);
+        cam.lookAt(newLookAt, worldUp);
     }
 
     public float paneX(double realX) {
-        return (float) ((realX - refOffsetX) * scale - centerX);
+        return (float) ((realX - refOffsetX) * scale) - centerX;
     }
 
     public float paneY(double realY) {
-        return (float) ((realY - refOffsetY) * scale - centerY);
+        return (float) ((realY - refOffsetY) * scale) - centerY;
     }
 
     public float paneZ(double realZ) {
-        return (float) (realZ * scale);
+        return (float) ((realZ - refOffsetZ) * scale) - centerZ;
     }
 
     public double realXFromPane(float paneX) {
@@ -439,6 +524,10 @@ public class App extends SimpleApplication {
 
     public double realYFromPane(float paneY) {
         return (paneY + centerY) / scale + refOffsetY;
+    }
+
+    public double realZFromPane(float paneZ) {
+        return (paneZ + centerZ) / scale + refOffsetZ;
     }
 
     private void drawOrbits() {
@@ -631,6 +720,7 @@ public class App extends SimpleApplication {
 
     private void solarSystemTest() {
         scale = (float) SystemPresets.solarSystem(simulator);
+        scale *= 1;
 
         loadObjectsToView();
     }
