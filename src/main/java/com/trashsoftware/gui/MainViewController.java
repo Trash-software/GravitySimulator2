@@ -5,9 +5,11 @@ import com.trashsoftware.physics.CelestialObject;
 import com.trashsoftware.physics.Simulator;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Label;
+import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import org.w3c.dom.Text;
+//import de.lessvoid.nifty.builder.CheckboxBuilder;
 
 import javax.annotation.Nonnull;
 
@@ -70,4 +72,5 @@ public class MainViewController implements ScreenController {
             playPauseText.setText(">");
         }
     }
+    
 }

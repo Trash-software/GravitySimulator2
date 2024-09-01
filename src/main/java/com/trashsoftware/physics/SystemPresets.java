@@ -5,6 +5,7 @@ import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.texture.Texture;
 import com.trashsoftware.gui.App;
+import com.trashsoftware.gui.GuiUtils;
 
 import java.util.*;
 
@@ -674,7 +675,7 @@ public class SystemPresets {
                     simulator.getDimension(),
                     pos,
                     vel,
-                    Util.colorToHex(color)
+                    GuiUtils.colorToHex(color)
             );
             simulator.addObject(planet);
         }

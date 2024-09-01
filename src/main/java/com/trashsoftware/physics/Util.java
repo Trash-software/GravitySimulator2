@@ -8,43 +8,6 @@ import java.util.Random;
 
 public class Util {
 
-    public static String colorToHex(ColorRGBA color) {
-        int red = (int) (color.getRed() * 255);
-        int green = (int) (color.getGreen() * 255);
-        int blue = (int) (color.getBlue() * 255);
-        int alpha = (int) (color.getAlpha() * 255);
-
-        // Format the color to a hex string
-        if (alpha < 255) {
-            return String.format("#%02X%02X%02X%02X", red, green, blue, alpha); // RGBA
-        } else {
-            return String.format("#%02X%02X%02X", red, green, blue); // RGB
-        }
-    }
-
-    public static ColorRGBA stringToColor(String colorHex) {
-        if (colorHex.length() > 1 && colorHex.charAt(0) == '#') {
-            String code = colorHex.substring(1);
-            int red = 0, green = 0, blue = 0;
-            int alpha = 255;
-
-            if (code.length() >= 2) {
-                red = Integer.parseInt(code.substring(0, 2), 16);
-            }
-            if (code.length() >= 4) {
-                green = Integer.parseInt(code.substring(2, 4), 16);
-            }
-            if (code.length() >= 6) {
-                blue = Integer.parseInt(code.substring(4, 6), 16);
-            }
-            if (code.length() == 8) {
-                alpha = Integer.parseInt(code.substring(6, 8), 16);
-            }
-            return ColorRGBA.fromRGBA255(red, green, blue, alpha);
-        }
-        throw new RuntimeException("Cannot convert '" + colorHex + "' to color");
-    }
-
     public static double[] jsonArrayToDoubleArray(JSONArray jsonArray) {
         double[] res = new double[jsonArray.length()];
         for (int i = 0; i < res.length; i++) {

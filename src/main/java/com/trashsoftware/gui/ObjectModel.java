@@ -20,14 +20,19 @@ import com.trashsoftware.physics.Util;
 import java.util.function.Function;
 
 public class ObjectModel {
+    public static final int COLOR_GRADIENTS = 16;
     protected final CelestialObject object;
     protected final ColorRGBA color;
+    protected final ColorRGBA opaqueColor;
+    protected final ColorRGBA darkerColor;
+//    protected final ColorRGBA[] gradientColor = new ColorRGBA[COLOR_GRADIENTS];
     protected final App app;
     protected ObjectNode objectNode;
     protected Geometry model;
     protected Node labelNode;
     protected Geometry path;
     protected Geometry orbit;
+    protected Geometry pathGradient;
     private boolean showLabel = true;
     
     private float lastRotateAngle;
@@ -35,7 +40,17 @@ public class ObjectModel {
     public ObjectModel(CelestialObject object, App app) {
         this.app = app;
         this.object = object;
-        this.color = Util.stringToColor(object.getColorCode());
+        this.color = GuiUtils.stringToColor(object.getColorCode());
+        this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
+        this.darkerColor = color.clone();
+        darkerColor.interpolateLocal(app.backgroundColor, 0.9f);
+        
+//        float begin = 0.25f;
+//        for (int i = 0; i < COLOR_GRADIENTS; i++) {
+//            float interpolate = (float) i / COLOR_GRADIENTS * (1 - begin) + begin;
+//            ColorRGBA c = color.clone();
+////            gradientColor[i] = c.interpolateLocal(app.backgroundColor, interpolate);
+//        }
 
         Sphere sphere = new Sphere(64, 64, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
@@ -74,25 +89,35 @@ public class ObjectModel {
         // Create a geometry, apply the mesh, and set the material
         path = new Geometry("Path", new Mesh());
         Material matLine = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        matLine.setColor("Color", color);
+        matLine.setColor("Color", darkerColor);
         path.setMaterial(matLine);
 
         // Create a geometry, apply the mesh, and set the material
         orbit = new Geometry("Orbit", new Mesh());
         Material matLine2 = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        matLine2.setColor("Color", color);
+        matLine2.setColor("Color", darkerColor);
         orbit.setMaterial(matLine2);
+
+        // Create a geometry, apply the mesh, and set the material
+        pathGradient = new Geometry("PathGradient", new Mesh());
+        Material matLine3 = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        matLine3.setColor("Color", darkerColor);
+        matLine3.setBoolean("VertexColor", true); // Enable vertex colors
+        pathGradient.setMaterial(matLine3);
     }
 
     /**
      * Notify this model that its owner model may have some internal change
      */
     public void notifyObjectChanged() {
-        // Apply the initial tilt (e.g., 23.5 degrees around an arbitrary axis)
-        float tiltAngle = FastMath.DEG_TO_RAD * 23.5f;
-        Vector3f tiltAxis = new Vector3f(1, 0, 0); // For example, tilt around the Y-axis
-        Quaternion tiltRotation = new Quaternion().fromAngleAxis(tiltAngle, tiltAxis);
-        model.setLocalRotation(tiltRotation);
+        // set the visual rotation axis
+        double[] axisD = object.getRotationAxis();
+        Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
+        
+        Quaternion tiltQuaternion = new Quaternion();
+        tiltQuaternion.lookAt(axis, Vector3f.UNIT_Z);
+        
+        model.setLocalRotation(tiltQuaternion);
     }
 
     public void updateModelPosition(Function<Double, Float> xMapper,

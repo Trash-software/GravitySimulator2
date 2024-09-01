@@ -12,7 +12,10 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.niftygui.NiftyJmeDisplay;
-import com.jme3.scene.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
@@ -26,6 +29,7 @@ public class App extends SimpleApplication {
 
     // Load the font for the labels
     protected BitmapFont font;
+    protected ColorRGBA backgroundColor = ColorRGBA.Black;
 
     private boolean leftButtonPressed = false;
     private boolean rightButtonPressed = false;
@@ -35,6 +39,8 @@ public class App extends SimpleApplication {
     private float rotationSpeed = 3.0f;
     private float zoomSpeed = 2f; // Speed of zooming in/out
 //    private Vector3f pivotPoint = Vector3f.ZERO;  // Assuming the object is at the origin
+    
+    private double pathLength = 5000.0;
 
     boolean initialized = false;
 
@@ -55,14 +61,26 @@ public class App extends SimpleApplication {
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private boolean showLabel = true;
     private CelestialObject focusing;
+    
+    private ResourceBundle strings;
 
     public static App getInstance() {
         return instance;
     }
 
+    public ResourceBundle getStrings() {
+        return strings;
+    }
+
     @Override
     public void simpleInitApp() {
         instance = this;
+        
+        Locale locale = Locale.getDefault();
+        strings = ResourceBundle.getBundle(
+                "com.trashsoftware.strings.Strings",
+                locale);
+        
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
         // Setup Nifty GUI
         NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
@@ -91,7 +109,7 @@ public class App extends SimpleApplication {
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 loadObjectsToView();
             }
-            
+
             if (focusing != null) {
                 moveScreenWithFocus();
             }
@@ -102,6 +120,7 @@ public class App extends SimpleApplication {
 //        rootNode.getChildren().removeAll(tempGeom);
 //        drawFullPaths();
         drawOrbits();
+        drawRecentPaths();
 
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
@@ -119,7 +138,7 @@ public class App extends SimpleApplication {
     void loadObjectsToView() {
         rootNode.detachAllChildren();
 //        lineGeometries.clear();
-        
+
         List<CelestialObject> objects = simulator.getObjects();
 
         // garbage collect for those destroyed things
@@ -127,7 +146,7 @@ public class App extends SimpleApplication {
 
         for (CelestialObject object : objects) {
             ObjectModel om = modelMap.computeIfAbsent(object, o -> new ObjectModel(o, this));
-            
+
             om.notifyObjectChanged();
 
             rootNode.attachChild(om.objectNode);
@@ -136,13 +155,10 @@ public class App extends SimpleApplication {
             Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
             mat.setColor("Color", om.getColor());
 
-//            // Initialize the geometry for the curve (we'll reuse this each frame)
-//            Geometry curveGeom = new Geometry("DynamicCurve" + object.getName(), new Mesh());
-//            curveGeom.setMaterial(mat);
-
-//            lineGeometries.put(object, curveGeom);
+            // Initialize the geometry for the curve (we'll reuse this each frame)
             rootNode.attachChild(om.path);
             rootNode.attachChild(om.orbit);
+            rootNode.attachChild(om.pathGradient);
         }
 
         updateModelPositions();
@@ -164,7 +180,7 @@ public class App extends SimpleApplication {
     private void setupMouses() {
         cam.setFrustumNear(1f);
         cam.setFrustumFar(1e6f);
-        
+
         cam.setLocation(new Vector3f(0, 0, 100));
 
         // Disable flyCam
@@ -193,10 +209,6 @@ public class App extends SimpleApplication {
 
         // Add listeners for zooming
         inputManager.addListener(analogListener, "ZoomIn", "ZoomOut");
-
-//        // Add a mouse click listener
-//        inputManager.addMapping("Select", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-//        inputManager.addListener(clickListener, "Select");
     }
 
     private void putTestBox() {
@@ -306,11 +318,6 @@ public class App extends SimpleApplication {
                 } else if (name.equals("MouseMoveX+")) {
                     rotateAroundPivot(-rotationAmount, Vector3f.UNIT_Z);
                 }
-//                else if (name.equals("MouseMoveY-")) {
-//                    rotateAroundPivot(rotationAmount, cam.getLeft());
-//                } else if (name.equals("MouseMoveY+")) {
-//                    rotateAroundPivot(-rotationAmount, cam.getLeft());
-//                }
             }
 
             // Handle zooming
@@ -335,23 +342,13 @@ public class App extends SimpleApplication {
         // Calculate the new camera position based on the rotated direction
         Vector3f newCamPos = lookAtPoint.add(direction);
 
-//        // Calculate the new up vector for the camera
-//        Vector3f newUp = cam.getUp();
-//        if (axis.equals(Vector3f.UNIT_Y)) {
-//            // For horizontal rotation, the up vector should remain consistent
-//            newUp = rotation.mult(newUp);
-//        } else {
-//            // For vertical rotation, the up vector is recalculated to avoid flipping
-//            newUp = axis.cross(direction).normalizeLocal();
-//        }
-
         // Set the new camera location and update its orientation
         cam.setLocation(newCamPos);
         cam.lookAt(lookAtPoint, worldUp);
 
 //        System.out.println(cam.getLocation());
     }
-    
+
     private void scaleScene(float scaleFactor) {
         double newScale = scale * scaleFactor;
         Vector3f newLookAt = lookAtPoint.mult(scaleFactor);
@@ -359,9 +356,9 @@ public class App extends SimpleApplication {
         lookAtPoint = newLookAt;
 //        System.out.println(newScale);
 //        System.out.println(lookAtPoint + " " + cam.getLocation());
-        
+
         scale = newScale;
-        
+
         updateLabelShowing();
     }
 
@@ -371,9 +368,9 @@ public class App extends SimpleApplication {
 //        centerX /= 0.8f;
 //        centerY /= 0.8f;
 //        centerZ /= 0.8f;
-        
+
 //        zoomByRatio(0.8f);
-        
+
 //        Vector3f direction = cam.getDirection();
 //        cam.setLocation(cam.getLocation().add(direction.mult(5f)));
 //        cam.lookAt(lookAtPoint, worldUp);
@@ -392,24 +389,24 @@ public class App extends SimpleApplication {
 //        centerY *= 0.8f;
 //        centerZ *= 0.8f;
 //        zoomByRatio(1.2f);
-        
+
 //        updateLabelShowing();
 
 //        for (CelestialObject object : simulator.getObjects()) {
 //            object.setScale(scale);
 //        }
     }
-    
+
     private void zoomByRatio(float ratio) {
         float dt = cam.getLocation().distance(lookAtPoint);
         float newDt = dt * ratio;
-        
+
         Vector3f direction = cam.getDirection();
         Vector3f newLocation = lookAtPoint.subtract(direction.mult(newDt));
         cam.setLocation(newLocation);
         cam.lookAt(lookAtPoint, worldUp);
     }
-    
+
 //    private Vector3f getLookAtPoint() {
 //        
 //    }
@@ -417,7 +414,7 @@ public class App extends SimpleApplication {
     // Method to handle the geometry click event
     private void onGeometryClicked(Geometry geom) {
         System.out.println("Clicked on: " + geom.getName() + ", " + geom.getClass());
-        
+
         for (ObjectModel objectModel : modelMap.values()) {
             CelestialObject object = objectModel.object;
             if (object.isExist()) {
@@ -437,7 +434,7 @@ public class App extends SimpleApplication {
 //        Material mat = geom.getMaterial();
 //        mat.setColor("Color", ColorRGBA.Red);
     }
-    
+
     private void focusOn(CelestialObject object) {
         System.out.println("Focused on " + object.getName());
 
@@ -451,13 +448,13 @@ public class App extends SimpleApplication {
         focusingLastX = focusing.getX() - refOffsetX;
         focusingLastY = focusing.getY() - refOffsetY;
         focusingLastZ = focusing.getZ() - refOffsetZ;
-        
+
         Vector3f newLookAt = new Vector3f((float) (focusingLastX * scale),
                 (float) (focusingLastY * scale),
                 (float) (focusingLastZ * scale));
         moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
         lookAtPoint = newLookAt;
-        
+
 //        centerX = (float) (focusingLastX * scale);
 //        centerY = (float) (focusingLastY * scale);
 //        centerZ = (float) (focusingLastZ * scale);
@@ -472,11 +469,11 @@ public class App extends SimpleApplication {
         focusingLastX = focusing.getX() - refOffsetX;
         focusingLastY = focusing.getY() - refOffsetY;
         focusingLastZ = focusing.getZ() - refOffsetZ;
-        
+
         cam.setLocation(cam.getLocation().add(delta));
         lookAtPoint.addLocal(delta);
     }
-    
+
     private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
         float dt = cam.getLocation().distance(oldLookAt);
 
@@ -541,20 +538,20 @@ public class App extends SimpleApplication {
                         barycenter,
                         child.getMass() + parent.getMass(),
                         simulator.getG());
-                
+
                 if (specs.isElliptical()) {
                     drawEllipticalOrbit(object, barycenter, specs);
                 }
             }
         }
     }
-    
+
     private void drawEllipticalOrbit(CelestialObject co, double[] barycenter, OrbitalElements oe) {
         ObjectModel om = modelMap.get(co);
 
 //        System.out.println(co.getName());
 //        System.out.println(oe);
-        
+
         Mesh mesh = om.createOrbitMesh(barycenter,
                 oe,
                 360);
@@ -563,7 +560,111 @@ public class App extends SimpleApplication {
     }
 
     private void drawRecentPaths() {
+        double visPathLength = pathLength * speed;
+        final double now = simulator.getTimeStepAccumulator();
+        final double earliest = now - visPathLength;
 
+        RefFrame refFrame = getRefFrame();
+
+        int ti = simulator.getDimension();  // time index
+        double[] temp;
+        double[] offset = new double[3];
+
+        for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
+            var obj = entry.getKey();
+//            if (obj.getMass() < minimumMassShowing) continue;
+            ObjectModel om = modelMap.get(obj);
+
+            var path = entry.getValue();
+            Iterator<double[]> centerPath = switch (refFrame) {
+                case SYSTEM -> simulator.getBarycenterPath().iterator();
+                case TARGET ->
+                        focusing == null ? null : simulator.getRecentPaths().get(focusing).iterator();
+                default -> null;
+            };
+            
+            double pointInterval = speed * Simulator.PATH_INTERVAL;
+            
+            double lastPointT = Double.MAX_VALUE;
+
+            int numPoints = (int) (visPathLength / pointInterval);
+            Vector3f[] vertices = new Vector3f[numPoints];
+            ColorRGBA[] colors = new ColorRGBA[numPoints];
+
+//            double[] last = obj.getPosition();
+//            double[] lastOffset = new double[3];
+            temp = new double[3];
+
+            int index = 0;
+            for (double[] pos : path) {
+                if (pos[ti] < earliest) {
+                    break;
+                }
+                double tsa = pos[ti];
+
+                if (centerPath != null) {
+                    if (!centerPath.hasNext()) {
+                        break;  // center not alive for this long
+                    }
+                    temp = centerPath.next();
+                }
+
+                if (lastPointT - tsa >= pointInterval) {
+                    lastPointT = tsa;
+                } else {
+                    continue;
+                }
+
+                if (centerPath != null) {
+                    offset[0] = temp[0] - refOffsetX;
+                    offset[1] = temp[1] - refOffsetY;
+                    offset[2] = temp[2] - refOffsetZ;
+                }
+                
+                vertices[index] = new Vector3f(
+                        paneX(pos[0] - offset[0]),
+                        paneY(pos[1] - offset[1]),
+                        paneZ(pos[2] - offset[2])
+                );
+
+                float begin = 0.25f;
+                float interpolate = (float) index / numPoints * (1 - begin) + begin;
+//                System.out.println(interpolate + " " + index + " " + numPoints);
+                ColorRGBA color = om.color.clone();
+                colors[index] = color.interpolateLocal(backgroundColor,
+                        interpolate);
+
+//                if (centerPath != null) {
+//                    lastOffset[0] = offset[0];
+//                    lastOffset[1] = offset[1];
+//                    
+//                }
+
+//                last = pos;
+                index++;
+            }
+            
+            if (index < numPoints) {
+                vertices = Arrays.copyOf(vertices, index);
+                colors = Arrays.copyOf(colors, index);
+            }
+            
+            // Create the mesh for the curve
+            Mesh mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.LineStrip);
+
+            // Set the vertices
+            mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+
+            // Set the vertex colors
+            mesh.setBuffer(VertexBuffer.Type.Color, 4, BufferUtils.createFloatBuffer(colors));
+
+            // Update the mesh to generate it
+            mesh.updateBound();
+            mesh.updateCounts();
+            
+            om.pathGradient.setMesh(mesh);
+        }
     }
 
     private void drawFullPaths() {
@@ -572,12 +673,7 @@ public class App extends SimpleApplication {
             var obj = entry.getKey();
 //            if (obj.getMass() < minimumMassShowing) continue;
             var path = entry.getValue();
-//            Geometry geometry = lineGeometries.get(obj);
             if (obj == null) continue;
-            
-            ObjectModel om = modelMap.get(obj);
-
-            int numPoints = path.size();
 
             Vector3f[] vertices = new Vector3f[path.size()];
             int index = 0;
@@ -593,11 +689,11 @@ public class App extends SimpleApplication {
             }
 
             Geometry lineGeom = modelMap.get(obj).path;
-            drawPolyLine(vertices, om.getColor(), lineGeom);
+            drawPolyLine(vertices, lineGeom);
         }
     }
 
-    private void drawPolyLine(Vector3f[] vertices, ColorRGBA colorRGBA, Geometry lineGeom) {
+    private void drawPolyLine(Vector3f[] vertices, Geometry lineGeom) {
         int numPoints = vertices.length;
 
         // Create a mesh and set it to line mode
@@ -637,7 +733,7 @@ public class App extends SimpleApplication {
             ObjectModel om = modelMap.get(obj);
             float labelX = paneX(obj.getX());
             float labelY = paneY(obj.getY());
-            
+
             float[] canvasPos = new float[]{labelX, labelY};
             if (canLabel(drawnObjectPoses, canvasPos)) {
                 om.setShowLabel(true);
@@ -703,5 +799,17 @@ public class App extends SimpleApplication {
         scale *= 1;
 
         loadObjectsToView();
+    }
+
+    private RefFrame getRefFrame() {
+
+        return RefFrame.STATIC;
+        
+    }
+
+    public enum RefFrame {
+        STATIC,
+        SYSTEM,
+        TARGET
     }
 }
