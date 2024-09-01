@@ -1,6 +1,8 @@
 package com.trashsoftware.physics;
 
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Matrix3f;
+import com.jme3.math.Vector3f;
 import com.jme3.texture.Texture;
 import com.trashsoftware.gui.App;
 
@@ -300,7 +302,7 @@ public class SystemPresets {
                                    double radiusMul,
                                    double distanceMul) {
         if (true) {
-            addObject3d(simulator, root, null, massMul, radiusMul, distanceMul);
+            addObject3d(simulator, root, null, massMul, radiusMul, distanceMul, null);
         } else {
             addObject2d(simulator, root, null, massMul, radiusMul, distanceMul);
         }
@@ -319,6 +321,7 @@ public class SystemPresets {
                 objectInfo,
                 position,
                 velocity,
+                randomAxisToZ(objectInfo.tilt),
                 1 * scale,
                 1e3 * scale);
     }
@@ -328,7 +331,8 @@ public class SystemPresets {
                                     CelestialObject parent,
                                     double massMul,
                                     double radiusMul,
-                                    double distanceMul) {
+                                    double distanceMul,
+                                    Vector3f parentOrbitPlaneNormal) {
         double[] position = calculateXYZPosition(
                 info.semiMajorAxis * distanceMul,
                 Math.toRadians(info.eccentricity),
@@ -338,7 +342,13 @@ public class SystemPresets {
                 Math.toRadians(info.trueAnomaly)
         );
         double[] velocity;
+        Vector3f axis;
+        Vector3f orbitPlaneNormal = calculateOrbitalPlaneNormal(
+                (float) Math.toRadians(info.inclination),
+                (float) Math.toRadians(info.argumentOfPeriapsis),
+                (float) Math.toRadians(info.ascendingNode));
         if (parent != null) {
+            // todo: check this correctness for moons
             position = VectorOperations.add(position, parent.position);
 
             double mu = simulator.getG() * (parent.getMass() + info.mass * massMul);
@@ -353,8 +363,17 @@ public class SystemPresets {
                     mu
             );
             velocity = VectorOperations.add(velocity, parent.velocity);
+
+            axis = calculateRotationAxis(
+                    (float) Math.toRadians(info.eccentricity),
+                    (float) Math.toRadians(info.inclination),
+                    (float) Math.toRadians(info.argumentOfPeriapsis),
+                    (float) Math.toRadians(info.tilt),
+                    parentOrbitPlaneNormal
+            );
         } else {
             velocity = new double[3];
+            axis = new Vector3f(0, 0, 1);
         }
 
         if (info.name.equals("Earth")) {
@@ -378,8 +397,10 @@ public class SystemPresets {
                 info,
                 position,
                 velocity,
+                new double[]{axis.x, axis.y, axis.z},
                 massMul,
                 radiusMul);
+
         simulator.addObject(co);
 
         for (ObjectInfo moon : info.children) {
@@ -388,7 +409,8 @@ public class SystemPresets {
                     co,
                     massMul,
                     radiusMul,
-                    distanceMul
+                    distanceMul,
+                    orbitPlaneNormal
             );
         }
     }
@@ -437,6 +459,7 @@ public class SystemPresets {
                 info,
                 new double[]{x, y},
                 initVel,
+                randomAxisToZ(info.tilt),
                 massMul,
                 radiusMul);
         simulator.addObject(co);
@@ -456,9 +479,10 @@ public class SystemPresets {
                                                 ObjectInfo info,
                                                 double[] position,
                                                 double[] initVel,
+                                                double[] axis,
                                                 double massMul,
                                                 double radiusMul) {
-        double[] axis = randomAxisToZ(info.tilt);
+//        double[] axis = randomAxisToZ(info.tilt);
 
         String textureFile = TEXTURES.get(info.name);
         Texture diffuseMap = null;
@@ -743,6 +767,106 @@ public class SystemPresets {
         velocity = rotateAroundZAxis(velocity, omegaBig);
 
         return velocity;
+    }
+
+    public static Vector3f calculateRotationAxis(float i,
+                                                 float omega,
+                                                 float omegaBig,
+                                                 float tilt,
+                                                 Vector3f parentOrbitalPlaneNormal) {
+        Vector3f axis;
+        if (parentOrbitalPlaneNormal == null) {
+            axis = planetRotationAxis(i, omega, omegaBig, tilt);
+        } else {
+            axis = moonRotationAxis(i, omega, omegaBig, tilt, parentOrbitalPlaneNormal);
+        }
+
+        return axis;
+    }
+
+    private static Vector3f planetRotationAxis(float i,
+                                               float omega,
+                                               float omegaBig,
+                                               float tilt) {
+        // Step 1: Start with the axis in the orbital plane's coordinate system
+        Vector3f axis = new Vector3f(0, 0, 1);  // Pointing along the Z-axis (perpendicular to the plane)
+
+        // Step 2: Apply the tilt (rotate around the X-axis in the orbital plane)
+        Matrix3f tiltRotation = new Matrix3f();
+        tiltRotation.fromAngleAxis(tilt, Vector3f.UNIT_X);
+        axis = tiltRotation.mult(axis);
+
+        // Step 3: Rotate by -ω around Z-axis (argument of periapsis)
+        Matrix3f rotOmega = new Matrix3f();
+        rotOmega.fromAngleAxis(-omega, Vector3f.UNIT_Z);
+        axis = rotOmega.mult(axis);
+
+        // Step 4: Rotate by -i around X-axis (inclination)
+        Matrix3f rotInclination = new Matrix3f();
+        rotInclination.fromAngleAxis(-i, Vector3f.UNIT_X);
+        axis = rotInclination.mult(axis);
+
+        // Step 5: Rotate by -Ω around Z-axis (longitude of ascending node)
+        Matrix3f rotOmegaBig = new Matrix3f();
+        rotOmegaBig.fromAngleAxis(-omegaBig, Vector3f.UNIT_Z);
+        return rotOmegaBig.mult(axis);
+    }
+
+    private static Vector3f calculateOrbitalPlaneNormal(float i, float omega, float omegaBig) {
+        // Start with the unit vector (0, 0, 1) representing the normal to the orbital plane
+        Vector3f normal = new Vector3f(0, 0, 1);
+
+        // Apply the planet's orbital elements to rotate the plane's normal into the global reference frame
+        Matrix3f rotOmega = new Matrix3f();
+        rotOmega.fromAngleAxis(-omega, Vector3f.UNIT_Z);
+        normal = rotOmega.mult(normal);
+
+        Matrix3f rotInclination = new Matrix3f();
+        rotInclination.fromAngleAxis(-i, Vector3f.UNIT_X);
+        normal = rotInclination.mult(normal);
+
+        Matrix3f rotOmegaBig = new Matrix3f();
+        rotOmegaBig.fromAngleAxis(-omegaBig, Vector3f.UNIT_Z);
+        normal = rotOmegaBig.mult(normal);
+
+        return normal;
+    }
+
+    private static Vector3f moonRotationAxis(float i,
+                                             float omega,
+                                             float omegaBig,
+                                             float tilt,
+                                             Vector3f planetOrbitalPlaneNormal) {
+        // Step 1: Start with the axis in the moon's orbital plane (relative to the planet's plane)
+        Vector3f axis = new Vector3f(0, 0, 1);  // Pointing along the Z-axis in the moon's orbital plane
+
+        // Step 2: Apply the tilt (rotate around the X-axis in the moon's orbital plane)
+        Matrix3f tiltRotation = new Matrix3f();
+        tiltRotation.fromAngleAxis(tilt, Vector3f.UNIT_X);
+        axis = tiltRotation.mult(axis);
+
+        // Step 3: Rotate by -ω around Z-axis (argument of periapsis for moon)
+        Matrix3f rotOmega = new Matrix3f();
+        rotOmega.fromAngleAxis(-omega, Vector3f.UNIT_Z);
+        axis = rotOmega.mult(axis);
+
+        // Step 4: Rotate by -i around X-axis (inclination for moon)
+        Matrix3f rotInclination = new Matrix3f();
+        rotInclination.fromAngleAxis(-i, Vector3f.UNIT_X);
+        axis = rotInclination.mult(axis);
+
+        // Step 5: Rotate by -Ω around Z-axis (longitude of ascending node for moon)
+        Matrix3f rotOmegaBig = new Matrix3f();
+        rotOmegaBig.fromAngleAxis(-omegaBig, Vector3f.UNIT_Z);
+        axis = rotOmegaBig.mult(axis);
+
+        // Step 6: Rotate the final axis by the planet's orbital plane normal
+        // Convert planetOrbitalPlaneNormal to a rotation matrix and apply it to the axis
+        Matrix3f planetRotationMatrix = new Matrix3f();
+        planetRotationMatrix.fromAngleNormalAxis(0, planetOrbitalPlaneNormal);
+        axis = planetRotationMatrix.mult(axis);
+
+        return axis;
     }
 
     private static double[] rotateAroundZAxis(double[] point, double angle) {

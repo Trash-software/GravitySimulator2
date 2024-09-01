@@ -4,6 +4,7 @@ import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -28,6 +29,8 @@ public class ObjectModel {
     protected Geometry path;
     protected Geometry orbit;
     private boolean showLabel = true;
+    
+    private float lastRotateAngle;
 
     public ObjectModel(CelestialObject object, App app) {
         this.app = app;
@@ -35,6 +38,7 @@ public class ObjectModel {
         this.color = Util.stringToColor(object.getColorCode());
 
         Sphere sphere = new Sphere(64, 64, (float) object.getEquatorialRadius());
+        sphere.setTextureMode(Sphere.TextureMode.Projected);
         model = new Geometry(object.getName(), sphere);
         // Create a material for the box
         Material mat = new Material(App.getInstance().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -80,6 +84,17 @@ public class ObjectModel {
         orbit.setMaterial(matLine2);
     }
 
+    /**
+     * Notify this model that its owner model may have some internal change
+     */
+    public void notifyObjectChanged() {
+        // Apply the initial tilt (e.g., 23.5 degrees around an arbitrary axis)
+        float tiltAngle = FastMath.DEG_TO_RAD * 23.5f;
+        Vector3f tiltAxis = new Vector3f(1, 0, 0); // For example, tilt around the Y-axis
+        Quaternion tiltRotation = new Quaternion().fromAngleAxis(tiltAngle, tiltAxis);
+        model.setLocalRotation(tiltRotation);
+    }
+
     public void updateModelPosition(Function<Double, Float> xMapper,
                                     Function<Double, Float> yMapper,
                                     Function<Double, Float> zMapper,
@@ -96,6 +111,18 @@ public class ObjectModel {
         float z = zMapper.apply(position[2]);
 
         objectNode.setLocalTranslation(x, y, z);
+        
+        if (object.getAngularVelocity() != 0) {
+            rotateModel();
+        }
+    }
+    
+    private void rotateModel() {
+        float rotateAngle = (float) object.getRotationAngle();
+        Quaternion rotation = new Quaternion().fromAngleAxis(FastMath.DEG_TO_RAD * (rotateAngle - lastRotateAngle), Vector3f.UNIT_Z);
+        model.rotate(rotation);
+        
+        lastRotateAngle = rotateAngle;
     }
     
     public void setShowLabel(boolean showLabel) {

@@ -108,8 +108,8 @@ public class App extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
-//        solarSystemTest();
+//        simpleTest2();
+        solarSystemTest();
     }
 
     void loadObjectsToView() {
@@ -123,6 +123,8 @@ public class App extends SimpleApplication {
 
         for (CelestialObject object : objects) {
             ObjectModel om = modelMap.computeIfAbsent(object, o -> new ObjectModel(o, this));
+            
+            om.notifyObjectChanged();
 
             rootNode.attachChild(om.objectNode);
 
@@ -388,8 +390,7 @@ public class App extends SimpleApplication {
             CelestialObject object = objectModel.object;
             if (object.isExist()) {
                 if (object.getName().equals(geom.getName())) {
-                    focusing = object;
-                    System.out.println("Focused on " + object.getName());
+                    focusOn(object);
                 }
             }
         }
@@ -397,6 +398,16 @@ public class App extends SimpleApplication {
 //        // Change color of the clicked geometry
 //        Material mat = geom.getMaterial();
 //        mat.setColor("Color", ColorRGBA.Red);
+    }
+    
+    private void focusOn(CelestialObject object) {
+        System.out.println("Focused on " + object.getName());
+
+        focusing = object;
+        focusingLastX = focusing.getX() - refOffsetX;
+        focusingLastY = focusing.getY() - refOffsetY;
+        centerX = (float) (focusingLastX * scale);
+        centerY = (float) (focusingLastY * scale);
     }
 
     private void moveScreenWithFocus() {

@@ -83,7 +83,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
         this.texture = diffuseMap;
         
-        convertToFxAxisTilt(this.rotationAxis);
+//        convertToFxAxisTilt(this.rotationAxis);
         
 //        rotation = new Rotate(0, Rotate.Y_AXIS);
         
@@ -337,9 +337,9 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected void updateRotation(double timeSteps) {
         double deg = Math.toDegrees(angularVelocity) * timeSteps;
         
-        int sign = -1;
+        int sign = 1;
         if (rotationAxis[rotationAxis.length - 1] < 0) {
-            sign = 1;
+            sign = -1;
         }
         rotationAngle += deg * sign;
         if (rotationAngle >= 360) rotationAngle -= 360;
@@ -415,6 +415,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return 2 * Math.PI / angularVelocity;
     }
 
+    public double getAngularVelocity() {
+        return angularVelocity;
+    }
+
     public double getAxisTiltAngle() {
         // todo: for showing, it's better to consider the axis tilt vs its orbit pane
 
@@ -485,6 +489,14 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double Req = ratio * Rpol;
 
         setRadius(Req, Rpol);
+    }
+
+    public double[] getRotationAxis() {
+        return rotationAxis;
+    }
+
+    public double getRotationAngle() {
+        return rotationAngle;
     }
 
     /**
