@@ -87,6 +87,7 @@ public class JmeApp extends SimpleApplication {
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 loadObjectsToView();
+                FxApp.getInstance().notifyObjectCountChanged(simulator);
             }
 
             if (focusing != null) {
@@ -132,6 +133,8 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest();
 //        simpleTest2();
         solarSystemTest();
+        
+        FxApp.getInstance().notifyObjectCountChanged(simulator);
     }
 
     void loadObjectsToView() {
@@ -385,7 +388,7 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void focusOn(CelestialObject object) {
+    public void focusOn(CelestialObject object) {
         System.out.println("Focused on " + object.getName());
 
         focusing = object;
@@ -773,6 +776,10 @@ public class JmeApp extends SimpleApplication {
 
     public Simulator getSimulator() {
         return simulator;
+    }
+
+    public CelestialObject getFocusing() {
+        return focusing;
     }
 
     public void clearFocus() {

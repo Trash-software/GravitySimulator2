@@ -1,11 +1,11 @@
 package com.trashsoftware.gravity2.fxml;
 
 import com.jme3.system.AppSettings;
-import com.jme3.system.lwjgl.LwjglContext;
 import com.trashsoftware.gravity2.fxml.units.AdaptiveUnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.OriginalUnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.JmeApp;
+import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.SystemPresets;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -13,14 +13,13 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.lwjgl.glfw.GLFW;
+import javafx.stage.StageStyle;
 
 import java.io.File;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.IOException;
+import java.util.*;
 
 public class FxApp extends Application {
     public static final String SAVE_PATH = "saves";
@@ -37,8 +36,10 @@ public class FxApp extends Application {
     
     private boolean stopped = false;
     
+    private Stage primaryStage;
     private ControlBar controlBar;
-    private ObjectPanel objectPanel;
+    private ObjectListPanel objectListPanel;
+    private final List<ObjectPanel> objectInfoPanels = new ArrayList<>();
 
     public static void startApp(String[] args) {
         launch(args);
@@ -72,9 +73,17 @@ public class FxApp extends Application {
     public ControlBar getControlBar() {
         return controlBar;
     }
+    
+    public void notifyObjectCountChanged(Simulator simulator) {
+        Platform.runLater(() -> {
+            if (objectListPanel != null) {
+                objectListPanel.reloadInfoPane(simulator);
+            }
+        });
+    }
 
-    public ObjectPanel getObjectPanel() {
-        return objectPanel;
+    public ObjectListPanel getObjectListPanel() {
+        return objectListPanel;
     }
 
     public UiUpdateTimer getUiUpdateTimer() {
@@ -84,10 +93,17 @@ public class FxApp extends Application {
     public JmeApp getJmeApp() {
         return jmeApp;
     }
+    
+    public Simulator getSimulator() {
+        if (jmeApp == null) return null;
+        return jmeApp.getSimulator();
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         instance = this;
+        
+        this.primaryStage = primaryStage;
 
         reloadStrings();
         initDirectories();
@@ -128,10 +144,38 @@ public class FxApp extends Application {
         primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
         
+        createObjectListPanel();
+        
         uiUpdateTimer = new UiUpdateTimer();
         uiUpdateTimer.start();
 
         textRefresher.scheduleAtFixedRate(new TextRefreshTask(), 0, textRefreshInterval);
+    }
+    
+    private void createObjectListPanel() throws IOException {
+        Stage stage = new Stage(StageStyle.DECORATED);
+        stage.initOwner(primaryStage);
+
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("objectListPanel.fxml"),
+                strings
+        );
+        Pane parent = loader.load();
+        Scene scene = new Scene(parent);
+        
+        stage.setScene(scene);
+        
+        objectListPanel = loader.getController();
+        objectListPanel.setWindow(stage, this);
+
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = screenSize.width;
+        int screenHeight = screenSize.height;
+
+//        primaryStage.setX(screenWidth * 0.5);
+        stage.setX(screenWidth * 0.7);
+        
+        stage.show();
     }
 
     @Override
@@ -181,6 +225,12 @@ public class FxApp extends Application {
                 if (controlBar != null) {
                     controlBar.oneFrameSlow(textRefreshInterval);
                 }
+                if (objectListPanel != null) {
+                    objectListPanel.oneFrameSlow(textRefreshInterval);
+                }
+                for (ObjectPanel op : objectInfoPanels) {
+                    op.oneFrameSlow(textRefreshInterval);
+                }
             });
         }
     }
@@ -200,24 +250,6 @@ public class FxApp extends Application {
         @Override
         public String toString() {
             return FxApp.getStrings().getString(key);
-        }
-    }
-
-    public static class SpawnPreset {
-
-        private final SystemPresets.ObjectInfo value;
-
-        SpawnPreset(SystemPresets.ObjectInfo value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            if (value == null) {
-                return FxApp.getStrings().getString("spawnPresetCustom");
-            } else {
-                return value.name();
-            }
         }
     }
 }

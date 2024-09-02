@@ -8,7 +8,7 @@
 
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.text.Font?>
-<fx:root type="com.trashsoftware.gravity.fxml.ObjectStatsWrapper" xmlns="http://javafx.com/javafx"
+<fx:root type="com.trashsoftware.gravity2.fxml.ObjectStatsWrapper" xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml" alignment="CENTER_LEFT" spacing="5.0">
     
     <VBox fx:id="modelPane" spacing="5.0" alignment="CENTER">
