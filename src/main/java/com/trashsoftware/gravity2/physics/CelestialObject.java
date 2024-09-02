@@ -385,6 +385,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double getZ() {
         return position[2];
     }
+    
+    public boolean isEmittingLight() {
+        return name.equals("Sun");
+    }
 
     @Override
     public double[] getVelocity() {

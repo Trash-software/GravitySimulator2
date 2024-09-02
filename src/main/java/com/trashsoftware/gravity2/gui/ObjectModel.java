@@ -1,6 +1,7 @@
 package com.trashsoftware.gravity2.gui;
 
 import com.jme3.font.BitmapText;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -24,10 +25,10 @@ public class ObjectModel {
     protected final ColorRGBA color;
     protected final ColorRGBA opaqueColor;
     protected final ColorRGBA darkerColor;
-//    protected final ColorRGBA[] gradientColor = new ColorRGBA[COLOR_GRADIENTS];
     protected final JmeApp jmeApp;
-    protected ObjectNode objectNode;
+    protected ObjectNode objectNode = new ObjectNode();
     protected Geometry model;
+    protected BitmapText labelText;
     protected Node labelNode;
     protected Geometry path;
     protected Geometry orbit;
@@ -44,13 +45,6 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
-        
-//        float begin = 0.25f;
-//        for (int i = 0; i < COLOR_GRADIENTS; i++) {
-//            float interpolate = (float) i / COLOR_GRADIENTS * (1 - begin) + begin;
-//            ColorRGBA c = color.clone();
-////            gradientColor[i] = c.interpolateLocal(app.backgroundColor, interpolate);
-//        }
 
         Sphere sphere = new Sphere(64, 64, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
@@ -66,7 +60,7 @@ public class ObjectModel {
         model.setMaterial(mat);
 
         // Create the text label
-        BitmapText labelText = new BitmapText(jmeApp.font);
+        labelText = new BitmapText(jmeApp.font);
         labelText.setText(object.getName());
         labelText.setColor(ColorRGBA.White);
 
@@ -79,8 +73,7 @@ public class ObjectModel {
         BillboardControl billboardControl = new BillboardControl();
         labelNode.addControl(billboardControl);
         labelNode.setLocalScale(0.1f);
-
-        objectNode = new ObjectNode();
+        
         objectNode.attachChild(model);
         objectNode.attachChild(labelNode);
 
@@ -153,6 +146,7 @@ public class ObjectModel {
     public void setShowLabel(boolean showLabel) {
         boolean wasShowLabel = this.showLabel;
         this.showLabel = showLabel;
+//        System.out.println("Toggled " + object.getName() + " " + wasShowLabel + " " + showLabel);
         if (wasShowLabel != showLabel) {
             if (showLabel) {
                 objectNode.attachChild(labelNode);

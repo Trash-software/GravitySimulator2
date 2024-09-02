@@ -45,6 +45,8 @@ public class ControlBar implements Initializable {
         this.strings = resourceBundle;
         
         setRadioButtons();
+        setCheckBoxes();
+        setSliders();
     }
 
     public void setWindow(Stage window, FxApp fxApp) {
@@ -66,6 +68,29 @@ public class ControlBar implements Initializable {
         });
     }
     
+    private void setCheckBoxes() {
+        nameOnCanvasCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.toggleLabelShowing(newValue);
+        });
+    }
+    
+    private void setSliders() {
+        pathLengthSlider.setMin(1);
+        pathLengthSlider.setMax(50000);
+
+        pathLengthSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            double pathLength = newValue.doubleValue();
+            pathLengthText.setText(String.format("%,.0f", pathLength));
+
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.setPathLength(pathLength);
+        });
+        pathLengthSlider.setValue(5000.0);
+    }
+    
     public void setFocus() {
         clearFocusBtn.setDisable(false);
     }
@@ -81,13 +106,11 @@ public class ControlBar implements Initializable {
     @FXML
     public void speedUpAction() {
         getJmeApp().speedUpAction();
-        speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
     }
     
     @FXML
     public void speedDownAction() {
         getJmeApp().speedDownAction();
-        speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
     }
 
     @FXML
@@ -113,6 +136,7 @@ public class ControlBar implements Initializable {
     }
     
     public JmeApp getJmeApp() {
+        if (getFxApp() == null) return null;
         return getFxApp().getJmeApp();
     }
     
@@ -128,7 +152,8 @@ public class ControlBar implements Initializable {
         double diff = timeStep - lastRealTimeStep;
         double realDiff = diff * (1000.0 / frameTimeMs);
         realSpeedLabel.setText(UnitsUtil.adaptiveTime(realDiff) + "/s");
-
         lastRealTimeStep = timeStep;
+
+        speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
     }
 }
