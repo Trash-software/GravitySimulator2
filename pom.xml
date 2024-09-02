@@ -57,33 +57,43 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Nifty GUI dependencies -->
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
         <dependency>
-            <groupId>com.github.nifty-gui</groupId>
-            <artifactId>nifty</artifactId>
-            <version>1.4.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.nifty-gui</groupId>
-            <artifactId>nifty-style-black</artifactId>
-            <version>1.4.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.nifty-gui</groupId>
-            <artifactId>nifty-default-controls</artifactId>
-            <version>1.4.2</version>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>20.0.1</version>
+            <!--            <classifier>mac</classifier>-->
         </dependency>
 
-        <!-- XML binding dependencies (for loading Nifty XML files) -->
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-graphics -->
         <dependency>
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>stax2-api</artifactId>
-            <version>4.2</version>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>20.0.1</version>
+            <!--            <classifier>mac</classifier>-->
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-base -->
         <dependency>
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>woodstox-core-asl</artifactId>
-            <version>4.4.1</version>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>20.0.1</version>
+            <!--            <classifier>mac</classifier>-->
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-fxml -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>20.0.1</version>
+            <!--            <classifier>mac</classifier>-->
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>20.0.1</version>
+            <!--            <classifier>mac</classifier>-->
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.json/json -->

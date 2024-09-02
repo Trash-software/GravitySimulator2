@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.trashsoftware.gravity2.fxml.ControlBar"
+      prefHeight="60.0" prefWidth="960.0" spacing="10.0">
+
+    <padding>
+        <Insets topRightBottomLeft="5.0"/>
+    </padding>
+
+    <VBox spacing="5.0">
+        <HBox spacing="5.0" alignment="CENTER_LEFT">
+            <fx:define>
+                <ToggleGroup fx:id="orbitShowingGroup"/>
+            </fx:define>
+
+            <HBox spacing="5.0" alignment="CENTER_LEFT" prefWidth="360.0">
+                <Button text="⏸" fx:id="playPauseBtn" onAction="#playPauseAction"/>
+                <Label fx:id="timeStepText"/>
+                <Label text="%simSpeed"/>
+                <Label fx:id="speedLabel" text="1.0x"/>
+                <Label fx:id="realSpeedLabel" text="--"/>
+            </HBox>
+
+            <Button text="⏪" onAction="#speedDownAction"/>
+            <Button text="⏩" onAction="#speedUpAction"/>
+
+            <RadioButton text="%orbitTrace" toggleGroup="$orbitShowingGroup"
+                         fx:id="showTraceBtn"
+                         selected="true"/>
+            <RadioButton text="%orbitPath" toggleGroup="$orbitShowingGroup"
+                         fx:id="showPathBtn"/>
+            <RadioButton text="%orbitOrbit" toggleGroup="$orbitShowingGroup"
+                         fx:id="showOrbitBtn"/>
+
+            <Button fx:id="clearFocusBtn" text="%clearFocus" onAction="#clearFocusAction"
+                    disable="true"/>
+
+            <MenuButton text="%displayOptions">
+                <items>
+                    <CheckMenuItem fx:id="nameOnCanvasCheck" text="%showName"/>
+                    <CheckMenuItem fx:id="barycenterCheck" text="%barycenter"/>
+                    <CheckMenuItem fx:id="hillSpheresCheck" text="%hillSphere"/>
+                    <CheckMenuItem fx:id="rocheLimitCheck" text="%rocheLimit"/>
+                </items>
+            </MenuButton>
+            <MenuButton text="%traceOptions">
+                <items>
+                    <CheckMenuItem fx:id="ellipticalOnlyCheck" text="%ellipticalOnly"/>
+                    <CustomMenuItem>
+                        <content>
+                            <HBox spacing="5.0">
+                                <Label text="%traceLength"/>
+                                <Slider fx:id="pathLengthSlider"/>
+                                <Label fx:id="pathLengthText"/>
+                            </HBox>
+                        </content>
+                    </CustomMenuItem>
+                    <CustomMenuItem>
+                        <content>
+                            <HBox spacing="5.0">
+                                <Label text="%traceObjMass"/>
+                                <Slider fx:id="massPercentileSlider" value="100.0"/>
+                                <Label fx:id="massPercentileText" text="100.0%"/>
+                            </HBox>
+                        </content>
+                    </CustomMenuItem>
+                </items>
+            </MenuButton>
+        </HBox>
+        <HBox spacing="5.0" alignment="CENTER_LEFT">
+            <fx:define>
+                <ToggleGroup fx:id="refFrameGroup"/>
+            </fx:define>
+            <Label text="%refFrame"/>
+            <RadioButton text="%refStatic" toggleGroup="$refFrameGroup" fx:id="refStaticBtn"
+                         selected="true"/>
+            <RadioButton text="%refSystem" toggleGroup="$refFrameGroup" fx:id="refSystemBtn"/>
+            <RadioButton text="%refTarget" toggleGroup="$refFrameGroup" fx:id="refTargetBtn"/>
+        </HBox>
+    </VBox>
+
+</HBox>

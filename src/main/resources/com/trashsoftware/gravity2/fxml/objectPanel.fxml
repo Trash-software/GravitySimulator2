@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.SubScene?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.trashsoftware.gravity2.fxml.ObjectPanel" HBox.hgrow="ALWAYS"
+      spacing="10.0">
+
+    <MenuBar>
+        <Menu text="%menuFile">
+            <MenuItem text="%menuSave" onAction="#saveAction"/>
+            <MenuItem text="%menuLoad" onAction="#loadAction"/>
+        </Menu>
+        <Menu text="%menuTool">
+            <CheckMenuItem text="%menuContour" fx:id="gravityContourMenu"/>
+            <CheckMenuItem text="%menuEffPotContour" fx:id="effPotentialContourMenu"/>
+        </Menu>
+    </MenuBar>
+    <GridPane fx:id="infoPane" vgap="5.0" hgap="10.0" HBox.hgrow="ALWAYS">
+        <!--            <Label text="%timeStep"/>-->
+
+        <Label text="%totalE" GridPane.rowIndex="0"/>
+        <Label fx:id="totalEnergyText" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="%totalPE" GridPane.rowIndex="1"/>
+        <Label fx:id="totalPotentialText" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="%totalKE" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <Label fx:id="totalKineticText" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+        <Label text="%totalInternalE" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="totalInternalText" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="%totalObjectsAndMass" GridPane.rowIndex="3"/>
+        <HBox spacing="10.0" GridPane.rowIndex="3" GridPane.columnIndex="1">
+            <Label fx:id="nObjectsText"/>
+            <Label fx:id="totalMassText"/>
+        </HBox>
+    </GridPane>
+
+    <Separator/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="%sort"/>
+        <ComboBox fx:id="sortBox"/>
+        <Label text="%unitMethod"/>
+        <ComboBox fx:id="unitsMethodBox"/>
+    </HBox>
+
+    <SubScene height="320.0" width="400.0">
+        <root>
+            <ScrollPane fx:id="celestialContainer" prefHeight="320.0">
+                <VBox fx:id="celestialPane" spacing="5.0"/>
+            </ScrollPane>
+        </root>
+    </SubScene>
+
+
+    <GridPane vgap="5.0" hgap="5.0">
+        <fx:define>
+            <ToggleGroup fx:id="spawnOrbitGroup"/>
+        </fx:define>
+
+        <columnConstraints>
+            <ColumnConstraints/>
+            <ColumnConstraints/>
+            <ColumnConstraints/>
+        </columnConstraints>
+
+        <Label text="%spawnName"/>
+        <TextField fx:id="createNameInput" GridPane.columnIndex="1"/>
+        <Label text="%spawnMass" GridPane.rowIndex="1"/>
+        <TextField fx:id="createMassInput" text="1" GridPane.rowIndex="1"
+                   GridPane.columnIndex="1"/>
+        <Label text="%spawnRadius" GridPane.rowIndex="2"/>
+        <TextField fx:id="createRadiusInput" text="1" GridPane.rowIndex="2"
+                   GridPane.columnIndex="1"/>
+        <HBox spacing="3.0" alignment="CENTER_LEFT" GridPane.rowIndex="2"
+              GridPane.columnIndex="2">
+            <Label text="%spawnDensity"/>
+            <Label text="1.0" fx:id="spawnDensityText"/>
+        </HBox>
+        <Label text="%spawnColor" GridPane.rowIndex="3"/>
+        <ColorPicker fx:id="colorPicker" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="spawnPresetBox" promptText="%spawnPreset"
+                  GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+
+        <RadioButton text="%spawnStill" toggleGroup="$spawnOrbitGroup" fx:id="spawnStillBtn"
+                     selected="true"
+                     GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <RadioButton text="%spawnOrbit" toggleGroup="$spawnOrbitGroup" fx:id="spawnOrbitBtn"
+                     GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <RadioButton text="%spawnEllipse" toggleGroup="$spawnOrbitGroup" fx:id="SpawnEllipseBtn"
+                     GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <RadioButton text="%spawnParabola" toggleGroup="$spawnOrbitGroup" fx:id="spawnParabolicBtn"
+                     GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="%spawnSpeedX" GridPane.rowIndex="6"/>
+        <TextField fx:id="speedMulInput" text="0" GridPane.rowIndex="6"
+                   GridPane.columnIndex="1"/>
+
+        <Button text="%spawnMode" onAction="#spawnModeAction" GridPane.rowIndex="7"/>
+        <Label fx:id="spawnPrompt" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+    </GridPane>
+
+</VBox>
