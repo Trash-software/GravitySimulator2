@@ -43,6 +43,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     ColorPicker colorPicker;
     @FXML
     ComboBox<SpawnPreset> spawnPresetBox;
+    private double celestialContainerVValueCache;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -96,10 +97,9 @@ public class ObjectListPanel extends AbstractObjectPanel {
                     objectStatsWrapper.update(simulator, unitsMethodBox.getValue().unitsConverter);
                 }
             }
-        } 
-//        else if (root instanceof ObjectStatsWrapper osw) {
-//            osw.update(simulator, unitsMethodBox.getValue().unitsConverter);
-//        }
+        } else if (root instanceof ObjectStatsWrapper osw) {
+            osw.update(simulator, unitsMethodBox.getValue().unitsConverter);
+        }
     }
     
     private void setTexts(Simulator simulator) {
@@ -171,14 +171,14 @@ public class ObjectListPanel extends AbstractObjectPanel {
     }
 
     private void expandObjectStats(ObjectStatsWrapper osw) {
-//        celestialContainerVValueCache = celestialContainer.getVvalue();
-//        celestialContainer.setContent(osw);
+        celestialContainerVValueCache = celestialContainer.getVvalue();
+        celestialContainer.setContent(osw);
     }
 
     private void collapseObjectStats() {
-//        celestialContainer.setContent(celestialPane);
-//        reloadInfoPane();
-//        celestialContainer.setVvalue(celestialContainerVValueCache);
+        celestialContainer.setContent(celestialListPane);
+        reloadInfoPane(fxApp.getSimulator());
+        celestialContainer.setVvalue(celestialContainerVValueCache);
     }
     
     @FXML

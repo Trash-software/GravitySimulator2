@@ -9,8 +9,6 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.light.AmbientLight;
-import com.jme3.light.DirectionalLight;
 import com.jme3.math.*;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -47,9 +45,10 @@ public class JmeApp extends SimpleApplication {
     protected double speed = 1.0;
     protected boolean playing = true;
     protected double scale = 1.0;
-    private float centerX, centerY, centerZ;
+    private final Vector3f screenCenter = new Vector3f();
     private double refOffsetX, refOffsetY, refOffsetZ;
-    private double focusingLastX, focusingLastY, focusingLastZ;
+    //    private double focusingLastX, focusingLastY, focusingLastZ;
+    private final Vector3f centerRelToFocus = new Vector3f();
 
     private Vector3f lookAtPoint = new Vector3f(0, 0, 0);
     private Vector3f worldUp = Vector3f.UNIT_Z;
@@ -133,7 +132,7 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest();
 //        simpleTest2();
         solarSystemTest();
-        
+
         FxApp.getInstance().notifyObjectCountChanged(simulator);
     }
 
@@ -264,33 +263,29 @@ public class JmeApp extends SimpleApplication {
                     Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
 //                    cam.setLocation(cam.getLocation().add(left));
 //                    lookAtPoint.addLocal(left);
-                    centerX += left.x;
-                    centerY += left.y;
-                    centerZ += left.z;
+                    screenCenter.addLocal(left);
+                    if (focusing != null) centerRelToFocus.addLocal(left);
                 } else if (name.equals("MouseMoveX+")) {
                     // Move the camera horizontally when dragging the left button
                     Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
 //                    cam.setLocation(cam.getLocation().add(left));
 //                    lookAtPoint.addLocal(left);
-                    centerX += left.x;
-                    centerY += left.y;
-                    centerZ += left.z;
+                    screenCenter.addLocal(left);
+                    if (focusing != null) centerRelToFocus.addLocal(left);
                 } else if (name.equals("MouseMoveY-")) {
                     // Move the camera vertically when dragging the left button
                     Vector3f up = cam.getUp().mult(verticalSpeed * value);
 //                    cam.setLocation(cam.getLocation().add(up));
 //                    lookAtPoint.addLocal(up);
-                    centerX += up.x;
-                    centerY += up.y;
-                    centerZ += up.z;
+                    screenCenter.addLocal(up);
+                    if (focusing != null) centerRelToFocus.addLocal(up);
                 } else if (name.equals("MouseMoveY+")) {
                     // Move the camera vertically when dragging the left button
                     Vector3f up = cam.getUp().mult(-verticalSpeed * value);
 //                    cam.setLocation(cam.getLocation().add(up));
 //                    lookAtPoint.addLocal(up);
-                    centerX += up.x;
-                    centerY += up.y;
-                    centerZ += up.z;
+                    screenCenter.addLocal(up);
+                    if (focusing != null) centerRelToFocus.addLocal(up);
                 }
                 cam.lookAt(lookAtPoint, worldUp);
 
@@ -353,9 +348,7 @@ public class JmeApp extends SimpleApplication {
 
         scale = newScale;
 
-        centerX *= scaleFactor;
-        centerY *= scaleFactor;
-        centerZ *= scaleFactor;
+        screenCenter.multLocal(scaleFactor);
 
         updateLabelShowing();
     }
@@ -392,13 +385,15 @@ public class JmeApp extends SimpleApplication {
         System.out.println("Focused on " + object.getName());
 
         focusing = object;
-        focusingLastX = focusing.getX() - refOffsetX;
-        focusingLastY = focusing.getY() - refOffsetY;
-        focusingLastZ = focusing.getZ() - refOffsetZ;
+        double focusingLastX = focusing.getX() - refOffsetX;
+        double focusingLastY = focusing.getY() - refOffsetY;
+        double focusingLastZ = focusing.getZ() - refOffsetZ;
 
-        centerX = (float) (focusingLastX * scale);
-        centerY = (float) (focusingLastY * scale);
-        centerZ = (float) (focusingLastZ * scale);
+        centerRelToFocus.set(0, 0, 0);
+
+        screenCenter.setX((float) (focusingLastX * scale));
+        screenCenter.setY((float) (focusingLastY * scale));
+        screenCenter.setZ((float) (focusingLastZ * scale));
 
 //        Vector3f newLookAt = new Vector3f((float) (focusingLastX * scale),
 //                (float) (focusingLastY * scale),
@@ -410,18 +405,23 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void moveScreenWithFocus() {
-        float deltaX = (float) ((focusing.getX() - refOffsetX - focusingLastX) * scale);
-        float deltaY = (float) ((focusing.getY() - refOffsetY - focusingLastY) * scale);
-        float deltaZ = (float) ((focusing.getZ() - refOffsetZ - focusingLastZ) * scale);
-//        Vector3f delta = new Vector3f(deltaX, deltaY, deltaZ);
+//        float deltaX = (float) ((focusing.getX() - refOffsetX - focusingLastX) * scale);
+//        float deltaY = (float) ((focusing.getY() - refOffsetY - focusingLastY) * scale);
+//        float deltaZ = (float) ((focusing.getZ() - refOffsetZ - focusingLastZ) * scale);
+//        System.out.println(deltaX + " " + deltaY + " " + deltaZ);
+////        Vector3f delta = new Vector3f(deltaX, deltaY, deltaZ);
+//
+//        centerX += deltaX;
+//        centerY += deltaY;
+//        centerZ += deltaZ;
 
-        centerX += deltaX;
-        centerY += deltaY;
-        centerZ += deltaZ;
+        double focusingLastX = focusing.getX() - refOffsetX;
+        double focusingLastY = focusing.getY() - refOffsetY;
+        double focusingLastZ = focusing.getZ() - refOffsetZ;
 
-        focusingLastX = focusing.getX() - refOffsetX;
-        focusingLastY = focusing.getY() - refOffsetY;
-        focusingLastZ = focusing.getZ() - refOffsetZ;
+        screenCenter.setX((float) ((focusingLastX * scale) + centerRelToFocus.x));
+        screenCenter.setY((float) ((focusingLastY * scale) + centerRelToFocus.y));
+        screenCenter.setZ((float) ((focusingLastZ * scale) + centerRelToFocus.z));
 
 //        cam.setLocation(cam.getLocation().add(delta));
 //        lookAtPoint.addLocal(delta);
@@ -437,27 +437,27 @@ public class JmeApp extends SimpleApplication {
     }
 
     public float paneX(double realX) {
-        return (float) ((realX - refOffsetX) * scale - centerX);
+        return (float) ((realX - refOffsetX) * scale - screenCenter.x);
     }
 
     public float paneY(double realY) {
-        return (float) ((realY - refOffsetY) * scale - centerY);
+        return (float) ((realY - refOffsetY) * scale - screenCenter.y);
     }
 
     public float paneZ(double realZ) {
-        return (float) ((realZ - refOffsetZ) * scale - centerZ);
+        return (float) ((realZ - refOffsetZ) * scale - screenCenter.z);
     }
 
     public double realXFromPane(float paneX) {
-        return (paneX + centerX) / scale + refOffsetX;
+        return (paneX + screenCenter.x) / scale + refOffsetX;
     }
 
     public double realYFromPane(float paneY) {
-        return (paneY + centerY) / scale + refOffsetY;
+        return (paneY + screenCenter.y) / scale + refOffsetY;
     }
 
     public double realZFromPane(float paneZ) {
-        return (paneZ + centerZ) / scale + refOffsetZ;
+        return (paneZ + screenCenter.z) / scale + refOffsetZ;
     }
 
     private void drawOrbits() {
@@ -744,7 +744,7 @@ public class JmeApp extends SimpleApplication {
 
     private void solarSystemTest() {
         scale = (float) SystemPresets.solarSystem(simulator);
-        scale *= 1;
+        scale *= 0.5;
 
         loadObjectsToView();
     }

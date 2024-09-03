@@ -22,4 +22,6 @@ public interface UnitsConverter {
     String energy(double joules);
     
     String temperature(double k);
+    
+    String angleDegree(double deg);
 }

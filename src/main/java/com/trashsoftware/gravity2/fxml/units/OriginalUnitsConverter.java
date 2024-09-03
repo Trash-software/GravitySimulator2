@@ -52,4 +52,9 @@ public class OriginalUnitsConverter implements UnitsConverter {
     public String temperature(double k) {
         return String.format("%6.3eK", k);
     }
+
+    @Override
+    public String angleDegree(double deg) {
+        return String.format("%.2f°", deg);
+    }
 }

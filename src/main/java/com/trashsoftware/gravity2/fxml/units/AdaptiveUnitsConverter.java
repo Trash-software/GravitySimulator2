@@ -60,4 +60,9 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
             return UnitsUtil.sciFmt.format(k) + " K";
         }
     }
+
+    @Override
+    public String angleDegree(double deg) {
+        return UnitsUtil.stdFmt.format(deg) + "°";
+    }
 }

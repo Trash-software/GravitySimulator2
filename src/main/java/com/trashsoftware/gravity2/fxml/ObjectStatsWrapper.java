@@ -29,7 +29,9 @@ public class ObjectStatsWrapper extends HBox {
     GridPane detailPane;
 
     Label parentLabel, childrenCountLabel, distanceLabel, avgDistanceLabel, periodLabel, eccLabel,
-            hillRadiusLabel, aphelionLabel, perihelionLabel, semiMajorLabel, hieraticalLabel,
+            hillRadiusLabel, aphelionLabel, perihelionLabel,
+            inclinationLabel, ascendingNodeLabel,
+            semiMajorLabel, hieraticalLabel,
             rotationPeriodLabel, rotationAxisTiltLabel, transKineticLabel, rotKineticLabel,
             bindingEnergyLabel, thermalEnergyLabel, avgTempLabel,
             volumeLabel, accelerationLabel, eqRadiusLabel, polarRadiusLabel,
@@ -73,6 +75,11 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     public void focusAction() {
         onFocus.run();
+    }
+    
+    @FXML
+    public void expandAction() {
+        
     }
 
     private void setObject(CelestialObject celestialObject,
@@ -205,6 +212,15 @@ public class ObjectStatsWrapper extends HBox {
         detailPane.add(eccLabel, 3, rowIndex);
         rowIndex++;
 
+        detailPane.add(new Label(strings.getString("inclination")), 0, rowIndex);
+        inclinationLabel = new Label();
+        detailPane.add(inclinationLabel, 1, rowIndex);
+
+        detailPane.add(new Label(strings.getString("ascendingNode")), 2, rowIndex);
+        ascendingNodeLabel = new Label();
+        detailPane.add(ascendingNodeLabel, 3, rowIndex);
+        rowIndex++;
+
         detailPane.add(new Label(strings.getString("period")), 0, rowIndex);
         periodLabel = new Label();
         detailPane.add(periodLabel, 1, rowIndex);
@@ -253,7 +269,7 @@ public class ObjectStatsWrapper extends HBox {
         rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
         rotationPeriodLabel.setText(uc.time(object.getRotationPeriod()));
-        rotationAxisTiltLabel.setText(UnitsUtil.stdFmt.format(object.getAxisTiltAngle()) + "°");
+        rotationAxisTiltLabel.setText(uc.angleDegree(object.getAxisTiltAngle()));
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
@@ -271,7 +287,7 @@ public class ObjectStatsWrapper extends HBox {
 
             double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
             double[] velocity = VectorOperations.subtract(system.getVelocity(), parentSystem.getVelocity());
-            OrbitalElements specs = OrbitCalculator.computeOrbitSpecsPlanar(object,
+            OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(object,
                     velocity,
                     barycenter,
                     system.getMass() + parent.getMass(),
@@ -293,6 +309,8 @@ public class ObjectStatsWrapper extends HBox {
             periodLabel.setText(uc.time(specs.period));
             aphelionLabel.setText(uc.distance(aph));
             perihelionLabel.setText(uc.distance(per));
+            inclinationLabel.setText(uc.angleDegree(specs.inclination));
+            ascendingNodeLabel.setText(uc.angleDegree(specs.ascendingNode));
             hillRadiusLabel.setText(uc.distance(object.getHillRadius()));
         } else {
             parentLabel.setText("free");
@@ -303,6 +321,8 @@ public class ObjectStatsWrapper extends HBox {
             eccLabel.setText("--");
             aphelionLabel.setText("--");
             perihelionLabel.setText("--");
+            inclinationLabel.setText("--");
+            ascendingNodeLabel.setText("--");
             hillRadiusLabel.setText("--");
         }
     }
