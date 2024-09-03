@@ -22,6 +22,12 @@
             <version>3.6.1-stable</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-effects</artifactId>
+            <version>3.6.1-stable</version>
+        </dependency>
+
         <!-- NiftyGUI integration -->
         <dependency>
             <groupId>org.jmonkeyengine</groupId>

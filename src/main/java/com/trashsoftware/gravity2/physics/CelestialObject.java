@@ -389,6 +389,14 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public boolean isEmittingLight() {
         return name.equals("Sun");
     }
+    
+    public double getLuminosity() {
+        if (name.equals("Sun")) {
+            return 3.828e26;
+        } else {
+            return 0;
+        }
+    }
 
     @Override
     public double[] getVelocity() {
@@ -545,7 +553,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 VectorOperations.scale(other.velocity, other.mass));
 
         // Step 4: Combine angular momenta
-        double[] totalAngularMomentum = VectorOperations.subtract(L_A, L_B_to_A);
+        double[] totalAngularMomentum = VectorOperations.add(L_A, L_B_to_A);
 
         // update radius
         setRadiusByVolume(totalVolume);

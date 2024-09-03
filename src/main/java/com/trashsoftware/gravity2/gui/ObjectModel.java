@@ -1,23 +1,25 @@
 package com.trashsoftware.gravity2.gui;
 
 import com.jme3.font.BitmapText;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.*;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.EdgeFilteringMode;
+import com.jme3.shadow.PointLightShadowFilter;
+import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
-
-import java.util.function.Function;
 
 public class ObjectModel {
     public static final int COLOR_GRADIENTS = 16;
@@ -35,6 +37,12 @@ public class ObjectModel {
     protected Geometry pathGradient;
     private boolean showLabel = true;
     protected Mesh blank = new Mesh();
+    protected PointLight emissionLight;
+    protected AmbientLight surfaceLight;
+    
+    protected PointLightShadowRenderer plsr;
+    protected PointLightShadowFilter plsf;
+    protected FilterPostProcessor fpp;
     
     private float lastRotateAngle;
 
@@ -50,14 +58,55 @@ public class ObjectModel {
         sphere.setTextureMode(Sphere.TextureMode.Projected);
         model = new Geometry(object.getName(), sphere);
         // Create a material for the box
-        Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
 
         if (object.getTexture() == null) {
-            mat.setColor("Color", color);
+            mat.setColor("Diffuse", color);
         } else {
-            mat.setTexture("ColorMap", object.getTexture());
+            mat.setTexture("DiffuseMap", object.getTexture());
+        }
+        if (object.isEmittingLight()) {
+            mat.setFloat("Shininess", 128);
+            mat.setColor("GlowColor", ColorRGBA.Yellow); // Glow effect color
+            
+            emissionLight = new PointLight();
+            adjustPointLight();
+            jmeApp.getRootNode().addLight(emissionLight);
+            
+            surfaceLight = new AmbientLight();
+            surfaceLight.setColor(ColorRGBA.White);
+            model.addLight(surfaceLight);
+
+            // Add shadow renderer
+            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(), 
+                    1024);
+            plsr.setLight(emissionLight);
+            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+            jmeApp.getViewPort().addProcessor(plsr);
+
+            // Add shadow filter for softer shadows
+            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+            plsf.setLight(emissionLight);
+            plsf.setEnabled(true);
+            fpp = new FilterPostProcessor(jmeApp.getAssetManager());
+            fpp.addFilter(plsf);
+
+            // Add bloom effect to enhance the star's glow
+            BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+//            bloom.set
+            bloom.setBloomIntensity(2.0f); // Adjust intensity for more or less glow
+//            bloom.setBlurScale(10.0f);
+            fpp.addFilter(bloom);
+            
+            jmeApp.getViewPort().addProcessor(fpp);
+            model.setShadowMode(RenderQueue.ShadowMode.Off);
+        } else {
+//            model.setCullHint(Spatial.CullHint.Never);
+            model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         }
         model.setMaterial(mat);
+//        model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
         // Create the text label
         labelText = new BitmapText(jmeApp.font);
@@ -98,6 +147,18 @@ public class ObjectModel {
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
         pathGradient.setMaterial(matLine3);
     }
+    
+    private void adjustPointLight() {
+        double luminosity = object.getLuminosity();
+        double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 1e-2;
+//        System.out.println(radius);
+        double scaledLuminosity = 1;
+//        System.out.println(scaledLuminosity);
+        emissionLight.setColor(ColorRGBA.White.mult((float) scaledLuminosity));
+        emissionLight.setRadius((float) radius);
+        
+//        System.out.println(scaledLuminosity);
+    }
 
     /**
      * Notify this model that its owner model may have some internal change
@@ -113,10 +174,7 @@ public class ObjectModel {
         model.setLocalRotation(tiltQuaternion);
     }
 
-    public void updateModelPosition(Function<Double, Float> xMapper,
-                                    Function<Double, Float> yMapper,
-                                    Function<Double, Float> zMapper,
-                                    double scale) {
+    public void updateModelPosition(double scale) {
         model.setLocalScale((float) scale);
 
         float shift = (float) (scale * object.getPolarRadius());
@@ -124,14 +182,20 @@ public class ObjectModel {
         labelNode.setLocalTranslation(shift, shift, 0f);
 
         double[] position = object.getPosition();
-        float x = xMapper.apply(position[0]);
-        float y = yMapper.apply(position[1]);
-        float z = zMapper.apply(position[2]);
+        Vector3f xyz = new Vector3f(
+                jmeApp.paneX(position[0]),
+                jmeApp.paneY(position[1]),
+                jmeApp.paneZ(position[2])
+        );
 
-        objectNode.setLocalTranslation(x, y, z);
+        objectNode.setLocalTranslation(xyz);
         
         if (object.getAngularVelocity() != 0) {
             rotateModel();
+        }
+        if (object.isEmittingLight()) {
+            emissionLight.setPosition(xyz);
+            adjustPointLight();
         }
     }
     

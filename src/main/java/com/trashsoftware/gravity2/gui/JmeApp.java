@@ -9,7 +9,9 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.math.*;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial;
@@ -60,9 +62,18 @@ public class JmeApp extends SimpleApplication {
     private boolean showLabel = true;
     private boolean showTrace, showFullPath, showOrbit;
     private CelestialObject focusing;
+    private FxApp fxApp;
 
     public static JmeApp getInstance() {
         return instance;
+    }
+    
+    public JmeApp(FxApp fxApp) {
+        this.fxApp = fxApp;
+    }
+
+    public FxApp getFxApp() {
+        return fxApp;
     }
 
     @Override
@@ -72,6 +83,7 @@ public class JmeApp extends SimpleApplication {
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
 
         setupMouses();
+        initLights();
 
 //        putTestBox();
         initializeSimulator();
@@ -86,7 +98,7 @@ public class JmeApp extends SimpleApplication {
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 loadObjectsToView();
-                FxApp.getInstance().notifyObjectCountChanged(simulator);
+                getFxApp().notifyObjectCountChanged(simulator);
             }
 
             if (focusing != null) {
@@ -95,8 +107,7 @@ public class JmeApp extends SimpleApplication {
         }
 
         updateModelPositions();
-
-//        rootNode.getChildren().removeAll(tempGeom);
+        
         clearUnUsedMeshes();
         if (showFullPath) {
             drawFullPaths();
@@ -109,6 +120,13 @@ public class JmeApp extends SimpleApplication {
         }
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
+    }
+    
+    private void initLights() {
+        AmbientLight ambientLight = new AmbientLight();
+        ambientLight.setColor(ColorRGBA.White.mult(0.02f));
+        rootNode.addLight(ambientLight);
+        rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
     }
 
     private void clearUnUsedMeshes() {
@@ -130,32 +148,47 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+//        simpleTest3();
         solarSystemTest();
 
-        FxApp.getInstance().notifyObjectCountChanged(simulator);
+        getFxApp().notifyObjectCountChanged(simulator);
     }
 
     void loadObjectsToView() {
-        rootNode.detachAllChildren();
-//        lineGeometries.clear();
-
         List<CelestialObject> objects = simulator.getObjects();
+        Set<CelestialObject> objectSet = new HashSet<>(objects);
 
         // garbage collect for those destroyed things
 //        modelMap.entrySet().removeIf(entry -> !objects.contains(entry.getKey()));
+        
+        for (ObjectModel om : modelMap.values()) {
+            if (!objectSet.contains(om.object)) {
+                // died object
+                rootNode.detachChild(om.objectNode);
+                rootNode.detachChild(om.orbit);
+                
+                // left its paths continues alive
+                if (om.emissionLight != null) {
+                    rootNode.removeLight(om.emissionLight);
+                    viewPort.removeProcessor(om.plsr);
+                    viewPort.removeProcessor(om.fpp);
+                }
+            }
+        }
 
         for (CelestialObject object : objects) {
-            ObjectModel om = modelMap.computeIfAbsent(object, o -> new ObjectModel(o, this));
+            ObjectModel om = modelMap.get(object);
+            if (om == null) {
+                om = new ObjectModel(object, this);
+                modelMap.put(object, om);
+                rootNode.attachChild(om.objectNode);
 
+                // Initialize the geometry for the curve (we'll reuse this each frame)
+                rootNode.attachChild(om.path);
+                rootNode.attachChild(om.orbit);
+                rootNode.attachChild(om.pathGradient);
+            }
             om.notifyObjectChanged();
-
-            rootNode.attachChild(om.objectNode);
-
-            // Initialize the geometry for the curve (we'll reuse this each frame)
-            rootNode.attachChild(om.path);
-            rootNode.attachChild(om.orbit);
-            rootNode.attachChild(om.pathGradient);
         }
 
         updateModelPositions();
@@ -166,9 +199,6 @@ public class JmeApp extends SimpleApplication {
             ObjectModel objectModel = modelMap.get(object);
             if (objectModel == null) throw new RuntimeException(object.getName());
             objectModel.updateModelPosition(
-                    this::paneX,
-                    this::paneY,
-                    this::paneZ,
                     scale
             );
         }
@@ -395,26 +425,10 @@ public class JmeApp extends SimpleApplication {
         screenCenter.setY((float) (focusingLastY * scale));
         screenCenter.setZ((float) (focusingLastZ * scale));
 
-//        Vector3f newLookAt = new Vector3f((float) (focusingLastX * scale),
-//                (float) (focusingLastY * scale),
-//                (float) (focusingLastZ * scale));
-//        moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
-//        lookAtPoint = newLookAt;
-
-        FxApp.getInstance().getControlBar().setFocus();
+        getFxApp().getControlBar().setFocus();
     }
 
     private void moveScreenWithFocus() {
-//        float deltaX = (float) ((focusing.getX() - refOffsetX - focusingLastX) * scale);
-//        float deltaY = (float) ((focusing.getY() - refOffsetY - focusingLastY) * scale);
-//        float deltaZ = (float) ((focusing.getZ() - refOffsetZ - focusingLastZ) * scale);
-//        System.out.println(deltaX + " " + deltaY + " " + deltaZ);
-////        Vector3f delta = new Vector3f(deltaX, deltaY, deltaZ);
-//
-//        centerX += deltaX;
-//        centerY += deltaY;
-//        centerZ += deltaZ;
-
         double focusingLastX = focusing.getX() - refOffsetX;
         double focusingLastY = focusing.getY() - refOffsetY;
         double focusingLastZ = focusing.getZ() - refOffsetZ;
@@ -742,6 +756,45 @@ public class JmeApp extends SimpleApplication {
         loadObjectsToView();
     }
 
+    private void simpleTest3() {
+        CelestialObject sun = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.sun,
+                new double[]{0, 0, 0},
+                new double[3],
+                scale
+        );
+        sun.forceSetMass(1);
+        simulator.addObject(sun);
+        
+        CelestialObject earth = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.earth,
+                new double[]{-3e9, 0, 0},
+                new double[3],
+                scale
+        );
+        earth.forceSetMass(1);
+//        earth.forceSetMass(earth.getMass() * 10);
+        simulator.addObject(earth);
+        CelestialObject moon = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.moon,
+                new double[]{-3.05e9, 0, 0},
+                new double[3],
+                scale
+        );
+        moon.forceSetMass(1);
+        simulator.addObject(moon);
+//        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+//        moon.setVelocity(vel);
+
+        scale = 5e-9f;
+
+        loadObjectsToView();
+    }
+
     private void solarSystemTest() {
         scale = (float) SystemPresets.solarSystem(simulator);
         scale *= 0.5;
@@ -759,7 +812,7 @@ public class JmeApp extends SimpleApplication {
     public void stop() {
         super.stop();
 
-        FxApp fxApp = FxApp.getInstance();
+        FxApp fxApp = getFxApp();
         System.out.println(fxApp + " stop");
         if (fxApp != null) {
             Platform.runLater(() -> {

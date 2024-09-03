@@ -109,7 +109,7 @@ public class FxApp extends Application {
         initDirectories();
         
         new Thread(() -> {
-            jmeApp = new JmeApp();
+            jmeApp = new JmeApp(this);
             AppSettings settings = new AppSettings(true);
             settings.setWidth(1536);
             settings.setHeight(864);
