@@ -47,7 +47,7 @@ public class JmeApp extends SimpleApplication {
     protected double speed = 1.0;
     protected boolean playing = true;
     protected double scale = 1.0;
-    private final Vector3f screenCenter = new Vector3f();
+    private final Vector3d screenCenter = new Vector3d();  // must be double, otherwise the distance object will jump
     private double refOffsetX, refOffsetY, refOffsetZ;
     //    private double focusingLastX, focusingLastY, focusingLastZ;
     private final Vector3f centerRelToFocus = new Vector3f();
@@ -369,14 +369,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void scaleScene(float scaleFactor) {
-        double newScale = scale * scaleFactor;
-//        Vector3f newLookAt = lookAtPoint.mult(scaleFactor);
-//        moveCameraWithLookAtPoint(lookAtPoint, newLookAt);
-//        lookAtPoint = newLookAt;
-//        System.out.println(newScale);
-//        System.out.println(lookAtPoint + " " + cam.getLocation());
-
-        scale = newScale;
+        scale = scale * scaleFactor;
 
         screenCenter.multLocal(scaleFactor);
 
@@ -421,9 +414,9 @@ public class JmeApp extends SimpleApplication {
 
         centerRelToFocus.set(0, 0, 0);
 
-        screenCenter.setX((float) (focusingLastX * scale));
-        screenCenter.setY((float) (focusingLastY * scale));
-        screenCenter.setZ((float) (focusingLastZ * scale));
+        screenCenter.setX(focusingLastX * scale);
+        screenCenter.setY(focusingLastY * scale);
+        screenCenter.setZ(focusingLastZ * scale);
 
         getFxApp().getControlBar().setFocus();
     }
@@ -433,10 +426,11 @@ public class JmeApp extends SimpleApplication {
         double focusingLastY = focusing.getY() - refOffsetY;
         double focusingLastZ = focusing.getZ() - refOffsetZ;
 
-        screenCenter.setX((float) ((focusingLastX * scale) + centerRelToFocus.x));
-        screenCenter.setY((float) ((focusingLastY * scale) + centerRelToFocus.y));
-        screenCenter.setZ((float) ((focusingLastZ * scale) + centerRelToFocus.z));
+        screenCenter.setX((focusingLastX * scale) + centerRelToFocus.x);
+        screenCenter.setY((focusingLastY * scale) + centerRelToFocus.y);
+        screenCenter.setZ((focusingLastZ * scale) + centerRelToFocus.z);
 
+//        System.out.println(screenCenter);
 //        cam.setLocation(cam.getLocation().add(delta));
 //        lookAtPoint.addLocal(delta);
     }
