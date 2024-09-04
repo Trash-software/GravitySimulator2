@@ -10,12 +10,10 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
+import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.*;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.physics.*;
@@ -60,9 +58,12 @@ public class JmeApp extends SimpleApplication {
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private boolean showLabel = true;
+    private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
     private CelestialObject focusing;
-    private FxApp fxApp;
+    private final FxApp fxApp;
+    private final Set<Spatial> eachFrameErase = new HashSet<>();
+    private AmbientLight ambientLight;
 
     public static JmeApp getInstance() {
         return instance;
@@ -99,13 +100,22 @@ public class JmeApp extends SimpleApplication {
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 loadObjectsToView();
                 getFxApp().notifyObjectCountChanged(simulator);
+            } else if (sr == Simulator.SimResult.TOO_FAST) {
+                getFxApp().getControlBar().speedDownAction();
+                loadObjectsToView();
+                getFxApp().notifyObjectCountChanged(simulator);
             }
 
             if (focusing != null) {
                 moveScreenWithFocus();
             }
         }
-
+        
+        for (Spatial s : eachFrameErase) {
+            rootNode.detachChild(s);    
+        }
+        eachFrameErase.clear();
+        
         updateModelPositions();
         
         clearUnUsedMeshes();
@@ -118,12 +128,15 @@ public class JmeApp extends SimpleApplication {
         if (showTrace) {
             drawRecentPaths();
         }
+        if (showBarycenter) {
+            drawBarycenter();
+        }
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
     }
     
     private void initLights() {
-        AmbientLight ambientLight = new AmbientLight();
+        ambientLight = new AmbientLight();
         ambientLight.setColor(ColorRGBA.White.mult(0.02f));
         rootNode.addLight(ambientLight);
         rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
@@ -150,6 +163,7 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest();
 //        simpleTest3();
         solarSystemTest();
+//        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -468,6 +482,80 @@ public class JmeApp extends SimpleApplication {
         return (paneZ + screenCenter.z) / scale + refOffsetZ;
     }
 
+    private void drawBarycenter() {
+        List<HieraticalSystem> roots = simulator.getRootSystems();
+        for (HieraticalSystem hs : roots) {
+            drawSystemBarycenter(hs, 2);
+        }
+
+        // overall barycenter
+        if (roots.size() > 1) {
+            double[] barycenter = simulator.barycenter();
+            float x = paneX(barycenter[0]);
+            float y = paneY(barycenter[1]);
+            float z = paneZ(barycenter[2]);
+            // todo
+//            gc2d.setStroke(TEXT);
+//            gc2d.strokeLine(x - 5, y, x + 5, y);
+//            gc2d.strokeLine(x, y - 5, x, y + 5);
+            
+            
+        }
+    }
+
+    private void drawSystemBarycenter(HieraticalSystem hs, double markSize) {
+        if (!hs.isObject()) {
+            double[] barycenter = hs.getPosition();
+            float x = paneX(barycenter[0]);
+            float y = paneY(barycenter[1]);
+            float z = paneZ(barycenter[2]);
+
+            Node cross = create3DCrossAt(new Vector3f(x, y, z), (float) markSize);
+            rootNode.attachChild(cross);
+            eachFrameErase.add(cross);
+
+            for (HieraticalSystem child : hs.getChildrenSorted()) {
+                drawSystemBarycenter(child, Math.max(2, markSize - 0.5));
+            }
+        }
+    }
+
+    public Node create3DCrossAt(Vector3f center, float length) {
+        Node crossNode = new Node("3D Cross at " + center.toString());
+        // X-axis lines
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(length, 0, 0)), ColorRGBA.Red));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(-length, 0, 0)), ColorRGBA.Red));
+
+        // Y-axis lines
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, length, 0)), ColorRGBA.Green));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, -length, 0)), ColorRGBA.Green));
+
+        // Z-axis lines
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, length)), ColorRGBA.Blue));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, -length)), ColorRGBA.Blue));
+
+        return crossNode;
+    }
+
+    private Geometry createLine(Vector3f start, Vector3f end, ColorRGBA color) {
+        Mesh mesh = new Mesh();
+
+        // Set positions for the vertices
+        mesh.setMode(Mesh.Mode.Lines);
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(start, end));
+        mesh.setBuffer(VertexBuffer.Type.Index, 2, new short[] { 0, 1 });
+        mesh.updateBound();
+
+        Geometry geom = new Geometry("Line", mesh);
+
+        // Create a material for the line
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", color);
+        geom.setMaterial(mat);
+
+        return geom;
+    }
+
     private void drawOrbits() {
         for (CelestialObject object : simulator.getObjects()) {
             CelestialObject parent = object.getHillMaster();
@@ -504,9 +592,6 @@ public class JmeApp extends SimpleApplication {
 
     private void drawEllipticalOrbit(CelestialObject co, double[] barycenter, OrbitalElements oe) {
         ObjectModel om = modelMap.get(co);
-
-//        System.out.println(co.getName());
-//        System.out.println(oe);
 
         Mesh mesh = om.createOrbitMesh(barycenter,
                 oe,
@@ -672,6 +757,10 @@ public class JmeApp extends SimpleApplication {
         showLabel = showing;
         updateLabelShowing();
     }
+    
+    public void toggleBarycenterShowing(boolean showing) {
+        showBarycenter = showing;
+    }
 
     private void updateLabelShowing() {
         List<CelestialObject> objects = simulator.getObjects();  // sorted from big to small
@@ -790,10 +879,18 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void solarSystemTest() {
-        scale = (float) SystemPresets.solarSystem(simulator);
+        scale = SystemPresets.solarSystem(simulator);
         scale *= 0.5;
 
         loadObjectsToView();
+    }
+    
+    private void ellipseClusterTest() {
+        scale = SystemPresets.ellipseCluster(simulator, 100);
+        
+        loadObjectsToView();
+        
+        ambientLight.setColor(ColorRGBA.White);
     }
 
     private RefFrame getRefFrame() {

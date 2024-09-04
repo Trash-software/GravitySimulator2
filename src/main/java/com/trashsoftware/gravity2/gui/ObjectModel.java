@@ -150,7 +150,7 @@ public class ObjectModel {
     
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
-        double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 1e-2;
+        double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
 //        System.out.println(radius);
         double scaledLuminosity = 1;
 //        System.out.println(scaledLuminosity);
@@ -175,7 +175,14 @@ public class ObjectModel {
     }
 
     public void updateModelPosition(double scale) {
-        model.setLocalScale((float) scale);
+        double radiusScale = scale;
+        if (object.getEquatorialRadius() * scale < 0.1) {
+            radiusScale = 0.1 / object.getEquatorialRadius();
+        }
+        double ratio = object.getPolarRadius() / object.getEquatorialRadius();
+        float eqScale = (float) radiusScale;
+        float polarScale = (float) (radiusScale * ratio);
+        model.setLocalScale(eqScale, eqScale, polarScale);
 
         float shift = (float) (scale * object.getPolarRadius());
 
@@ -223,9 +230,6 @@ public class ObjectModel {
     public Mesh createOrbitMesh(double[] barycenter, 
                                 OrbitalElements oe,
                                 int samples) {
-//        float bcx = (float) barycenter[0];
-//        float bcy = (float) barycenter[1];
-//        float bcz = (float) barycenter[2];
         float bcx = jmeApp.paneX(barycenter[0]);
         float bcy = jmeApp.paneY(barycenter[1]);
         float bcz = jmeApp.paneZ(barycenter[2]);

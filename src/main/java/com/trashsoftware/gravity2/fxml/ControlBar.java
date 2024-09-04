@@ -74,6 +74,12 @@ public class ControlBar implements Initializable {
             if (jmeApp == null) return;
             jmeApp.toggleLabelShowing(newValue);
         });
+        
+        barycenterCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.toggleBarycenterShowing(newValue);
+        });
     }
     
     private void setSliders() {

@@ -19,16 +19,40 @@ public class SystemPresets {
 
     static {
         TEXTURES.put("Sun", "com/trashsoftware/gravity2/textures/sunmap.jpg");
-        TEXTURES.put("Mercury", "com/trashsoftware/gravity2/textures/mercurymap.jpg");
+        TEXTURES.put("Mercury", "com/trashsoftware/gravity2/textures/2k_mercury.jpg");
         TEXTURES.put("Venus", "com/trashsoftware/gravity2/textures/venusmap.jpg");
-        TEXTURES.put("Earth", "com/trashsoftware/gravity2/textures/earthmap1k.jpg");
-        TEXTURES.put("Moon", "com/trashsoftware/gravity2/textures/moonmap1k.jpg");
+        
+        TEXTURES.put("Earth", "com/trashsoftware/gravity2/textures/earth/earth2k.jpg");
+        TEXTURES.put("Moon", "com/trashsoftware/gravity2/textures/earth/moon.png");
+        
         TEXTURES.put("Mars", "com/trashsoftware/gravity2/textures/marsmap1k.jpg");
-        TEXTURES.put("Jupiter", "com/trashsoftware/gravity2/textures/jupiter2_1k.jpg");
-        TEXTURES.put("Saturn", "com/trashsoftware/gravity2/textures/saturnmap.jpg");
-        TEXTURES.put("Uranus", "com/trashsoftware/gravity2/textures/uranusmap.jpg");
-        TEXTURES.put("Neptune", "com/trashsoftware/gravity2/textures/neptunemap.jpg");
-        TEXTURES.put("Pluto", "com/trashsoftware/gravity2/textures/plutomap1k.jpg");
+        
+        TEXTURES.put("Jupiter", "com/trashsoftware/gravity2/textures/jupiter/jupiter2k.jpg");
+        TEXTURES.put("Callisto", "com/trashsoftware/gravity2/textures/jupiter/callisto.jpg");
+        TEXTURES.put("Europa", "com/trashsoftware/gravity2/textures/jupiter/europa.jpg");
+        TEXTURES.put("Ganymede", "com/trashsoftware/gravity2/textures/jupiter/ganymede.jpg");
+        TEXTURES.put("Io", "com/trashsoftware/gravity2/textures/jupiter/io.jpg");
+        
+        TEXTURES.put("Saturn", "com/trashsoftware/gravity2/textures/saturn/saturnmap.jpg");
+        TEXTURES.put("Dione", "com/trashsoftware/gravity2/textures/saturn/dione-ciclops.jpg");
+        TEXTURES.put("Enceladus", "com/trashsoftware/gravity2/textures/saturn/enceladus.jpg");
+        TEXTURES.put("Iapetus", "com/trashsoftware/gravity2/textures/saturn/iapetus2k.jpg");
+        TEXTURES.put("Rhea", "com/trashsoftware/gravity2/textures/saturn/rhea.jpg");
+        TEXTURES.put("Tethys", "com/trashsoftware/gravity2/textures/saturn/tethys2k.jpg");
+        TEXTURES.put("Titan", "com/trashsoftware/gravity2/textures/saturn/titan.png");
+        
+        TEXTURES.put("Uranus", "com/trashsoftware/gravity2/textures/uranus.JPG");
+        
+        TEXTURES.put("Neptune", "com/trashsoftware/gravity2/textures/neptune/neptune_current.jpg");
+        TEXTURES.put("Triton", "com/trashsoftware/gravity2/textures/neptune/triton.jpg");
+        
+        TEXTURES.put("Pluto", "com/trashsoftware/gravity2/textures/pluto/pluto.jpg");
+        TEXTURES.put("Charon", "com/trashsoftware/gravity2/textures/pluto/charon.jpg");
+
+        TEXTURES.put("Ceres", "com/trashsoftware/gravity2/textures/2k_ceres_fictional.jpg");
+        TEXTURES.put("Eris", "com/trashsoftware/gravity2/textures/2k_eris_fictional.jpg");
+        TEXTURES.put("Haumea", "com/trashsoftware/gravity2/textures/2k_haumea_fictional.jpg");
+        TEXTURES.put("Makemake", "com/trashsoftware/gravity2/textures/2k_makemake_fictional.jpg");
     }
 
     // Moon
@@ -131,7 +155,7 @@ public class SystemPresets {
             "#8B4513", 0.040, 500
     );
     public static ObjectInfo haumea = new ObjectInfo(
-            "Haumea", 4.01e21, 816, 816, 816, 6453150000L, 0.1912, 240.11, 28.19, 121.91, 63.4, 0.0, 3.9,
+            "Haumea", 4.01e21, 816, 870, 498, 6453150000L, 0.1912, 240.11, 28.19, 121.91, 63.4, 0.0, 3.9,
             "#FF69B4", 0.035, 600
     );
     public static ObjectInfo makemake = new ObjectInfo(
@@ -488,7 +512,12 @@ public class SystemPresets {
         String textureFile = TEXTURES.get(info.name);
         Texture diffuseMap = null;
         if (textureFile != null) {
-            diffuseMap = JmeApp.getInstance().getAssetManager().loadTexture(textureFile);
+            try {
+                diffuseMap = JmeApp.getInstance().getAssetManager().loadTexture(textureFile);
+            } catch (IllegalArgumentException iae) {
+                System.err.println("Cannot read " + textureFile);
+                iae.printStackTrace();
+            }
 //            if (diffuseMap.isError()) {
 //                System.out.println(diffuseMap.getUrl());
 //            }
@@ -681,6 +710,52 @@ public class SystemPresets {
         }
 
         return 20 / stdDt;
+    }
+    
+    public static double ellipseCluster(Simulator simulator, int n) {
+        double a = 1e10;
+        double b = 5e9;
+        double c = 2.5e9;
+        
+        double speed = 1e1;
+        
+        Random rand = new Random();
+        for (int i = 0; i < n; i++) {
+            double mass = rand.nextDouble(1e19, 1e21);
+            double density = rand.nextDouble(500, 6000);
+            double radius = CelestialObject.radiusOf(mass, density);
+            
+            double x, y, z;
+
+            // Generate random point within a unit sphere using the rejection method
+            do {
+                x = 2 * rand.nextDouble() - 1;
+                y = 2 * rand.nextDouble() - 1;
+                z = 2 * rand.nextDouble() - 1;
+            } while (x * x + y * y + z * z > 1);
+
+            // Scale the point to the ellipsoid
+            String cc = Util.randomColorCode();
+            x = x * a;
+            y = y * b;
+            z = z * c;
+            CelestialObject co = CelestialObject.createNd(
+                    "Star" + i,
+                    mass,
+                    radius,
+                    3,
+                    new double[]{x, y, z},
+                    new double[]{
+                            rand.nextDouble(-speed, speed),
+                            rand.nextDouble(-speed, speed),
+                            rand.nextDouble(-speed, speed)
+                    },
+                    cc
+            );
+            simulator.addObject(co);
+        }
+        
+        return 1 / c;
     }
 
     public static double testCollision(Simulator simulator) {

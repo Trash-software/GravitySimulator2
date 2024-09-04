@@ -387,7 +387,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
     
     public boolean isEmittingLight() {
-        return name.equals("Sun");
+        return getLuminosity() > 0;
     }
     
     public double getLuminosity() {
