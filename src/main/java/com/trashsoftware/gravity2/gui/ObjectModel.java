@@ -11,7 +11,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Node;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.EdgeFilteringMode;
@@ -29,6 +32,7 @@ public class ObjectModel {
     protected final ColorRGBA darkerColor;
     protected final JmeApp jmeApp;
     protected ObjectNode objectNode = new ObjectNode();
+    protected Node rotatingNode;
     protected Geometry model;
     protected BitmapText labelText;
     protected Node labelNode;
@@ -39,11 +43,11 @@ public class ObjectModel {
     protected Mesh blank = new Mesh();
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
-    
+
     protected PointLightShadowRenderer plsr;
     protected PointLightShadowFilter plsf;
     protected FilterPostProcessor fpp;
-    
+
     private float lastRotateAngle;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
@@ -68,29 +72,29 @@ public class ObjectModel {
         if (object.isEmittingLight()) {
             mat.setFloat("Shininess", 128);
             mat.setColor("GlowColor", ColorRGBA.Yellow); // Glow effect color
-            
+
             emissionLight = new PointLight();
             adjustPointLight();
             jmeApp.getRootNode().addLight(emissionLight);
-            
+
             surfaceLight = new AmbientLight();
             surfaceLight.setColor(ColorRGBA.White);
             model.addLight(surfaceLight);
 
-            // Add shadow renderer
-            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(), 
-                    1024);
-            plsr.setLight(emissionLight);
-            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-            jmeApp.getViewPort().addProcessor(plsr);
+//            // Add shadow renderer
+//            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
+//                    1024);
+//            plsr.setLight(emissionLight);
+//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+//            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+//            jmeApp.getViewPort().addProcessor(plsr);
 
             // Add shadow filter for softer shadows
-            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-            plsf.setLight(emissionLight);
-            plsf.setEnabled(true);
+//            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+//            plsf.setLight(emissionLight);
+//            plsf.setEnabled(true);
             fpp = new FilterPostProcessor(jmeApp.getAssetManager());
-            fpp.addFilter(plsf);
+//            fpp.addFilter(plsf);
 
             // Add bloom effect to enhance the star's glow
             BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
@@ -98,7 +102,7 @@ public class ObjectModel {
             bloom.setBloomIntensity(2.0f); // Adjust intensity for more or less glow
 //            bloom.setBlurScale(10.0f);
             fpp.addFilter(bloom);
-            
+
             jmeApp.getViewPort().addProcessor(fpp);
             model.setShadowMode(RenderQueue.ShadowMode.Off);
         } else {
@@ -122,12 +126,14 @@ public class ObjectModel {
         BillboardControl billboardControl = new BillboardControl();
         labelNode.addControl(billboardControl);
         labelNode.setLocalScale(0.1f);
-        
-        objectNode.attachChild(model);
+
+        rotatingNode = new Node("Rotating");
+        rotatingNode.attachChild(model);
+        objectNode.attachChild(rotatingNode);
         objectNode.attachChild(labelNode);
 
         System.out.println(object.getName() + " " + color);
-        
+
         // Create a geometry, apply the mesh, and set the material
         path = new Geometry("Path", blank);
         Material matLine = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -147,7 +153,7 @@ public class ObjectModel {
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
         pathGradient.setMaterial(matLine3);
     }
-    
+
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
         double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
@@ -156,7 +162,7 @@ public class ObjectModel {
 //        System.out.println(scaledLuminosity);
         emissionLight.setColor(ColorRGBA.White.mult((float) scaledLuminosity));
         emissionLight.setRadius((float) radius);
-        
+
 //        System.out.println(scaledLuminosity);
     }
 
@@ -167,11 +173,11 @@ public class ObjectModel {
         // set the visual rotation axis
         double[] axisD = object.getRotationAxis();
         Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
-        
+
         Quaternion tiltQuaternion = new Quaternion();
         tiltQuaternion.lookAt(axis, Vector3f.UNIT_Z);
-        
-        model.setLocalRotation(tiltQuaternion);
+
+        rotatingNode.setLocalRotation(tiltQuaternion);
     }
 
     public void updateModelPosition(double scale) {
@@ -182,7 +188,7 @@ public class ObjectModel {
         double ratio = object.getPolarRadius() / object.getEquatorialRadius();
         float eqScale = (float) radiusScale;
         float polarScale = (float) (radiusScale * ratio);
-        model.setLocalScale(eqScale, eqScale, polarScale);
+        rotatingNode.setLocalScale(eqScale, eqScale, polarScale);
 
         float shift = (float) (scale * object.getPolarRadius());
 
@@ -196,7 +202,7 @@ public class ObjectModel {
         );
 
         objectNode.setLocalTranslation(xyz);
-        
+
         if (object.getAngularVelocity() != 0) {
             rotateModel();
         }
@@ -205,15 +211,64 @@ public class ObjectModel {
             adjustPointLight();
         }
     }
-    
+
+    // Method to calculate the position on the ellipsoid at a given latitude, longitude, and altitude
+    public Vector3d calculateSurfacePosition(double latitude, double longitude, double altitude) {
+        // Convert latitude and longitude to radians
+        double lat = Math.toRadians(latitude);
+        double lon = Math.toRadians(longitude);
+
+        double equatorialRadius = object.getEquatorialRadius();
+        double polarRadius = object.getPolarRadius();
+
+        // Calculate the surface position on the ellipsoid
+        double x = equatorialRadius * Math.cos(lat) * Math.cos(lon); // X-axis
+        double z = polarRadius * Math.sin(lat);                          // Y-axis (polar)
+        double y = equatorialRadius * Math.cos(lat) * Math.sin(lon); // Z-axis
+
+        // Create the surface position vector
+        Vector3d surfacePosition = new Vector3d(x, y, z);
+
+//        return surfacePosition;
+
+        // Calculate the surface normal (for altitude adjustment)
+        Vector3d surfaceNormal = new Vector3d(
+                x / (equatorialRadius * equatorialRadius),
+                y / (polarRadius * polarRadius),
+                z / (equatorialRadius * equatorialRadius)
+        ).normalizeLocal();
+
+        // Adjust the position by altitude (move along the normal)
+        return surfacePosition.add(surfaceNormal.mult(altitude));
+    }
+
+    // Method to calculate the surface normal at the given latitude and longitude on an ellipsoid
+    public Vector3f calculateSurfaceNormal(float latitude, float longitude) {
+        float equatorialRadius = (float) (object.getEquatorialRadius());
+        float polarRadius = (float) (object.getPolarRadius());
+
+        // Convert latitude and longitude to radians
+        float lat = FastMath.DEG_TO_RAD * latitude;
+        float lon = FastMath.DEG_TO_RAD * longitude;
+
+        // Calculate the surface normal on the ellipsoid
+        float x = FastMath.cos(lat) * FastMath.cos(lon); // X-axis
+        float y = FastMath.sin(lat);                    // Y-axis (polar)
+        float z = FastMath.cos(lat) * FastMath.sin(lon); // Z-axis
+
+        return new Vector3f(x / (equatorialRadius * equatorialRadius),
+                y / (polarRadius * polarRadius),
+                z / (equatorialRadius * equatorialRadius)).normalizeLocal();
+    }
+
     private void rotateModel() {
         float rotateAngle = (float) object.getRotationAngle();
         Quaternion rotation = new Quaternion().fromAngleAxis(FastMath.DEG_TO_RAD * (rotateAngle - lastRotateAngle), Vector3f.UNIT_Z);
-        model.rotate(rotation);
-        
+        rotatingNode.rotate(rotation);
+
         lastRotateAngle = rotateAngle;
     }
-    
+
     public void setShowLabel(boolean showLabel) {
         boolean wasShowLabel = this.showLabel;
         this.showLabel = showLabel;
@@ -226,15 +281,15 @@ public class ObjectModel {
             }
         }
     }
-    
-    public Mesh createOrbitMesh(double[] barycenter, 
+
+    public Mesh createOrbitMesh(double[] barycenter,
                                 OrbitalElements oe,
                                 int samples) {
         float bcx = jmeApp.paneX(barycenter[0]);
         float bcy = jmeApp.paneY(barycenter[1]);
         float bcz = jmeApp.paneZ(barycenter[2]);
 //        Vector3f bc = new Vector3f(bcx * scale, bcy * scale, bcz * scale);
-        
+
         float a = (float) (oe.semiMajorAxis * jmeApp.scale);
         float e = (float) oe.eccentricity;
         float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
@@ -253,15 +308,15 @@ public class ObjectModel {
 
             // Convert to 3D space using orbital elements
             Vector3f point = new Vector3f(x, y, z);
-            
+
             point = UiVectorUtils.rotateAroundZAxis(point, omega); // Rotate by argument of periapsis
             point = UiVectorUtils.rotateAroundXAxis(point, i);     // Rotate by inclination
             point = UiVectorUtils.rotateAroundZAxis(point, omegaBig); // Rotate by longitude of the ascending node
-            
+
             point.setX(point.x + bcx);
             point.setY(point.y + bcy);
             point.setZ(point.z + bcz);
-            
+
             vertices[j] = point;
         }
 

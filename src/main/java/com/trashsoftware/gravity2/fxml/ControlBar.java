@@ -18,7 +18,7 @@ public class ControlBar implements Initializable {
     @FXML
     Label timeStepText;
     @FXML
-    Button playPauseBtn, clearFocusBtn;
+    Button playPauseBtn, clearFocusBtn, clearLandBtn;
     @FXML
     Slider pathLengthSlider, massPercentileSlider;
     @FXML
@@ -100,6 +100,10 @@ public class ControlBar implements Initializable {
     public void setFocus() {
         clearFocusBtn.setDisable(false);
     }
+    
+    public void setLand() {
+        clearLandBtn.setDisable(false);
+    }
 
     @FXML
     public void clearFocusAction() {
@@ -107,6 +111,12 @@ public class ControlBar implements Initializable {
         clearFocusBtn.setDisable(true);
 //        effPotentialContourMenu.setSelected(false);
 //        effPotentialContourMenu.setDisable(true);
+    }
+    
+    @FXML
+    public void clearLandAction() {
+        getJmeApp().clearLand();
+        clearLandBtn.setDisable(true);
     }
     
     @FXML

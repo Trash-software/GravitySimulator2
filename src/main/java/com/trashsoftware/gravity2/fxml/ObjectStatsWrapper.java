@@ -22,8 +22,6 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     Pane modelPane;
     @FXML
-    Canvas canvas;
-    @FXML
     Label nameLabel, massLabel, diameterLabel, speedLabel, densityLabel;
     @FXML
     GridPane detailPane;
@@ -41,6 +39,7 @@ public class ObjectStatsWrapper extends HBox {
 
     private Runnable onFocus, onCollapse;
     private Consumer<ObjectStatsWrapper> onExpand;
+    private Consumer<CelestialObject> onLand;
     CelestialObject object;
 
     private ResourceBundle strings;
@@ -51,6 +50,7 @@ public class ObjectStatsWrapper extends HBox {
                               UnitsConverter defaultUnit,
                               Runnable onFocus,
                               Consumer<ObjectStatsWrapper> onExpand,
+                              Consumer<CelestialObject> onLand,
                               Runnable onCollapse,
                               ResourceBundle resourceBundle) {
         super();
@@ -69,12 +69,17 @@ public class ObjectStatsWrapper extends HBox {
             throw new RuntimeException(exception);
         }
 
-        setObject(celestialObject, simulator, defaultUnit, onFocus, onExpand, onCollapse);
+        setObject(celestialObject, simulator, defaultUnit, onFocus,  onExpand, onLand, onCollapse);
     }
 
     @FXML
     public void focusAction() {
         onFocus.run();
+    }
+    
+    @FXML
+    public void landAction() {
+        onLand.accept(object);
     }
     
     @FXML
@@ -87,11 +92,13 @@ public class ObjectStatsWrapper extends HBox {
                            UnitsConverter defaultUnit,
                            Runnable onFocus,
                            Consumer<ObjectStatsWrapper> onExpand,
+                           Consumer<CelestialObject> onLand,
                            Runnable onCollapse) {
         this.object = celestialObject;
         this.onFocus = onFocus;
         this.onExpand = onExpand;
         this.onCollapse = onCollapse;
+        this.onLand = onLand;
 
         nameLabel.setText(object.getName());
 //        GraphicsContext gc = canvas.getGraphicsContext2D();

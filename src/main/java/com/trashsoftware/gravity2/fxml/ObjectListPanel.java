@@ -161,6 +161,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
                             unitsMethodBox.getValue().unitsConverter,
                             () -> fxApp.getJmeApp().focusOn(object),
                             this::expandObjectStats,
+                            obj -> fxApp.getJmeApp().landOn(obj),
                             this::collapseObjectStats,
                             strings
                     ));
@@ -179,6 +180,10 @@ public class ObjectListPanel extends AbstractObjectPanel {
         celestialContainer.setContent(celestialListPane);
         reloadInfoPane(fxApp.getSimulator());
         celestialContainer.setVvalue(celestialContainerVValueCache);
+    }
+    
+    private void landOn(CelestialObject celestialObject) {
+        
     }
     
     @FXML

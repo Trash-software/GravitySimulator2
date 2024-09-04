@@ -13,6 +13,7 @@
     
     <VBox fx:id="modelPane" spacing="5.0" alignment="CENTER">
         <Button text="%focus" onAction="#focusAction"/>
+        <Button text="land" onAction="#landAction"/>
 <!--        <Button text="expand" onAction="#expandAction"/>-->
     </VBox>
     
