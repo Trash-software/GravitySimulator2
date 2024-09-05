@@ -62,6 +62,7 @@ public class JmeApp extends SimpleApplication {
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private Node axisMarkNode;
+    private Node globalBarycenterNode;
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
@@ -137,7 +138,7 @@ public class JmeApp extends SimpleApplication {
             drawRecentPaths();
         }
         if (showBarycenter) {
-            drawBarycenter();
+            updateBarycentersNodes();
         }
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
@@ -620,11 +621,55 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-
-    private void drawBarycenter() {
+    
+    private void updateBarycentersNodes() {
         List<HieraticalSystem> roots = simulator.getRootSystems();
         for (HieraticalSystem hs : roots) {
-            drawSystemBarycenter(hs, 2);
+            updateBarycenterNode(hs);
+        }
+        if (globalBarycenterNode != null) {
+            double[] barycenter = simulator.barycenter();
+            float x = paneX(barycenter[0]);
+            float y = paneY(barycenter[1]);
+            float z = paneZ(barycenter[2]);
+            globalBarycenterNode.setLocalTranslation(x, y, z);
+        }
+    }
+    
+    private void updateBarycenterNode(HieraticalSystem hs) {
+        if (!hs.isObject()) {
+            double[] barycenter = hs.getPosition();
+            float x = paneX(barycenter[0]);
+            float y = paneY(barycenter[1]);
+            float z = paneZ(barycenter[2]);
+
+            ObjectModel om = modelMap.get(hs.master);
+            if (om.barycenterMark == null) {
+                System.err.println("System " + hs.master.getName() + " does not have valid barycenter mark");
+            } else {
+                om.barycenterMark.setLocalTranslation(x, y, z);
+                for (HieraticalSystem child : hs.getChildrenSorted()) {
+                    updateBarycenterNode(child);
+                }
+            }
+        }
+    }
+    
+    private void disableBarycenters() {
+        for (ObjectModel om : modelMap.values()) {
+            if (om.barycenterMark != null) {
+                rootNode.detachChild(om.barycenterMark);
+            }
+        }
+        if (globalBarycenterNode != null) {
+            rootNode.detachChild(globalBarycenterNode);
+        }
+    }
+
+    private void enableBarycenters() {
+        List<HieraticalSystem> roots = simulator.getRootSystems();
+        for (HieraticalSystem hs : roots) {
+            enableBarycenterNodes(hs, 2);
         }
 
         // overall barycenter
@@ -633,28 +678,32 @@ public class JmeApp extends SimpleApplication {
             float x = paneX(barycenter[0]);
             float y = paneY(barycenter[1]);
             float z = paneZ(barycenter[2]);
-            // todo
-//            gc2d.setStroke(TEXT);
-//            gc2d.strokeLine(x - 5, y, x + 5, y);
-//            gc2d.strokeLine(x, y - 5, x, y + 5);
-
-
+            
+            if (globalBarycenterNode == null) {
+                globalBarycenterNode = create3DCrossAt(Vector3f.ZERO, 3, false, false);
+            }
+            globalBarycenterNode.setLocalTranslation(x, y, z);
+            rootNode.attachChild(globalBarycenterNode);
         }
     }
 
-    private void drawSystemBarycenter(HieraticalSystem hs, double markSize) {
+    private void enableBarycenterNodes(HieraticalSystem hs, double markSize) {
         if (!hs.isObject()) {
             double[] barycenter = hs.getPosition();
             float x = paneX(barycenter[0]);
             float y = paneY(barycenter[1]);
             float z = paneZ(barycenter[2]);
-
-            Node cross = create3DCrossAt(new Vector3f(x, y, z), (float) markSize, false, false);
-//            rootNode.attachChild(cross);
-//            eachFrameErase.add(cross);
+            
+            ObjectModel om = modelMap.get(hs.master);
+            if (om.barycenterMark == null) {
+                om.barycenterMark = create3DCrossAt(Vector3f.ZERO, (float) markSize, false, false);
+                om.barycenterMark.setLocalTranslation(x, y, z);
+            }
+            
+            rootNode.attachChild(om.barycenterMark);
 
             for (HieraticalSystem child : hs.getChildrenSorted()) {
-                drawSystemBarycenter(child, Math.max(2, markSize - 0.5));
+                enableBarycenterNodes(child, Math.max(0.5, markSize - 0.5));
             }
         }
     }
@@ -937,7 +986,17 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void toggleBarycenterShowing(boolean showing) {
+        boolean wasShowing = showBarycenter;
         showBarycenter = showing;
+        if (wasShowing != showBarycenter) {
+            enqueue(() -> {
+                if (showBarycenter) {
+                    enableBarycenters();
+                } else {
+                    disableBarycenters();
+                }
+            });
+        }
     }
 
     private void updateLabelShowing() {

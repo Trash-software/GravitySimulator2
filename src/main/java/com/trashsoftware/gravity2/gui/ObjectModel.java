@@ -43,6 +43,8 @@ public class ObjectModel {
     protected Mesh blank = new Mesh();
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
+    
+    protected Node barycenterMark;
 
     protected PointLightShadowRenderer plsr;
     protected PointLightShadowFilter plsf;
