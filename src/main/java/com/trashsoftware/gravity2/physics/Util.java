@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Util {
+    
+    public static final double TWO_PI = Math.PI * 2;
+    public static final double HALF_PI = Math.PI / 2;
 
     public static double[] jsonArrayToDoubleArray(JSONArray jsonArray) {
         double[] res = new double[jsonArray.length()];
@@ -14,6 +17,10 @@ public class Util {
             res[i] = jsonArray.getDouble(i);
         }
         return res;
+    }
+
+    public static double clamp(double input, double min, double max) {
+        return (input < min) ? min : Math.min(input, max);
     }
 
     /**

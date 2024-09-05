@@ -1,136 +1,122 @@
 package com.trashsoftware.gravity2.gui;
 
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
+import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.Util;
 
 public class FirstPersonMoving {
-    
+
     protected ObjectModel objectModel;
     protected Node cameraNode = new Node("CameraNode");
-    protected Node sightPoint = new Node("LookAtPoint");
+    protected Node eastNode = new Node("EastNode");
     protected double longitude = 90;
     protected double latitude = 15;
     protected double altitude = 1e5f;
-    
-    protected double lookDirectionDeg = 0;
+
     protected double lookAzimuthDeg = 0;
-    
+    protected double lookAltitudeDeg = 0;
+
     FirstPersonMoving(ObjectModel objectModel) {
         this.objectModel = objectModel;
 
-        Sphere box = new Sphere(32, 32, (float) (50 / objectModel.jmeApp.scale));
-        Material boxMat = new Material(objectModel.jmeApp.getAssetManager(), 
-                "Common/MatDefs/Misc/Unshaded.j3md");
-        boxMat.setColor("Color", ColorRGBA.Yellow);
-        Geometry boxGeo = new Geometry("Box", box);
-        boxGeo.setMaterial(boxMat);
-        
-//        cameraNode.attachChild(boxGeo);
+        Vector3f localPos = objectModel.calculateSurfacePosition(latitude,
+                longitude,
+                altitude).toVector3f();
+        this.cameraNode.setLocalTranslation(localPos);
+        Vector3f sightPos = objectModel.calculateSurfacePosition(latitude,
+                longitude + 1,
+                altitude).toVector3f();
+        this.eastNode.setLocalTranslation(sightPos);
     }
-    
-    public void directionChange(double changeAmountDeg) {
-        this.lookDirectionDeg += changeAmountDeg;
-        System.out.println(this.lookDirectionDeg);
+
+    public CelestialObject getObject() {
+        return objectModel.object;
     }
-    
+
     public void azimuthChange(double changeAmountDeg) {
         this.lookAzimuthDeg += changeAmountDeg;
-    }
-    
-    public Vector3d getLookAtLonLatAltDelta() {
-        // Convert degrees to radians for calculations
-        double lookDirectionRad = Math.toRadians(lookDirectionDeg);
-        double lookAzimuthRad = Math.toRadians(lookAzimuthDeg);
-        
-        double dx = Math.cos(lookDirectionRad);
-        double dy = Math.sin(lookDirectionRad);
-        double dz = Math.sin(lookAzimuthRad);
-        
-//        // Determine the Cartesian direction vector based on lookDirection and lookAzimuth
-//        double dx = Math.cos(lookAzimuthRad) * Math.cos(lookDirectionRad);
-//        double dy = Math.cos(lookAzimuthRad) * Math.sin(lookDirectionRad);
-//        double dz = Math.sin(lookAzimuthRad);
-        return new Vector3d(dx, dy, dz);
+//        System.out.println("Azimuth change: " + changeAmountDeg + ", Azimuth: " + lookAzimuthDeg);
     }
 
-    protected Vector3f getSightLocalPos3() {
-        // Convert degrees to radians for calculations
-        double lookDirectionRad = Math.toRadians(lookDirectionDeg);
-        double lookAzimuthRad = Math.toRadians(lookAzimuthDeg);
+    public void lookingAltitudeChange(double changeAlgDeg) {
+        this.lookAltitudeDeg += changeAlgDeg;
+        lookAltitudeDeg = Math.min(85, Math.max(-85, lookAltitudeDeg));
+//        System.out.println("Alt change: " + changeAlgDeg + ", alt: " + lookAltitudeDeg);
+    }
 
-        // Earth's radius (assuming for simplicity); for other celestial bodies, replace this with the correct radius
-        double radius = altitude + 6371000.0;  // Altitude + Earth's radius in meters
-
-        // Convert current longitude and latitude to radians
+    public void moveForward(double moveDistance) {
+        // Convert azimuth angle to radians for calculation
+        double azimuthRad = Math.toRadians(lookAzimuthDeg);
+        
         double latRad = Math.toRadians(latitude);
         double lonRad = Math.toRadians(longitude);
+        
+        // Calculate the change in latitude and longitude based on azimuth direction
+        double deltaLat = moveDistance * Math.sin(azimuthRad); // Latitude change
+        double deltaLon = moveDistance * Math.cos(azimuthRad) / Math.cos(latRad); // Longitude change, corrected for latitude
 
-        // Convert spherical coordinates (longitude, latitude, altitude) to Cartesian (x, y, z)
-        double x = radius * Math.cos(latRad) * Math.cos(lonRad);
-        double y = radius * Math.cos(latRad) * Math.sin(lonRad);
-        double z = radius * Math.sin(latRad);
+//        System.out.println("Delta: " + deltaLon + " " + deltaLat);
+        
+//         Update the latitude and longitude, convert back to degrees
+        latRad = Util.clamp((latRad + deltaLat / getObject().getPolarRadius()), -Util.HALF_PI, Util.HALF_PI); // Ensure latitude stays within bounds
+        lonRad = (lonRad + deltaLon / getObject().getEquatorialRadius()) % Util.TWO_PI; // Wrap longitude within 360 degrees
+        
+        longitude = Math.toDegrees(lonRad);
+        latitude = Math.toDegrees(latRad);
+//        System.out.println(longitude + " " + latitude);
+        
+        // Calculate the new position using updated latitude and longitude, keeping altitude constant
+        Vector3f newPosition = objectModel.calculateSurfacePosition(latitude, 
+                longitude, 
+                altitude).toVector3f();
 
-        // Determine the Cartesian direction vector based on lookDirection and lookAzimuth
-        double dx = Math.cos(lookAzimuthRad) * Math.cos(lookDirectionRad);
-        double dy = Math.cos(lookAzimuthRad) * Math.sin(lookDirectionRad);
-        double dz = Math.sin(lookAzimuthRad);
+        // Set the new position of the cameraNode
+        cameraNode.setLocalTranslation(newPosition);
 
-        // Scale the direction vector by the desired distance (in this case, 1 unit)
-        double distance = 1.0;
-        x += dx * distance;
-        y += dy * distance;
-        z += dz * distance;
-
-        // Convert back to spherical coordinates (longitude, latitude, altitude)
-        double newRadius = Math.sqrt(x * x + y * y + z * z);  // Distance from the center
-        double newLatitude = Math.asin(z / newRadius);        // Latitude in radians
-        double newLongitude = Math.atan2(y, x);               // Longitude in radians
-        double newAltitude = newRadius - 6371000.0;           // Subtract Earth's radius to get altitude
-
-        // Convert latitude and longitude back to degrees
-        newLatitude = Math.toDegrees(newLatitude);
-        newLongitude = Math.toDegrees(newLongitude);
-
-        // Return the computed look-at point in 3D space (longitude, latitude, altitude)
-        return new Vector3f((float)newLongitude, (float)newLatitude, (float)newAltitude);
+        Vector3f newEast = objectModel.calculateSurfacePosition(latitude,
+                longitude + 1,
+                altitude).toVector3f();
+        
+        eastNode.setLocalTranslation(newEast);
     }
-    
+
     public Vector3d getCurrentLocalPos() {
         return objectModel.calculateSurfacePosition(latitude,
                 longitude,
                 altitude);
     }
-    
-    public Vector3f getSightLocalPos() {
-//        return computeLookAtPosition();
-        
-        Vector3d delta = getLookAtLonLatAltDelta();
-        double sightLat = latitude + delta.x;
-        double sightLon = longitude + delta.y;
-        double sightAlt = altitude + delta.z * altitude;
-//        System.out.println(sightLat + " " + sightLon + " " + sightAlt);
-        return objectModel.calculateSurfacePosition(sightLat,
-                sightLon,
-                sightAlt).toVector3f();
+
+    public void updateCamera(Camera cam) {
+        float azimuthAngle = (float) lookAzimuthDeg;
+        float altitudeAngle = (float) lookAltitudeDeg;
+
+        Vector3f upVector = getUpVector();
+        // The camera will always look at the targetNode's position
+        Vector3f targetPosition = eastNode.getWorldTranslation();
+
+        // Create a local forward direction vector towards the target point
+        Vector3f forwardDir = targetPosition.subtract(cameraNode.getWorldTranslation()).normalize();
+
+        // Apply the azimuth rotation (rotate around the up vector)
+        Quaternion azimuthRotation = new Quaternion().fromAngleAxis(azimuthAngle * FastMath.DEG_TO_RAD, upVector);
+        forwardDir = azimuthRotation.mult(forwardDir); // Apply azimuth rotation
+
+        // Apply the altitude (vertical) rotation (rotate around the camera's left vector)
+        Quaternion altitudeRotation = new Quaternion().fromAngleAxis(altitudeAngle * FastMath.DEG_TO_RAD, cam.getLeft());
+        forwardDir = altitudeRotation.mult(forwardDir); // Apply altitude rotation
+
+        // Position the camera at the CameraNode and look in the adjusted forward direction
+        cam.setLocation(cameraNode.getWorldTranslation());
+        cam.lookAtDirection(forwardDir, upVector); // Look in the adjusted forward direction
+
     }
 
-//    public Vector3d getSightLocalPos() {
-//        Vector3d pos = getCurrentLocalPos();
-//        double lookDirectionRad = Math.toRadians(lookDirectionDeg);
-//        double lookAzimuthRad = Math.toRadians(lookAzimuthDeg);
-//
-//        double dx = Math.cos(lookAzimuthRad) * Math.cos(lookDirectionRad) * 1e5;
-//        double dy = Math.cos(lookAzimuthRad) * Math.sin(lookDirectionRad) * 1e5;
-//        double dz = Math.sin(lookAzimuthRad) * 1e5;
-//        
-//        Vector3d delta = new Vector3d(dx, dy, dz);
-//        return pos.add(delta);
-//    }
+    public Vector3f getUpVector() {
+        Vector3f centerPos = objectModel.rotatingNode.getWorldTranslation();
+        return cameraNode.getWorldTranslation().subtract(centerPos).normalize();
+    }
 }

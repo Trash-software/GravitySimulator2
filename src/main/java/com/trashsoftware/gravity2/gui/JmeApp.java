@@ -4,11 +4,9 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.AnalogListener;
-import com.jme3.input.controls.MouseAxisTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.input.controls.*;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
@@ -31,9 +29,13 @@ public class JmeApp extends SimpleApplication {
     private boolean leftButtonPressed = false;
     private boolean rightButtonPressed = false;
     private boolean middleButtonPressed = false;
+    private boolean keyWPressed = false;
     private float horizontalSpeed = 50.0f;
     private float verticalSpeed = 50.0f;
     private float rotationSpeed = 3.0f;
+
+    private float azimuthSensitivity = 50.0f;
+    private float altitudeAngleSensitivity = 50.0f;
 //    private Vector3f pivotPoint = Vector3f.ZERO;  // Assuming the object is at the origin
 
     private double pathLength = 5000.0;
@@ -62,13 +64,14 @@ public class JmeApp extends SimpleApplication {
     private CelestialObject focusing;
     private FirstPersonMoving firstPersonStar;
     private final FxApp fxApp;
-//    private final Set<Spatial> eachFrameErase = new HashSet<>();
+    //    private final Set<Spatial> eachFrameErase = new HashSet<>();
     private AmbientLight ambientLight;
+    private RefFrame refFrame = RefFrame.STATIC;
 
     public static JmeApp getInstance() {
         return instance;
     }
-    
+
     public JmeApp(FxApp fxApp) {
         this.fxApp = fxApp;
     }
@@ -107,15 +110,19 @@ public class JmeApp extends SimpleApplication {
                 getFxApp().notifyObjectCountChanged(simulator);
             }
 
+            updateRefFrame();
             if (firstPersonStar != null) {
+                if (keyWPressed) {
+                    firstPersonStar.moveForward(1000);
+                }
                 moveCameraWithFirstPerson();
             } else if (focusing != null) {
                 moveScreenWithFocus();
             }
         }
-        
+
         updateModelPositions();
-        
+
         clearUnUsedMeshes();
         if (showFullPath) {
             drawFullPaths();
@@ -132,14 +139,14 @@ public class JmeApp extends SimpleApplication {
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
     }
-    
+
     private void initLights() {
         ambientLight = new AmbientLight();
         ambientLight.setColor(ColorRGBA.White.mult(0.02f));
         rootNode.addLight(ambientLight);
         rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
     }
-    
+
     private void initMarks() {
 //        Mesh cross = create3DCrossAt(new Vector3f(20, 20,), 10);
     }
@@ -163,9 +170,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
-        solarSystemTest();
+//        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -177,13 +184,13 @@ public class JmeApp extends SimpleApplication {
 
         // garbage collect for those destroyed things
 //        modelMap.entrySet().removeIf(entry -> !objects.contains(entry.getKey()));
-        
+
         for (ObjectModel om : modelMap.values()) {
             if (!objectSet.contains(om.object)) {
                 // died object
                 rootNode.detachChild(om.objectNode);
                 rootNode.detachChild(om.orbit);
-                
+
                 // left its paths continues alive
                 if (om.emissionLight != null) {
                     rootNode.removeLight(om.emissionLight);
@@ -224,18 +231,21 @@ public class JmeApp extends SimpleApplication {
     private void setupMouses() {
 //        cam.setFrustumNear(1f);
 //        cam.setFrustumFar(1e7f);
-        
-        cam.setFrustumPerspective(45f, 
-                (float) cam.getWidth() / cam.getHeight(), 
-                0.01f, 
-                1e7f);
+
+        cam.setFrustumPerspective(45f,
+                (float) cam.getWidth() / cam.getHeight(),
+                0.01f,
+                1e5f);
 
         cam.setLocation(new Vector3f(0, 0, 100));
 
         // Disable flyCam
-        flyCam.setDragToRotate(true);
+//        flyCam.setDragToRotate(true);
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true); // Show the mouse cursor
+        
+        inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addListener(actionListener, "MoveForward");
 
         // Map the mouse buttons
         inputManager.addMapping("LeftClick", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -250,7 +260,8 @@ public class JmeApp extends SimpleApplication {
         inputManager.addMapping("MouseMoveX-", new MouseAxisTrigger(MouseInput.AXIS_X, true));  // Leftward
         inputManager.addMapping("MouseMoveY+", new MouseAxisTrigger(MouseInput.AXIS_Y, false)); // Downward
         inputManager.addMapping("MouseMoveY-", new MouseAxisTrigger(MouseInput.AXIS_Y, true));  // Upward
-
+//        inputManager.addMapping("KeyW", new KeyP(KeyInput.KEY_W));
+        
         // Add listeners for the new mappings
         inputManager.addListener(analogListener, "MouseMoveX+", "MouseMoveX-", "MouseMoveY+", "MouseMoveY-");
 
@@ -262,48 +273,46 @@ public class JmeApp extends SimpleApplication {
     }
 
     // Action listener to track button press/release
-    private final ActionListener actionListener = new ActionListener() {
-        @Override
-        public void onAction(String name, boolean isPressed, float tpf) {
-            if (name.equals("LeftClick")) {
-                leftButtonPressed = isPressed;
-                if (!isPressed) {
-                    // Get the mouse click position
-                    Vector2f click2d = inputManager.getCursorPosition();
-                    Vector3f click3d = cam.getWorldCoordinates(click2d, 0f).clone();
-                    Vector3f dir = cam.getWorldCoordinates(click2d, 1f).subtractLocal(click3d).normalizeLocal();
+    private final ActionListener actionListener = (name, isPressed, tpf) -> {
+        if (name.equals("LeftClick")) {
+            leftButtonPressed = isPressed;
+            if (!isPressed) {
+                // Reset results list.
+                CollisionResults results = new CollisionResults();
+                // Convert screen click to 3d position
+                Vector2f click2d = inputManager.getCursorPosition();
+                Vector3f click3d = cam.getWorldCoordinates(click2d, 0f).clone();
 
-                    // Adjust the ray's origin to match the camera's actual position
-                    click3d = cam.getLocation().clone();
+                // Convert screen click to 3D position at far plane
+                Vector3f farPoint = cam.getWorldCoordinates(click2d, 1f);  // Position on far plane
 
-                    // Create a ray from the camera's position in the direction of the click
-                    Ray ray = new Ray(click3d, dir);
+                // Calculate the direction vector from near plane to far plane
+                Vector3f dir = farPoint.subtract(click3d).normalizeLocal();  // Ensure it's a valid direction
 
-                    // Collect intersections between the ray and the scene
-                    CollisionResults results = new CollisionResults();
+                // Aim the ray from the clicked spot forwards.
+                Ray ray = new Ray(click3d, dir);
+                rootNode.collideWith(ray, results);
 
-                    // Iterate through all root node children (which are the object Nodes)
-                    for (Spatial spatial : rootNode.getChildren()) {
-                        if (spatial instanceof ObjectNode objectNode) {
-                            objectNode.collideWith(ray, results);
-                        }
-                    }
-
-                    // Check if there's a hit
-                    if (results.size() > 0) {
-                        // Get the closest collision result
-                        Geometry target = results.getClosestCollision().getGeometry();
-                        if (target != null) {
-                            // Handle the click on the geometry
-                            onGeometryClicked(target);
-                        }
+                // Check if there's a hit
+                if (results.size() > 0) {
+                    // Get the closest collision result
+                    Geometry target = results.getClosestCollision().getGeometry();
+                    if (target != null) {
+                        // Handle the click on the geometry
+                        onGeometryClicked(target);
                     }
                 }
-            } else if (name.equals("RightClick")) {
-                rightButtonPressed = isPressed;
-            } else if (name.equals("MiddleClick")) {
-                middleButtonPressed = isPressed;
             }
+        } else if (name.equals("RightClick")) {
+            rightButtonPressed = isPressed;
+        } else if (name.equals("MiddleClick")) {
+            middleButtonPressed = isPressed;
+        } else if (name.equals("MoveForward")) {
+            System.out.println("W pressed: " + isPressed);
+            keyWPressed = isPressed;
+//            if (isPressed && firstPersonStar != null) {
+//                firstPersonStar.moveForward(1000);
+//            }
         }
     };
 
@@ -345,24 +354,19 @@ public class JmeApp extends SimpleApplication {
                 } else {
                     if (name.equals("MouseMoveX-")) {
                         // Move the camera horizontally when dragging the left button
-                        Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
-                        firstPersonStar.directionChange(left.x);
-//                        System.out.println(left);
+                        firstPersonStar.azimuthChange(-value * azimuthSensitivity);
                     } else if (name.equals("MouseMoveX+")) {
                         // Move the camera horizontally when dragging the left button
-                        Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
-                        firstPersonStar.directionChange(left.x);
+                        firstPersonStar.azimuthChange(value * azimuthSensitivity);
                     } else if (name.equals("MouseMoveY-")) {
                         // Move the camera vertically when dragging the left button
-                        Vector3f up = cam.getUp().mult(verticalSpeed * value);
-                        firstPersonStar.azimuthChange(up.y);
+                        firstPersonStar.lookingAltitudeChange(-value * altitudeAngleSensitivity);
                     } else if (name.equals("MouseMoveY+")) {
                         // Move the camera vertically when dragging the left button
-                        Vector3f up = cam.getUp().mult(-verticalSpeed * value);
-                        firstPersonStar.azimuthChange(up.y);
+                        firstPersonStar.lookingAltitudeChange(value * altitudeAngleSensitivity);
                     }
-                    Vector3f sightPos = firstPersonStar.getSightLocalPos();
-                    firstPersonStar.sightPoint.setLocalTranslation(sightPos);
+//                    Vector3f sightPos = firstPersonStar.getSightLocalPos();
+//                    firstPersonStar.sightPoint.setLocalTranslation(sightPos);
                 }
             }
             if (rightButtonPressed) {
@@ -375,7 +379,7 @@ public class JmeApp extends SimpleApplication {
                         rotateAroundPivot(-rotationAmount, cam.getLeft());
                     }
                 } else {
-                    
+
                 }
             }
             if (middleButtonPressed) {
@@ -388,7 +392,7 @@ public class JmeApp extends SimpleApplication {
                         rotateAroundPivot(-rotationAmount, Vector3f.UNIT_Z);
                     }
                 } else {
-                    
+
                 }
             }
 
@@ -458,10 +462,10 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-    
+
     public void landOn(CelestialObject object) {
         System.out.println("Landing on " + object.getName());
-        
+
         enqueue(() -> {
             ObjectModel om = modelMap.get(object);
 
@@ -470,20 +474,26 @@ public class JmeApp extends SimpleApplication {
             System.out.println("New scale: " + scale);
 
             firstPersonStar = new FirstPersonMoving(om);
-            Vector3f surfacePos = firstPersonStar.getCurrentLocalPos().toVector3f();
-            firstPersonStar.cameraNode.setLocalTranslation(surfacePos);
-            Vector3f sightPos = firstPersonStar.getSightLocalPos();
-            firstPersonStar.sightPoint.setLocalTranslation(sightPos);
-            
+//            Vector3f surfacePos = firstPersonStar.getCurrentLocalPos().toVector3f();
+//            firstPersonStar.cameraNode.setLocalTranslation(surfacePos);
+//            Vector3f sightPos = firstPersonStar.getSightLocalPos();
+//            firstPersonStar.sightPoint.setLocalTranslation(sightPos);
+
             om.rotatingNode.attachChild(firstPersonStar.cameraNode);
-            om.rotatingNode.attachChild(firstPersonStar.sightPoint);
+            om.rotatingNode.attachChild(firstPersonStar.eastNode);
+            
+            firstPersonStar.updateCamera(cam);
 
-            Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
-            cam.setLocation(camPos);
+//            Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
+//            cam.setLocation(camPos);
+//
+//            cam.lookAtDirection(firstPersonStar.getLookingDirection(cam),
+//                    firstPersonStar.getUpVector());
 
-            Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
-            Vector3f realUp = camPos.subtract(centerPos).normalize();
-            cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), realUp);
+//            Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
+//            Vector3f realUp = camPos.subtract(centerPos).normalize();
+//            cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), firstPersonStar.getUpVector());
+//            flyCam.setEnabled(true);
 
             getFxApp().getControlBar().setLand();
         });
@@ -519,15 +529,19 @@ public class JmeApp extends SimpleApplication {
 //        cam.setLocation(cam.getLocation().add(delta));
 //        lookAtPoint.addLocal(delta);
     }
-    
+
     private void moveCameraWithFirstPerson() {
-        Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
-        cam.setLocation(camPos);
-        
-        Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
-        Vector3f realUp = camPos.subtract(centerPos).normalize();
-        
-        cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), realUp);
+        firstPersonStar.updateCamera(cam);
+//        Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
+//        System.out.println(camPos);
+//        cam.setLocation(camPos);
+//        cam.lookAtDirection(firstPersonStar.getLookingDirection(cam), 
+//                firstPersonStar.getUpVector());
+
+//        Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
+//        Vector3f realUp = camPos.subtract(centerPos).normalize();
+
+//        cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), firstPersonStar.getUpVector());
     }
 
     private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
@@ -563,6 +577,28 @@ public class JmeApp extends SimpleApplication {
         return (paneZ + screenCenter.z) / scale + refOffsetZ;
     }
 
+    private void updateRefFrame() {
+        RefFrame refFrame = getRefFrame();
+        if (refFrame == RefFrame.SYSTEM) {
+            double[] barycenter = simulator.barycenter();
+            refOffsetX = barycenter[0];
+            refOffsetY = barycenter[1];
+            refOffsetZ = barycenter[2];
+        } else if (refFrame == RefFrame.TARGET) {
+            if (firstPersonStar != null) {
+                double[] pos = firstPersonStar.getObject().getPosition();
+                refOffsetX = pos[0];
+                refOffsetY = pos[1];
+                refOffsetZ = pos[2];
+            } else if (focusing != null) {
+                double[] pos = focusing.getPosition();
+                refOffsetX = pos[0];
+                refOffsetY = pos[1];
+                refOffsetZ = pos[2];
+            }
+        }
+    }
+
     private void drawBarycenter() {
         List<HieraticalSystem> roots = simulator.getRootSystems();
         for (HieraticalSystem hs : roots) {
@@ -579,8 +615,8 @@ public class JmeApp extends SimpleApplication {
 //            gc2d.setStroke(TEXT);
 //            gc2d.strokeLine(x - 5, y, x + 5, y);
 //            gc2d.strokeLine(x, y - 5, x, y + 5);
-            
-            
+
+
         }
     }
 
@@ -624,7 +660,7 @@ public class JmeApp extends SimpleApplication {
         // Set positions for the vertices
         mesh.setMode(Mesh.Mode.Lines);
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(start, end));
-        mesh.setBuffer(VertexBuffer.Type.Index, 2, new short[] { 0, 1 });
+        mesh.setBuffer(VertexBuffer.Type.Index, 2, new short[]{0, 1});
         mesh.updateBound();
 
         Geometry geom = new Geometry("Line", mesh);
@@ -786,20 +822,44 @@ public class JmeApp extends SimpleApplication {
 
     private void drawFullPaths() {
 //        tempGeom.clear();
+        RefFrame refFrame = getRefFrame();
+        double[] temp;
+        double[] offset = new double[3];
         for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
 //            if (obj.getMass() < minimumMassShowing) continue;
             var path = entry.getValue();
             if (obj == null) continue;
 
+            Iterator<double[]> centerPath = switch (refFrame) {
+                case SYSTEM -> simulator.getBarycenterPath().iterator();
+                case TARGET ->
+                        focusing == null ? null : simulator.getRecentPaths().get(focusing).iterator();
+                default -> null;
+            };
+
+            temp = new double[3];
+
             Vector3f[] vertices = new Vector3f[path.size()];
             int index = 0;
             for (double[] pos : path) {
+                if (centerPath != null) {
+                    if (!centerPath.hasNext()) {
+                        break;  // center not alive for this long
+                    }
+                    temp = centerPath.next();
+                }
+
+                if (centerPath != null) {
+                    offset[0] = temp[0] - refOffsetX;
+                    offset[1] = temp[1] - refOffsetY;
+                    offset[2] = temp[2] - refOffsetZ;
+                }
 
                 Vector3f vector3f = new Vector3f(
-                        paneX(pos[0]),
-                        paneY(pos[1]),
-                        paneZ(pos[2])
+                        paneX(pos[0] - offset[0]),
+                        paneY(pos[1] - offset[1]),
+                        paneZ(pos[2] - offset[2])
                 );
                 vertices[index] = vector3f;
                 index++;
@@ -838,7 +898,7 @@ public class JmeApp extends SimpleApplication {
         showLabel = showing;
         enqueue(this::updateLabelShowing);
     }
-    
+
     public void toggleBarycenterShowing(boolean showing) {
         showBarycenter = showing;
     }
@@ -931,7 +991,7 @@ public class JmeApp extends SimpleApplication {
         );
         sun.forceSetMass(1);
         simulator.addObject(sun);
-        
+
         CelestialObject earth = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.earth,
@@ -966,19 +1026,17 @@ public class JmeApp extends SimpleApplication {
 
         loadObjectsToView();
     }
-    
+
     private void ellipseClusterTest() {
         scale = SystemPresets.ellipseCluster(simulator, 100);
-        
+
         loadObjectsToView();
-        
+
         ambientLight.setColor(ColorRGBA.White);
     }
 
     private RefFrame getRefFrame() {
-
-        return RefFrame.STATIC;
-
+        return refFrame;
     }
 
     @Override
@@ -1011,15 +1069,15 @@ public class JmeApp extends SimpleApplication {
     public void clearFocus() {
         focusing = null;
     }
-    
+
     public void clearLand() {
         enqueue(() -> {
             CelestialObject object = firstPersonStar.objectModel.object;
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.cameraNode);
-            firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.sightPoint);
+            firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.eastNode);
             firstPersonStar = null;
             flyCam.setEnabled(false);
-            
+
 //            scale = 
             focusOn(object);
         });
@@ -1053,6 +1111,10 @@ public class JmeApp extends SimpleApplication {
         this.pathLength = pathLength;
     }
 
+    public void setRefFrame(RefFrame refFrame) {
+        this.refFrame = refFrame;
+    }
+
     public double getScale() {
         return scale;
     }
@@ -1064,7 +1126,7 @@ public class JmeApp extends SimpleApplication {
     public boolean isPlaying() {
         return playing;
     }
-    
+
     public boolean isFirstPerson() {
         return firstPersonStar != null;
     }

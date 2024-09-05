@@ -66,6 +66,18 @@ public class ControlBar implements Initializable {
                 jmeApp.setTracePathOrbit(true, false, true);
             }
         });
+        
+        refFrameGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            if (newValue == refStaticBtn) {
+                jmeApp.setRefFrame(JmeApp.RefFrame.STATIC);
+            } else if (newValue == refSystemBtn) {
+                jmeApp.setRefFrame(JmeApp.RefFrame.SYSTEM);
+            } else if (newValue == refTargetBtn) {
+                jmeApp.setRefFrame(JmeApp.RefFrame.TARGET);
+            }
+        });
     }
     
     private void setCheckBoxes() {
@@ -103,6 +115,11 @@ public class ControlBar implements Initializable {
     
     public void setLand() {
         clearLandBtn.setDisable(false);
+        refTargetBtn.setSelected(true);
+        
+        refStaticBtn.setDisable(true);
+        refSystemBtn.setDisable(true);
+        refTargetBtn.setDisable(true);
     }
 
     @FXML
@@ -117,6 +134,10 @@ public class ControlBar implements Initializable {
     public void clearLandAction() {
         getJmeApp().clearLand();
         clearLandBtn.setDisable(true);
+
+        refStaticBtn.setDisable(false);
+        refSystemBtn.setDisable(false);
+        refTargetBtn.setDisable(false);
     }
     
     @FXML

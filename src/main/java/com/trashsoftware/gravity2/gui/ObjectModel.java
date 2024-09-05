@@ -57,6 +57,9 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
+        
+        blank.setBuffer(VertexBuffer.Type.Position, 3,
+                BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
 
         Sphere sphere = new Sphere(64, 64, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
