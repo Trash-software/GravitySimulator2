@@ -11,7 +11,10 @@ import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Node;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.physics.*;
@@ -58,6 +61,7 @@ public class JmeApp extends SimpleApplication {
     private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
+    private Node axisMarkNode;
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
@@ -96,8 +100,6 @@ public class JmeApp extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
-//        super.simpleUpdate(tpf);
-
         if (playing) {
             int nPhysicalFrames = Math.round(tpf * 1000);
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
@@ -122,6 +124,7 @@ public class JmeApp extends SimpleApplication {
         }
 
         updateModelPositions();
+        updateAxisMarks();
 
         clearUnUsedMeshes();
         if (showFullPath) {
@@ -148,7 +151,28 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void initMarks() {
-//        Mesh cross = create3DCrossAt(new Vector3f(20, 20,), 10);
+        axisMarkNode = create3DCrossAt(
+                Vector3f.ZERO, 
+                0.01f, true, true);
+        rootNode.attachChild(axisMarkNode);
+    }
+
+
+    private void updateAxisMarks() {
+        // Get the screen width and height
+        int screenWidth = settings.getWidth();
+        int screenHeight = settings.getHeight();
+
+        // Set the 2D screen position (top-left corner)
+        Vector2f screenPosition = new Vector2f(100, screenHeight - 100);
+
+        // Convert screen position to 3D world position near the camera
+        Vector3f worldPosition = cam.getWorldCoordinates(screenPosition, 0.1f); // Slightly in front of the camera
+
+        axisMarkNode.setLocalTranslation(worldPosition);
+
+//        // Rotate the axis marker to always face the camera
+//        axisMarkNode.lookAt(cam.getLocation(), worldUp);
     }
 
     private void clearUnUsedMeshes() {
@@ -170,9 +194,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
-//        solarSystemTest();
+        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -228,14 +252,25 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
+    private void setCamera1stPerson() {
+        cam.setFrustumPerspective(45f,
+                (float) cam.getWidth() / cam.getHeight(),
+                1f,
+                1e7f);
+    }
+
+    private void setCamera3rdPerson() {
+        cam.setFrustumPerspective(45f,
+                (float) cam.getWidth() / cam.getHeight(),
+                0.1f,
+                1e6f);
+    }
+
     private void setupMouses() {
 //        cam.setFrustumNear(1f);
 //        cam.setFrustumFar(1e7f);
 
-        cam.setFrustumPerspective(45f,
-                (float) cam.getWidth() / cam.getHeight(),
-                0.01f,
-                1e5f);
+        setCamera3rdPerson();
 
         cam.setLocation(new Vector3f(0, 0, 100));
 
@@ -243,7 +278,7 @@ public class JmeApp extends SimpleApplication {
 //        flyCam.setDragToRotate(true);
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true); // Show the mouse cursor
-        
+
         inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
         inputManager.addListener(actionListener, "MoveForward");
 
@@ -261,7 +296,7 @@ public class JmeApp extends SimpleApplication {
         inputManager.addMapping("MouseMoveY+", new MouseAxisTrigger(MouseInput.AXIS_Y, false)); // Downward
         inputManager.addMapping("MouseMoveY-", new MouseAxisTrigger(MouseInput.AXIS_Y, true));  // Upward
 //        inputManager.addMapping("KeyW", new KeyP(KeyInput.KEY_W));
-        
+
         // Add listeners for the new mappings
         inputManager.addListener(analogListener, "MouseMoveX+", "MouseMoveX-", "MouseMoveY+", "MouseMoveY-");
 
@@ -473,27 +508,14 @@ public class JmeApp extends SimpleApplication {
             scale = 100 / object.getEquatorialRadius();
             System.out.println("New scale: " + scale);
 
+            setCamera1stPerson();
+
             firstPersonStar = new FirstPersonMoving(om);
-//            Vector3f surfacePos = firstPersonStar.getCurrentLocalPos().toVector3f();
-//            firstPersonStar.cameraNode.setLocalTranslation(surfacePos);
-//            Vector3f sightPos = firstPersonStar.getSightLocalPos();
-//            firstPersonStar.sightPoint.setLocalTranslation(sightPos);
 
             om.rotatingNode.attachChild(firstPersonStar.cameraNode);
             om.rotatingNode.attachChild(firstPersonStar.eastNode);
-            
+
             firstPersonStar.updateCamera(cam);
-
-//            Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
-//            cam.setLocation(camPos);
-//
-//            cam.lookAtDirection(firstPersonStar.getLookingDirection(cam),
-//                    firstPersonStar.getUpVector());
-
-//            Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
-//            Vector3f realUp = camPos.subtract(centerPos).normalize();
-//            cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), firstPersonStar.getUpVector());
-//            flyCam.setEnabled(true);
 
             getFxApp().getControlBar().setLand();
         });
@@ -627,7 +649,7 @@ public class JmeApp extends SimpleApplication {
             float y = paneY(barycenter[1]);
             float z = paneZ(barycenter[2]);
 
-            Node cross = create3DCrossAt(new Vector3f(x, y, z), (float) markSize);
+            Node cross = create3DCrossAt(new Vector3f(x, y, z), (float) markSize, false, false);
 //            rootNode.attachChild(cross);
 //            eachFrameErase.add(cross);
 
@@ -637,19 +659,34 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    public Node create3DCrossAt(Vector3f center, float length) {
+    public Node create3DCrossAt(Vector3f center, float length,
+                                boolean axisColor, boolean half) {
         Node crossNode = new Node("3D Cross at " + center.toString());
+        ColorRGBA xColor, yColor, zColor;
+        if (axisColor) {
+            xColor = ColorRGBA.Red;
+            yColor = ColorRGBA.Green;
+            zColor = ColorRGBA.Blue;
+        } else {
+            xColor = ColorRGBA.White;
+            yColor = ColorRGBA.White;
+            zColor = ColorRGBA.White;
+        }
+
         // X-axis lines
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(length, 0, 0)), ColorRGBA.Red));
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(-length, 0, 0)), ColorRGBA.Red));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(length, 0, 0)), xColor));
+        if (!half)
+            crossNode.attachChild(createLine(center, center.add(new Vector3f(-length, 0, 0)), xColor));
 
         // Y-axis lines
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, length, 0)), ColorRGBA.Green));
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, -length, 0)), ColorRGBA.Green));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, length, 0)), yColor));
+        if (!half)
+            crossNode.attachChild(createLine(center, center.add(new Vector3f(0, -length, 0)), yColor));
 
         // Z-axis lines
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, length)), ColorRGBA.Blue));
-        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, -length)), ColorRGBA.Blue));
+        crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, length)), zColor));
+        if (!half)
+            crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, -length)), zColor));
 
         return crossNode;
     }
@@ -1076,7 +1113,8 @@ public class JmeApp extends SimpleApplication {
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.cameraNode);
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.eastNode);
             firstPersonStar = null;
-            flyCam.setEnabled(false);
+
+            setCamera3rdPerson();
 
 //            scale = 
             focusOn(object);

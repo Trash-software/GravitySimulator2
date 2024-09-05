@@ -14,7 +14,7 @@ public class FirstPersonMoving {
     protected Node cameraNode = new Node("CameraNode");
     protected Node eastNode = new Node("EastNode");
     protected double longitude = 90;
-    protected double latitude = 15;
+    protected double latitude = 0;
     protected double altitude = 1e5f;
 
     protected double lookAzimuthDeg = 0;
