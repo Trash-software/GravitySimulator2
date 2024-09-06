@@ -32,7 +32,8 @@ public class JmeApp extends SimpleApplication {
     private boolean leftButtonPressed = false;
     private boolean rightButtonPressed = false;
     private boolean middleButtonPressed = false;
-    private boolean keyWPressed = false;
+    private boolean keyWPressed, keyUpPressed, keyDownPressed;
+    
     private float horizontalSpeed = 50.0f;
     private float verticalSpeed = 50.0f;
     private float rotationSpeed = 3.0f;
@@ -128,6 +129,11 @@ public class JmeApp extends SimpleApplication {
             if (keyWPressed) {
                 firstPersonStar.moveForward(3000);
             }
+            if (keyUpPressed) {
+                firstPersonStar.moveUp(1e3);
+            } else if (keyDownPressed) {
+                firstPersonStar.moveDown(1e3);
+            }
             moveCameraWithFirstPerson();
             updateCompass();
         }
@@ -216,9 +222,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
-        solarSystemTest();
+//        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -315,7 +321,9 @@ public class JmeApp extends SimpleApplication {
         inputManager.setCursorVisible(true); // Show the mouse cursor
 
         inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addListener(actionListener, "MoveForward");
+        inputManager.addMapping("MoveUp", new KeyTrigger(KeyInput.KEY_UP));
+        inputManager.addMapping("MoveDown", new KeyTrigger(KeyInput.KEY_DOWN));
+        inputManager.addListener(actionListener, "MoveForward", "MoveUp", "MoveDown");
 
         // Map the mouse buttons
         inputManager.addMapping("LeftClick", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -378,11 +386,11 @@ public class JmeApp extends SimpleApplication {
         } else if (name.equals("MiddleClick")) {
             middleButtonPressed = isPressed;
         } else if (name.equals("MoveForward")) {
-            System.out.println("W pressed: " + isPressed);
             keyWPressed = isPressed;
-//            if (isPressed && firstPersonStar != null) {
-//                firstPersonStar.moveForward(1000);
-//            }
+        } else if (name.equals("MoveUp")) {
+            keyUpPressed = isPressed;
+        } else if (name.equals("MoveDown")) {
+            keyDownPressed = isPressed;
         }
     };
 

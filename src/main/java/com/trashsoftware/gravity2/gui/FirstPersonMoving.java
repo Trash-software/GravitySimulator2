@@ -6,7 +6,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.trashsoftware.gravity2.physics.CelestialObject;
-import com.trashsoftware.gravity2.physics.Util;
 
 public class FirstPersonMoving {
 
@@ -48,6 +47,17 @@ public class FirstPersonMoving {
         lookAltitudeDeg = Math.min(85, Math.max(-85, lookAltitudeDeg));
 //        System.out.println("Alt change: " + changeAlgDeg + ", alt: " + lookAltitudeDeg);
     }
+    
+    public void moveUp(double moveDistance) {
+        altitude += moveDistance;
+        updateNodePositions();
+    }
+    
+    public void moveDown(double moveDistance) {
+        altitude -= moveDistance;
+        altitude = Math.max(1, altitude);
+        updateNodePositions();
+    }
 
     public void moveForward(double moveDistance) {
         double azimuthRad = Math.toRadians(compassAzimuth);
@@ -76,23 +86,27 @@ public class FirstPersonMoving {
         latitude = Math.toDegrees(newLatRad);
 //        System.out.println(longitude + " " + latitude);
         
+        compassAzimuth = computeNewAzimuth(latRad, lonRad, newLatRad, newLonRad);
+        
+        updateNodePositions();
+    }
+    
+    private void updateNodePositions() {
         // Calculate the new position using updated latitude and longitude, keeping altitude constant
-        Vector3f newPosition = objectModel.calculateSurfacePosition(latitude, 
-                longitude, 
+        Vector3f newPosition = objectModel.calculateSurfacePosition(latitude,
+                longitude,
                 altitude).toVector3f();
 
         // Set the new position of the cameraNode
         cameraNode.setLocalTranslation(newPosition);
-        
+
         double northLatitude = Math.min(90, latitude + 1);
 
         Vector3f newNorth = objectModel.calculateSurfacePosition(northLatitude,
                 longitude,
                 altitude).toVector3f();
-        
+
         northNode.setLocalTranslation(newNorth);
-        
-        compassAzimuth = computeGreatCircleAzimuth(latRad, lonRad, newLatRad, newLonRad);
     }
 
     /**
@@ -103,7 +117,7 @@ public class FirstPersonMoving {
      * @param lon2 - new longitude in radians after moving.
      * @return the new heading (azimuth) in degrees.
      */
-    private double computeGreatCircleAzimuth(double lat1, double lon1, double lat2, double lon2) {
+    private double computeNewAzimuth(double lat1, double lon1, double lat2, double lon2) {
         double deltaLon = lon2 - lon1;
 
         // Forward azimuth formula based on spherical trigonometry (law of cosines for spherical surfaces)
@@ -147,7 +161,6 @@ public class FirstPersonMoving {
         // Position the camera at the CameraNode and look in the adjusted forward direction
         cam.setLocation(cameraNode.getWorldTranslation());
         cam.lookAtDirection(forwardDir, upVector); // Look in the adjusted forward direction
-
     }
 
     /**
