@@ -44,6 +44,7 @@ public class ObjectModel {
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
     
+    protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
 
     protected PointLightShadowRenderer plsr;

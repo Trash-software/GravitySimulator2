@@ -63,6 +63,7 @@ public class JmeApp extends SimpleApplication {
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private Node axisMarkNode;
     private Node globalBarycenterNode;
+    private CompassNode compassNode;
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
@@ -97,6 +98,8 @@ public class JmeApp extends SimpleApplication {
 
 //        putTestBox();
         initializeSimulator();
+        
+        setCamera3rdPerson();
     }
 
     @Override
@@ -116,9 +119,10 @@ public class JmeApp extends SimpleApplication {
             updateRefFrame();
             if (firstPersonStar != null) {
                 if (keyWPressed) {
-                    firstPersonStar.moveForward(1000);
+                    firstPersonStar.moveForward(10000);
                 }
                 moveCameraWithFirstPerson();
+                updateCompass();
             } else if (focusing != null) {
                 moveScreenWithFocus();
             }
@@ -155,7 +159,12 @@ public class JmeApp extends SimpleApplication {
         axisMarkNode = create3DCrossAt(
                 Vector3f.ZERO, 
                 0.01f, true, true);
-        rootNode.attachChild(axisMarkNode);
+
+        int screenWidth = settings.getWidth();
+        int screenHeight = settings.getHeight();
+        
+        compassNode = new CompassNode(this);
+        compassNode.setLocalTranslation(100, screenHeight - 100, 0);
     }
 
 
@@ -174,6 +183,14 @@ public class JmeApp extends SimpleApplication {
 
 //        // Rotate the axis marker to always face the camera
 //        axisMarkNode.lookAt(cam.getLocation(), worldUp);
+    }
+    
+    private void updateCompass() {
+        if (firstPersonStar != null) {
+            double deg = -FirstPersonMoving.compassAzimuthToGame(firstPersonStar.compassAzimuth + 90);
+            float rad = FastMath.DEG_TO_RAD * (float) deg; 
+            compassNode.setLocalRotation(new Quaternion().fromAngleAxis(rad, Vector3f.UNIT_Z));
+        }
     }
 
     private void clearUnUsedMeshes() {
@@ -195,9 +212,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
-        solarSystemTest();
+//        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -252,12 +269,24 @@ public class JmeApp extends SimpleApplication {
             );
         }
     }
+    
+    private double get1stPersonDefaultScale() {
+        double totalRadius = 0;
+        for (CelestialObject co : simulator.getObjects()) {
+            totalRadius += co.getEquatorialRadius();
+        }
+        double avgRadius = totalRadius / simulator.getObjects().size();
+        return 100.0 / avgRadius;
+    }
 
     private void setCamera1stPerson() {
         cam.setFrustumPerspective(45f,
                 (float) cam.getWidth() / cam.getHeight(),
-                1f,
-                1e7f);
+                0.1f,
+                1e8f);
+        
+        rootNode.detachChild(axisMarkNode);
+        guiNode.attachChild(compassNode);
     }
 
     private void setCamera3rdPerson() {
@@ -265,13 +294,14 @@ public class JmeApp extends SimpleApplication {
                 (float) cam.getWidth() / cam.getHeight(),
                 0.1f,
                 1e6f);
+        
+        rootNode.attachChild(axisMarkNode);
+        guiNode.detachChild(compassNode);
     }
 
     private void setupMouses() {
 //        cam.setFrustumNear(1f);
 //        cam.setFrustumFar(1e7f);
-
-        setCamera3rdPerson();
 
         cam.setLocation(new Vector3f(0, 0, 100));
 
@@ -506,19 +536,26 @@ public class JmeApp extends SimpleApplication {
             ObjectModel om = modelMap.get(object);
 
             System.out.println("Scale: " + scale);
-            scale = 100 / object.getEquatorialRadius();
+            scale = get1stPersonDefaultScale();
             System.out.println("New scale: " + scale);
 
             setCamera1stPerson();
 
-            firstPersonStar = new FirstPersonMoving(om);
+            if (om.firstPersonMoving == null) {
+                om.firstPersonMoving = new FirstPersonMoving(om, 3e5);
+            }
+            firstPersonStar = om.firstPersonMoving;
 
             om.rotatingNode.attachChild(firstPersonStar.cameraNode);
-            om.rotatingNode.attachChild(firstPersonStar.eastNode);
+            om.rotatingNode.attachChild(firstPersonStar.northNode);
 
             firstPersonStar.updateCamera(cam);
 
             getFxApp().getControlBar().setLand();
+            
+            if (focusing != null) {
+                getFxApp().getControlBar().clearFocusAction();
+            }
         });
     }
 
@@ -1170,7 +1207,7 @@ public class JmeApp extends SimpleApplication {
         enqueue(() -> {
             CelestialObject object = firstPersonStar.objectModel.object;
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.cameraNode);
-            firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.eastNode);
+            firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.northNode);
             firstPersonStar = null;
 
             setCamera3rdPerson();
