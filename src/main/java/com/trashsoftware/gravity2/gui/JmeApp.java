@@ -118,14 +118,18 @@ public class JmeApp extends SimpleApplication {
 
             updateRefFrame();
             if (firstPersonStar != null) {
-                if (keyWPressed) {
-                    firstPersonStar.moveForward(10000);
-                }
-                moveCameraWithFirstPerson();
-                updateCompass();
+                
             } else if (focusing != null) {
                 moveScreenWithFocus();
             }
+        }
+        
+        if (firstPersonStar != null) {
+            if (keyWPressed) {
+                firstPersonStar.moveForward(3000);
+            }
+            moveCameraWithFirstPerson();
+            updateCompass();
         }
 
         updateModelPositions();
@@ -212,9 +216,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
-//        solarSystemTest();
+        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
