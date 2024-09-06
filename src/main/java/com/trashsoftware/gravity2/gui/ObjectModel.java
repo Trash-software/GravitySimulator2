@@ -17,7 +17,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.PointLightShadowFilter;
 import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.util.BufferUtils;
@@ -43,7 +42,7 @@ public class ObjectModel {
     protected Mesh blank = new Mesh();
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
-    
+
     protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
 
@@ -60,7 +59,7 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
-        
+
         blank.setBuffer(VertexBuffer.Type.Position, 3,
                 BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
 
@@ -288,21 +287,20 @@ public class ObjectModel {
         }
     }
 
-    public Mesh createOrbitMesh(double[] barycenter,
-                                OrbitalElements oe,
-                                int samples) {
+    public void createOrbitMesh(
+            Mesh mesh,
+            double[] barycenter,
+            OrbitalElements oe,
+            int samples) {
         float bcx = jmeApp.paneX(barycenter[0]);
         float bcy = jmeApp.paneY(barycenter[1]);
         float bcz = jmeApp.paneZ(barycenter[2]);
-//        Vector3f bc = new Vector3f(bcx * scale, bcy * scale, bcz * scale);
 
         float a = (float) (oe.semiMajorAxis * jmeApp.scale);
         float e = (float) oe.eccentricity;
         float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
         float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
         float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);
-
-        Mesh mesh = new Mesh();
 
         Vector3f[] vertices = new Vector3f[samples];
         for (int j = 0; j < samples; j++) {
@@ -337,8 +335,6 @@ public class ObjectModel {
         mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
         mesh.updateBound();
         mesh.updateCounts();
-
-        return mesh;
     }
 
     public ColorRGBA getColor() {

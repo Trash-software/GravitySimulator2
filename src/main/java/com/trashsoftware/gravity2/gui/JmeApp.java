@@ -33,7 +33,7 @@ public class JmeApp extends SimpleApplication {
     private boolean rightButtonPressed = false;
     private boolean middleButtonPressed = false;
     private boolean keyWPressed, keyUpPressed, keyDownPressed;
-    
+
     private float horizontalSpeed = 50.0f;
     private float verticalSpeed = 50.0f;
     private float rotationSpeed = 3.0f;
@@ -99,7 +99,7 @@ public class JmeApp extends SimpleApplication {
 
 //        putTestBox();
         initializeSimulator();
-        
+
         setCamera3rdPerson();
     }
 
@@ -119,12 +119,12 @@ public class JmeApp extends SimpleApplication {
 
             updateRefFrame();
             if (firstPersonStar != null) {
-                
+
             } else if (focusing != null) {
                 moveScreenWithFocus();
             }
         }
-        
+
         if (firstPersonStar != null) {
             if (keyWPressed) {
                 firstPersonStar.moveForward(3000);
@@ -167,12 +167,12 @@ public class JmeApp extends SimpleApplication {
 
     private void initMarks() {
         axisMarkNode = create3DCrossAt(
-                Vector3f.ZERO, 
+                Vector3f.ZERO,
                 0.01f, true, true);
 
         int screenWidth = settings.getWidth();
         int screenHeight = settings.getHeight();
-        
+
         compassNode = new CompassNode(this);
         compassNode.setLocalTranslation(100, screenHeight - 100, 0);
     }
@@ -194,11 +194,11 @@ public class JmeApp extends SimpleApplication {
 //        // Rotate the axis marker to always face the camera
 //        axisMarkNode.lookAt(cam.getLocation(), worldUp);
     }
-    
+
     private void updateCompass() {
         if (firstPersonStar != null) {
             double deg = -FirstPersonMoving.compassAzimuthToGame(firstPersonStar.compassAzimuth + 90);
-            float rad = FastMath.DEG_TO_RAD * (float) deg; 
+            float rad = FastMath.DEG_TO_RAD * (float) deg;
             compassNode.setLocalRotation(new Quaternion().fromAngleAxis(rad, Vector3f.UNIT_Z));
         }
     }
@@ -222,9 +222,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
-//        solarSystemTest();
+        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -279,7 +279,7 @@ public class JmeApp extends SimpleApplication {
             );
         }
     }
-    
+
     private double get1stPersonDefaultScale() {
         double totalRadius = 0;
         for (CelestialObject co : simulator.getObjects()) {
@@ -294,7 +294,7 @@ public class JmeApp extends SimpleApplication {
                 (float) cam.getWidth() / cam.getHeight(),
                 0.1f,
                 1e8f);
-        
+
         rootNode.detachChild(axisMarkNode);
         guiNode.attachChild(compassNode);
     }
@@ -304,7 +304,7 @@ public class JmeApp extends SimpleApplication {
                 (float) cam.getWidth() / cam.getHeight(),
                 0.1f,
                 1e6f);
-        
+
         rootNode.attachChild(axisMarkNode);
         guiNode.detachChild(compassNode);
     }
@@ -564,7 +564,7 @@ public class JmeApp extends SimpleApplication {
             firstPersonStar.updateCamera(cam);
 
             getFxApp().getControlBar().setLand();
-            
+
             if (focusing != null) {
                 getFxApp().getControlBar().clearFocusAction();
             }
@@ -670,7 +670,7 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-    
+
     private void updateBarycentersNodes() {
         List<HieraticalSystem> roots = simulator.getRootSystems();
         for (HieraticalSystem hs : roots) {
@@ -684,7 +684,7 @@ public class JmeApp extends SimpleApplication {
             globalBarycenterNode.setLocalTranslation(x, y, z);
         }
     }
-    
+
     private void updateBarycenterNode(HieraticalSystem hs) {
         if (!hs.isObject()) {
             double[] barycenter = hs.getPosition();
@@ -703,7 +703,7 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-    
+
     private void disableBarycenters() {
         for (ObjectModel om : modelMap.values()) {
             if (om.barycenterMark != null) {
@@ -727,7 +727,7 @@ public class JmeApp extends SimpleApplication {
             float x = paneX(barycenter[0]);
             float y = paneY(barycenter[1]);
             float z = paneZ(barycenter[2]);
-            
+
             if (globalBarycenterNode == null) {
                 globalBarycenterNode = create3DCrossAt(Vector3f.ZERO, 3, false, false);
             }
@@ -742,13 +742,13 @@ public class JmeApp extends SimpleApplication {
             float x = paneX(barycenter[0]);
             float y = paneY(barycenter[1]);
             float z = paneZ(barycenter[2]);
-            
+
             ObjectModel om = modelMap.get(hs.master);
             if (om.barycenterMark == null) {
                 om.barycenterMark = create3DCrossAt(Vector3f.ZERO, (float) markSize, false, false);
                 om.barycenterMark.setLocalTranslation(x, y, z);
             }
-            
+
             rootNode.attachChild(om.barycenterMark);
 
             for (HieraticalSystem child : hs.getChildrenSorted()) {
@@ -813,9 +813,6 @@ public class JmeApp extends SimpleApplication {
             CelestialObject parent = object.getHillMaster();
             if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
                 HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
-//                System.out.println(parentSystem + " " + Arrays.toString(parentSystem.getPosition()) + " " +
-//                        Arrays.toString(parentSystem.getVelocity()));
-//                double[] barycenter = parentSystem.getPosition();
 
                 AbstractObject child;
                 if (true) {
@@ -845,11 +842,16 @@ public class JmeApp extends SimpleApplication {
     private void drawEllipticalOrbit(CelestialObject co, double[] barycenter, OrbitalElements oe) {
         ObjectModel om = modelMap.get(co);
 
-        Mesh mesh = om.createOrbitMesh(barycenter,
+        Mesh mesh = om.orbit.getMesh();
+        if (mesh == null || mesh == om.blank) {
+            mesh = new Mesh();
+            om.orbit.setMesh(mesh);
+        }
+
+        om.createOrbitMesh(mesh,
+                barycenter,
                 oe,
                 360);
-        Geometry orbitGeom = om.orbit;
-        orbitGeom.setMesh(mesh);
     }
 
     private void drawRecentPaths() {
@@ -938,8 +940,12 @@ public class JmeApp extends SimpleApplication {
             }
 
             // Create the mesh for the curve
-            Mesh mesh = new Mesh();
-            mesh.setMode(Mesh.Mode.LineStrip);
+            Mesh mesh = om.pathGradient.getMesh();
+            if (mesh == null || mesh == om.blank) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.LineStrip);
+                om.pathGradient.setMesh(mesh);
+            }
 
             // Set the vertices
             mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
@@ -950,8 +956,6 @@ public class JmeApp extends SimpleApplication {
             // Update the mesh to generate it
             mesh.updateBound();
             mesh.updateCounts();
-
-            om.pathGradient.setMesh(mesh);
         }
     }
 
@@ -1000,17 +1004,22 @@ public class JmeApp extends SimpleApplication {
                 index++;
             }
 
-            Geometry lineGeom = modelMap.get(obj).path;
-            drawPolyLine(vertices, lineGeom);
+            ObjectModel om = modelMap.get(obj);
+            drawPolyLine(vertices, om);
         }
     }
 
-    private void drawPolyLine(Vector3f[] vertices, Geometry lineGeom) {
+    private void drawPolyLine(Vector3f[] vertices, ObjectModel om) {
         int numPoints = vertices.length;
 
         // Create a mesh and set it to line mode
-        Mesh mesh = new Mesh();
-        mesh.setMode(Mesh.Mode.Lines);
+        Mesh mesh = om.path.getMesh();
+
+        if (mesh == null || mesh == om.blank) {
+            mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.Lines);
+            om.path.setMesh(mesh);
+        }
 
         // Set the vertices
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
@@ -1025,8 +1034,6 @@ public class JmeApp extends SimpleApplication {
 
         mesh.updateBound();
         mesh.updateCounts();
-
-        lineGeom.setMesh(mesh);
     }
 
     public void toggleLabelShowing(boolean showing) {
@@ -1173,7 +1180,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void ellipseClusterTest() {
-        scale = SystemPresets.ellipseCluster(simulator, 100);
+        scale = SystemPresets.ellipseCluster(simulator, 150);
 
         loadObjectsToView();
 

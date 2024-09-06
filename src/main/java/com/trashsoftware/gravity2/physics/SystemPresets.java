@@ -714,14 +714,14 @@ public class SystemPresets {
     
     public static double ellipseCluster(Simulator simulator, int n) {
         double a = 1e10;
-        double b = 5e9;
-        double c = 2.5e9;
+        double b = 1e10;
+        double c = 1e10;
         
-        double speed = 1e1;
+        double speed = 1e3;
         
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
-            double mass = rand.nextDouble(1e19, 1e21);
+            double mass = rand.nextDouble(1e23, 1e25);
             double density = rand.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
             
@@ -755,7 +755,7 @@ public class SystemPresets {
             simulator.addObject(co);
         }
         
-        return 1 / c;
+        return 10 / c;
     }
 
     public static double testCollision(Simulator simulator) {
