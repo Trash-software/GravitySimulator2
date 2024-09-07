@@ -73,6 +73,7 @@
                     </CustomMenuItem>
                 </items>
             </MenuButton>
+            <Button text="show" onAction="#showObjectPaneAction"/>
         </HBox>
         <HBox spacing="5.0" alignment="CENTER_LEFT">
             <fx:define>

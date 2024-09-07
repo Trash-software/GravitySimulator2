@@ -12,9 +12,9 @@ public class FirstPersonMoving {
     protected ObjectModel objectModel;
     protected Node cameraNode = new Node("CameraNode");
     protected Node northNode = new Node("NorthNode");
-    protected double longitude = 90;
-    protected double latitude = 0;
-    protected double altitude;
+    private double longitude = 180;
+    private double latitude = 0;
+    private double altitude;
 
     protected double compassAzimuth = 90;
     protected double lookAltitudeDeg = 0;
@@ -187,6 +187,22 @@ public class FirstPersonMoving {
     public Vector3f getUpVector() {
         Vector3f centerPos = objectModel.rotatingNode.getWorldTranslation();
         return cameraNode.getWorldTranslation().subtract(centerPos).normalize();
+    }
+
+    public double getAltitude() {
+        return altitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getGeologicalLongitude() {
+        double lon = longitude + 180;
+        if (lon > 180) {
+            lon -= 360;
+        }
+        return lon;
     }
 
     // Converts from 3D coordinate system azimuth (0° = East, counterclockwise) to real-world compass azimuth (0° = North, clockwise)

@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.fxml;
 
+import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.Simulator;
@@ -8,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -167,6 +169,16 @@ public class ControlBar implements Initializable {
         getJmeApp().setPlaying(false);
         playPauseBtn.setText("⏵");
     }
+    
+    @FXML
+    public void showObjectPaneAction() {
+        Window objWindow = fxApp.getObjectListPanel().getWindow();
+        if (objWindow.isShowing()) {
+            objWindow.requestFocus();
+        } else {
+            fxApp.getObjectListPanel().reshow();
+        }
+    }
 
     public FxApp getFxApp() {
         return fxApp;
@@ -182,6 +194,8 @@ public class ControlBar implements Initializable {
     }
 
     public void oneFrameSlow(double frameTimeMs) {
+        UnitsConverter uc = getFxApp().getUnitConverter();
+        
         // update playing speed
         Simulator simulator = getJmeApp().getSimulator();
         if (simulator == null) return;
@@ -192,5 +206,7 @@ public class ControlBar implements Initializable {
         lastRealTimeStep = timeStep;
 
         speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
+        
+        timeStepText.setText(uc.dateTime(timeStep, strings));
     }
 }

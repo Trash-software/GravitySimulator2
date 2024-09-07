@@ -23,5 +23,27 @@ public interface UnitsConverter {
     
     String temperature(double k);
     
-    String angleDegree(double deg);
+    String angleDegreeDecimal(double deg);
+    
+    String angleDegreeMinuteSecond(double deg);
+    
+    default String longitude(double deg) {
+        if (deg == 0) return angleDegreeMinuteSecond(deg);
+        String suffix = " E";
+        if (deg < 0) {
+            deg = -deg;
+            suffix = " W";
+        }
+        return angleDegreeMinuteSecond(deg) + suffix;
+    }
+
+    default String latitude(double deg) {
+        if (deg == 0) return angleDegreeMinuteSecond(deg);
+        String suffix = " N";
+        if (deg < 0) {
+            deg = -deg;
+            suffix = " S";
+        }
+        return angleDegreeMinuteSecond(deg) + suffix;
+    }
 }

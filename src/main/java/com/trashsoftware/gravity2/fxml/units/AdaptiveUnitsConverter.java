@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.fxml.units;
 
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class AdaptiveUnitsConverter implements UnitsConverter {
@@ -62,7 +63,17 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
     }
 
     @Override
-    public String angleDegree(double deg) {
+    public String angleDegreeDecimal(double deg) {
         return UnitsUtil.stdFmt.format(deg) + "°";
+    }
+
+    @Override
+    public String angleDegreeMinuteSecond(double deg) {
+        int d = (int) deg;
+        int seconds = (int) Math.round((deg - d) * 3600);
+        int min = seconds / 60;
+        int sec = seconds % 60;
+//        return String.format("%d°%d′%d″", d, min, sec);
+        return String.format("%d°%d'%d\"", d, min, sec);
     }
 }

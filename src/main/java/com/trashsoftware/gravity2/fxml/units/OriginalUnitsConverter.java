@@ -54,7 +54,12 @@ public class OriginalUnitsConverter implements UnitsConverter {
     }
 
     @Override
-    public String angleDegree(double deg) {
+    public String angleDegreeDecimal(double deg) {
         return String.format("%.2f°", deg);
+    }
+
+    @Override
+    public String angleDegreeMinuteSecond(double deg) {
+        return String.format("%.4f°", deg);
     }
 }

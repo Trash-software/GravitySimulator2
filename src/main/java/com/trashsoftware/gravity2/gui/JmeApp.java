@@ -17,6 +17,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
+import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.*;
 import javafx.application.Platform;
 
@@ -65,6 +66,7 @@ public class JmeApp extends SimpleApplication {
     private Node axisMarkNode;
     private Node globalBarycenterNode;
     private CompassNode compassNode;
+    private GuiTextNode lonLatTextNode;
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
@@ -175,8 +177,10 @@ public class JmeApp extends SimpleApplication {
 
         compassNode = new CompassNode(this);
         compassNode.setLocalTranslation(100, screenHeight - 100, 0);
+        
+        lonLatTextNode = new GuiTextNode(this);
+        lonLatTextNode.setLocalTranslation(20, screenHeight - 200, 0);
     }
-
 
     private void updateAxisMarks() {
         // Get the screen width and height
@@ -200,6 +204,14 @@ public class JmeApp extends SimpleApplication {
             double deg = -FirstPersonMoving.compassAzimuthToGame(firstPersonStar.compassAzimuth + 90);
             float rad = FastMath.DEG_TO_RAD * (float) deg;
             compassNode.setLocalRotation(new Quaternion().fromAngleAxis(rad, Vector3f.UNIT_Z));
+
+            UnitsConverter uc = getFxApp().getUnitConverter();
+            
+            String lon = uc.longitude(firstPersonStar.getGeologicalLongitude());
+            String lat = uc.latitude(firstPersonStar.getLatitude());
+            
+            lonLatTextNode.setText(String.format("%s\n%s\n%s",
+                    lon, lat, uc.distance(firstPersonStar.getAltitude())));
         }
     }
 
@@ -222,9 +234,9 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
-        solarSystemTest();
+//        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -297,6 +309,7 @@ public class JmeApp extends SimpleApplication {
 
         rootNode.detachChild(axisMarkNode);
         guiNode.attachChild(compassNode);
+        guiNode.attachChild(lonLatTextNode);
     }
 
     private void setCamera3rdPerson() {
@@ -307,6 +320,7 @@ public class JmeApp extends SimpleApplication {
 
         rootNode.attachChild(axisMarkNode);
         guiNode.detachChild(compassNode);
+        guiNode.detachChild(lonLatTextNode);
     }
 
     private void setupMouses() {
@@ -651,22 +665,24 @@ public class JmeApp extends SimpleApplication {
 
     private void updateRefFrame() {
         RefFrame refFrame = getRefFrame();
-        if (refFrame == RefFrame.SYSTEM) {
-            double[] barycenter = simulator.barycenter();
-            refOffsetX = barycenter[0];
-            refOffsetY = barycenter[1];
-            refOffsetZ = barycenter[2];
-        } else if (refFrame == RefFrame.TARGET) {
-            if (firstPersonStar != null) {
-                double[] pos = firstPersonStar.getObject().getPosition();
-                refOffsetX = pos[0];
-                refOffsetY = pos[1];
-                refOffsetZ = pos[2];
-            } else if (focusing != null) {
-                double[] pos = focusing.getPosition();
-                refOffsetX = pos[0];
-                refOffsetY = pos[1];
-                refOffsetZ = pos[2];
+        if (firstPersonStar != null) {
+            double[] pos = firstPersonStar.getObject().getPosition();
+            refOffsetX = pos[0];
+            refOffsetY = pos[1];
+            refOffsetZ = pos[2];
+        } else {
+            if (refFrame == RefFrame.SYSTEM) {
+                double[] barycenter = simulator.barycenter();
+                refOffsetX = barycenter[0];
+                refOffsetY = barycenter[1];
+                refOffsetZ = barycenter[2];
+            } else if (refFrame == RefFrame.TARGET) {
+                if (focusing != null) {
+                    double[] pos = focusing.getPosition();
+                    refOffsetX = pos[0];
+                    refOffsetY = pos[1];
+                    refOffsetZ = pos[2];
+                }
             }
         }
     }
@@ -845,10 +861,11 @@ public class JmeApp extends SimpleApplication {
         Mesh mesh = om.orbit.getMesh();
         if (mesh == null || mesh == om.blank) {
             mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.LineStrip);
             om.orbit.setMesh(mesh);
         }
 
-        om.createOrbitMesh(mesh,
+        om.makeOrbitMesh(mesh,
                 barycenter,
                 oe,
                 360);
@@ -1230,8 +1247,7 @@ public class JmeApp extends SimpleApplication {
             firstPersonStar = null;
 
             setCamera3rdPerson();
-
-//            scale = 
+            
             focusOn(object);
         });
     }

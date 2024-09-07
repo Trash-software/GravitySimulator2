@@ -1,11 +1,9 @@
 package com.trashsoftware.gravity2.fxml;
 
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
-import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -276,7 +274,7 @@ public class ObjectStatsWrapper extends HBox {
         rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
         rotationPeriodLabel.setText(uc.time(object.getRotationPeriod()));
-        rotationAxisTiltLabel.setText(uc.angleDegree(object.getAxisTiltAngle()));
+        rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(object.getAxisTiltAngle()));
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
@@ -316,8 +314,8 @@ public class ObjectStatsWrapper extends HBox {
             periodLabel.setText(uc.time(specs.period));
             aphelionLabel.setText(uc.distance(aph));
             perihelionLabel.setText(uc.distance(per));
-            inclinationLabel.setText(uc.angleDegree(specs.inclination));
-            ascendingNodeLabel.setText(uc.angleDegree(specs.ascendingNode));
+            inclinationLabel.setText(uc.angleDegreeDecimal(specs.inclination));
+            ascendingNodeLabel.setText(uc.angleDegreeDecimal(specs.ascendingNode));
             hillRadiusLabel.setText(uc.distance(object.getHillRadius()));
         } else {
             parentLabel.setText("free");

@@ -23,6 +23,10 @@ public abstract class AbstractObjectPanel implements Initializable {
         this.fxApp = fxApp;
     }
 
+    public Stage getWindow() {
+        return window;
+    }
+
     public abstract void oneFrameSlow(double frameTimeMs);
 
     public enum Sorting {

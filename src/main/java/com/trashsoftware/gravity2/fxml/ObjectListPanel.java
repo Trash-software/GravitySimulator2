@@ -5,6 +5,7 @@ import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.SystemPresets;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -182,8 +183,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
         celestialContainer.setVvalue(celestialContainerVValueCache);
     }
     
-    private void landOn(CelestialObject celestialObject) {
-        
+    public void reshow() {
+        Platform.runLater(() -> window.show());
     }
     
     @FXML

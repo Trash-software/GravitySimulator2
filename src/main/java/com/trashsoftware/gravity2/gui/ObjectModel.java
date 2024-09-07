@@ -62,8 +62,15 @@ public class ObjectModel {
 
         blank.setBuffer(VertexBuffer.Type.Position, 3,
                 BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
+        
+        int samples;
+        if (object.getTexture() == null) {
+            samples = 32;
+        } else {
+            samples = 64;
+        }
 
-        Sphere sphere = new Sphere(64, 64, (float) object.getEquatorialRadius());
+        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
         model = new Geometry(object.getName(), sphere);
         // Create a material for the box
@@ -287,7 +294,7 @@ public class ObjectModel {
         }
     }
 
-    public void createOrbitMesh(
+    public void makeOrbitMesh(
             Mesh mesh,
             double[] barycenter,
             OrbitalElements oe,
@@ -302,7 +309,7 @@ public class ObjectModel {
         float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
         float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);
 
-        Vector3f[] vertices = new Vector3f[samples];
+        Vector3f[] vertices = new Vector3f[samples + 1];
         for (int j = 0; j < samples; j++) {
             float theta = j * 2 * FastMath.PI / samples;
             float r = a * (1 - e * e) / (1 + e * FastMath.cos(theta));
@@ -323,16 +330,19 @@ public class ObjectModel {
 
             vertices[j] = point;
         }
+        // manually create a line loop
+        vertices[vertices.length - 1] = vertices[0].clone();
 
         // Set up the index buffer for a line loop
-        short[] indices = new short[samples];
+        short[] indices = new short[samples + 1];
         for (int j = 0; j < samples; j++) {
             indices[j] = (short) j;
         }
+        indices[indices.length - 1] = indices[0];
 
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indices));
-        mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
+//        mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
         mesh.updateBound();
         mesh.updateCounts();
     }
