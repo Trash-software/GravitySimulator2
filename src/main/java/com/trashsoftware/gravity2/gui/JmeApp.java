@@ -77,6 +77,8 @@ public class JmeApp extends SimpleApplication {
     //    private final Set<Spatial> eachFrameErase = new HashSet<>();
     private AmbientLight ambientLight;
     private RefFrame refFrame = RefFrame.STATIC;
+    
+    protected ObjectModel spawning;
 
     public static JmeApp getInstance() {
         return instance;
@@ -228,6 +230,7 @@ public class JmeApp extends SimpleApplication {
                 om.orbit.setMesh(om.blank);
             }
         }
+        // todo: destroyed object's mesh still on screen
 //        for (ObjectModel om : diedObjects.values()) {
 //            if (!showFullPath) {
 //                om.path.setMesh(om.blank);
@@ -239,6 +242,21 @@ public class JmeApp extends SimpleApplication {
 //                om.orbit.setMesh(om.blank);
 //            }
 //        }
+//        List<CelestialObject> newDestroyed = simulator.getAndClearNewlyDestroyed();
+//        for (CelestialObject co : newDestroyed) {
+//            ObjectModel om = getObjectModel(co);
+//            if (om != null) {
+//                if (!showFullPath) {
+//                    om.path.setMesh(om.blank);
+//                }
+//                if (!showTrace) {
+//                    om.pathGradient.setMesh(om.blank);
+//                }
+//                if (!showOrbit) {
+//                    om.orbit.setMesh(om.blank);
+//                }
+//            }
+//        }
     }
 
     private void initializeSimulator() {
@@ -248,8 +266,9 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest();
 //        simpleTest2();
 //        simpleTest3();
-        rocheEffectTest();
+//        rocheEffectTest();
 //        solarSystemTest();
+        solarSystemWithCometsTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -1233,6 +1252,13 @@ public class JmeApp extends SimpleApplication {
         reloadObjects();
     }
 
+    private void solarSystemWithCometsTest() {
+        scale = SystemPresets.solarSystemWithComets(simulator);
+        scale *= 0.5;
+
+        reloadObjects();
+    }
+
     private void ellipseClusterTest() {
         scale = SystemPresets.ellipseCluster(simulator, 150);
 
@@ -1386,6 +1412,10 @@ public class JmeApp extends SimpleApplication {
                 om.setShowRocheLimit(show);
             }
         });
+    }
+
+    public void setSpawning(CelestialObject co) {
+        // todo
     }
 
     public double getScale() {

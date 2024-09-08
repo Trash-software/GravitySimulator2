@@ -193,6 +193,10 @@ public class ObjectListPanel extends AbstractObjectPanel {
     
     @FXML
     public void spawnModeAction() {
+        JmeApp jmeApp = fxApp.getJmeApp();
+        if (jmeApp == null) return;
+        
+        
         
     }
 }

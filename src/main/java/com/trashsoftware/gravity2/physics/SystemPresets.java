@@ -4,8 +4,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.texture.Texture;
-import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.gui.GuiUtils;
+import com.trashsoftware.gravity2.gui.JmeApp;
 
 import java.util.*;
 
@@ -21,18 +21,18 @@ public class SystemPresets {
         TEXTURES.put("Sun", "com/trashsoftware/gravity2/textures/sunmap.jpg");
         TEXTURES.put("Mercury", "com/trashsoftware/gravity2/textures/2k_mercury.jpg");
         TEXTURES.put("Venus", "com/trashsoftware/gravity2/textures/venusmap.jpg");
-        
+
         TEXTURES.put("Earth", "com/trashsoftware/gravity2/textures/earth/earth2k.jpg");
         TEXTURES.put("Moon", "com/trashsoftware/gravity2/textures/earth/moon.png");
-        
+
         TEXTURES.put("Mars", "com/trashsoftware/gravity2/textures/marsmap1k.jpg");
-        
+
         TEXTURES.put("Jupiter", "com/trashsoftware/gravity2/textures/jupiter/jupiter2k.jpg");
         TEXTURES.put("Callisto", "com/trashsoftware/gravity2/textures/jupiter/callisto.jpg");
         TEXTURES.put("Europa", "com/trashsoftware/gravity2/textures/jupiter/europa.jpg");
         TEXTURES.put("Ganymede", "com/trashsoftware/gravity2/textures/jupiter/ganymede.jpg");
         TEXTURES.put("Io", "com/trashsoftware/gravity2/textures/jupiter/io.jpg");
-        
+
         TEXTURES.put("Saturn", "com/trashsoftware/gravity2/textures/saturn/saturnmap.jpg");
         TEXTURES.put("Dione", "com/trashsoftware/gravity2/textures/saturn/dione-ciclops.jpg");
         TEXTURES.put("Enceladus", "com/trashsoftware/gravity2/textures/saturn/enceladus.jpg");
@@ -40,12 +40,12 @@ public class SystemPresets {
         TEXTURES.put("Rhea", "com/trashsoftware/gravity2/textures/saturn/rhea.jpg");
         TEXTURES.put("Tethys", "com/trashsoftware/gravity2/textures/saturn/tethys2k.jpg");
         TEXTURES.put("Titan", "com/trashsoftware/gravity2/textures/saturn/titan.png");
-        
+
         TEXTURES.put("Uranus", "com/trashsoftware/gravity2/textures/uranus.JPG");
-        
+
         TEXTURES.put("Neptune", "com/trashsoftware/gravity2/textures/neptune/neptune_current.jpg");
         TEXTURES.put("Triton", "com/trashsoftware/gravity2/textures/neptune/triton.jpg");
-        
+
         TEXTURES.put("Pluto", "com/trashsoftware/gravity2/textures/pluto/pluto.jpg");
         TEXTURES.put("Charon", "com/trashsoftware/gravity2/textures/pluto/charon.jpg");
 
@@ -239,8 +239,65 @@ public class SystemPresets {
         return 0.005 * 1e-7;
     }
 
+    public static double solarSystemWithComets(Simulator simulator) {
+        makeSystem(simulator, sun, 1, 1e3, 1e3);
+
+        CelestialObject sun = simulator.findByName("Sun");
+        
+        double mean = neptune.semiMajorAxis * 1.5 * 1e3;
+        double std = mean * 0.25;
+        
+        addComets(simulator, sun, 80, mean, std);
+
+        return 0.005 * 1e-7;
+    }
+
     public static void jupyterSystem() {
 
+    }
+
+    private static void addComets(Simulator simulator,
+                                  CelestialObject sun,
+                                  int nObjects,
+                                  double dtMean,
+                                  double dtSd) {
+
+        Random random = new Random();
+
+        for (int i = 0; i < nObjects; i++) {
+            double dt = random.nextGaussian(dtMean, dtSd);
+            // Randomly generate theta (angle from z-axis, polar angle) between 0 and π
+            double theta = Math.acos(2 * random.nextDouble() - 1);  // theta is in [0, π]
+
+            // Randomly generate phi (angle in x-y plane, azimuthal angle) between 0 and 2π
+            double phi = 2 * Math.PI * random.nextDouble();  // phi is in [0, 2π]
+
+            // Convert spherical coordinates to Cartesian coordinates
+            double x = dt * Math.sin(theta) * Math.cos(phi);
+            double y = dt * Math.sin(theta) * Math.sin(phi);
+            double z = dt * Math.cos(theta);
+
+            double mass = random.nextDouble(1e12, 1e20);
+            double density = random.nextDouble(500, 6000);
+            double radius = CelestialObject.radiusOf(mass, density);
+            String color = Util.randomColorCode();
+
+            CelestialObject co = CelestialObject.createNd(
+                    "Comet" + i,
+                    mass,
+                    radius,
+                    3,
+                    new double[]{x, y, z},
+                    new double[3],
+                    color
+            );
+            simulator.addObject(co);
+
+            double[] vel = simulator.computeVelocityOfN(sun,
+                    co,
+                    random.nextDouble(0.01, 0.8));
+            co.setVelocity(vel);
+        }
     }
 
     private static void addAsteroidsTo(Simulator simulator,
@@ -711,20 +768,20 @@ public class SystemPresets {
 
         return 20 / stdDt;
     }
-    
+
     public static double ellipseCluster(Simulator simulator, int n) {
         double a = 1e10;
         double b = 1e10;
         double c = 1e10;
-        
+
         double speed = 1e3;
-        
+
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
             double mass = rand.nextDouble(1e23, 1e25);
             double density = rand.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
-            
+
             double x, y, z;
 
             // Generate random point within a unit sphere using the rejection method
@@ -754,7 +811,7 @@ public class SystemPresets {
             );
             simulator.addObject(co);
         }
-        
+
         return 10 / c;
     }
 

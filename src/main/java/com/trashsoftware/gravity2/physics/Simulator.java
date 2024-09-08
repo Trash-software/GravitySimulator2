@@ -42,6 +42,7 @@ public class Simulator {
     private double[][] forcesBuffer;
     private double[] dimDtBuffer;
     private final List<CelestialObject> debrisBuffer = new ArrayList<>();
+    private final List<CelestialObject> newlyDestroyed = new ArrayList<>();
 
     private transient final Map<CelestialObject, HieraticalSystem> systemMap = new HashMap<>();
     private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
@@ -272,6 +273,7 @@ public class Simulator {
                     objects.remove(lighter);
                     systemMap.remove(lighter);
                     lighter.destroy(timeStepAccumulator);
+                    newlyDestroyed.add(lighter);
 
                     // Adjust loop counters to account for the removed object
                     n--;
@@ -823,6 +825,12 @@ public class Simulator {
 
     public List<HieraticalSystem> getRootSystems() {
         return rootSystems;
+    }
+
+    public List<CelestialObject> getAndClearNewlyDestroyed() {
+        List<CelestialObject> nd = new ArrayList<>(newlyDestroyed);
+        newlyDestroyed.clear();
+        return nd;
     }
 
     public CelestialObject computeGravityMaster(CelestialObject target) {
