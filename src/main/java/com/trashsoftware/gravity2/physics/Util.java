@@ -11,6 +11,39 @@ public class Util {
     public static final double TWO_PI = Math.PI * 2;
     public static final double HALF_PI = Math.PI / 2;
 
+    public static String darker(String rgbaCode, double extent) {
+        if (extent < 0 || extent > 1) {
+            throw new IllegalArgumentException("Extent must be between 0 and 1");
+        }
+
+        // Remove the '#' from the beginning of the hex string
+        String hex = rgbaCode.startsWith("#") ? rgbaCode.substring(1) : rgbaCode;
+
+        // Check if it's an RGBA color (8 characters long)
+        boolean isRgba = hex.length() == 8;
+
+        // Parse the hex values for red, green, and blue
+        int red = Integer.parseInt(hex.substring(0, 2), 16);
+        int green = Integer.parseInt(hex.substring(2, 4), 16);
+        int blue = Integer.parseInt(hex.substring(4, 6), 16);
+
+        // Darken the RGB values by reducing each component by the extent factor
+        red = (int) Math.max(0, red * (1 - extent));
+        green = (int) Math.max(0, green * (1 - extent));
+        blue = (int) Math.max(0, blue * (1 - extent));
+
+        // If it's an RGBA string, preserve the alpha value
+        String result;
+        if (isRgba) {
+            int alpha = Integer.parseInt(hex.substring(6, 8), 16);  // Get the alpha value
+            result = String.format("#%02X%02X%02X%02X", red, green, blue, alpha);  // Keep alpha unchanged
+        } else {
+            result = String.format("#%02X%02X%02X", red, green, blue);  // Regular RGB
+        }
+
+        return result;
+    }
+
     public static double[] jsonArrayToDoubleArray(JSONArray jsonArray) {
         double[] res = new double[jsonArray.length()];
         for (int i = 0; i < res.length; i++) {

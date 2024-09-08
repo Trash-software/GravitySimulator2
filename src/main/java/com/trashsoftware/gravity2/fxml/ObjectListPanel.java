@@ -69,7 +69,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         sortBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             Simulator simulator = fxApp.getSimulator();
             if (simulator != null) {
-                reloadInfoPane(simulator);
+                reloadInfoPane(simulator, simulator.getObjects());
             }
         });
 
@@ -99,7 +99,11 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 }
             }
         } else if (root instanceof ObjectStatsWrapper osw) {
-            osw.update(simulator, unitsMethodBox.getValue().unitsConverter);
+            if (osw.object.isExist()) {
+                osw.update(simulator, unitsMethodBox.getValue().unitsConverter);
+            } else {
+                collapseObjectStats();
+            }
         }
     }
     
@@ -123,7 +127,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         ));
     }
 
-    public void reloadInfoPane(Simulator simulator) {
+    public void reloadInfoPane(Simulator simulator, List<CelestialObject> loadObjects) {
         long t0 = System.currentTimeMillis();
 
         Map<CelestialObject, ObjectStatsWrapper> infoMap = new HashMap<>();
@@ -138,9 +142,9 @@ public class ObjectListPanel extends AbstractObjectPanel {
         Sorting sorting = sortBox.getSelectionModel().getSelectedItem();
         List<CelestialObject> objectList;
         switch (sorting) {
-            default -> objectList = simulator.getObjects();
+            default -> objectList = loadObjects;
             case MASS -> {
-                objectList = new ArrayList<>(simulator.getObjects());
+                objectList = new ArrayList<>(loadObjects);
                 objectList.sort(Comparator.comparingDouble(CelestialObject::getMass));
                 Collections.reverse(objectList);
             }
@@ -179,7 +183,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
 
     private void collapseObjectStats() {
         celestialContainer.setContent(celestialListPane);
-        reloadInfoPane(fxApp.getSimulator());
+        reloadInfoPane(fxApp.getSimulator(), fxApp.getSimulator().getObjects());
         celestialContainer.setVvalue(celestialContainerVValueCache);
     }
     

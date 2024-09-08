@@ -29,11 +29,13 @@
             <Button text="⏪" onAction="#speedDownAction"/>
             <Button text="⏩" onAction="#speedUpAction"/>
 
+            <RadioButton text="%orbitNone" toggleGroup="$orbitShowingGroup"
+                         fx:id="showNoneBtn"/>
             <RadioButton text="%orbitTrace" toggleGroup="$orbitShowingGroup"
                          fx:id="showTraceBtn"
                          selected="true"/>
-            <RadioButton text="%orbitPath" toggleGroup="$orbitShowingGroup"
-                         fx:id="showPathBtn"/>
+<!--            <RadioButton text="%orbitPath" toggleGroup="$orbitShowingGroup"-->
+<!--                         fx:id="showPathBtn"/>-->
             <RadioButton text="%orbitOrbit" toggleGroup="$orbitShowingGroup"
                          fx:id="showOrbitBtn"/>
 

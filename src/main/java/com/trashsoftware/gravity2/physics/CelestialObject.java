@@ -5,8 +5,10 @@ import com.trashsoftware.gravity2.gui.JmeApp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Arrays;
+
 public class CelestialObject implements Comparable<CelestialObject>, AbstractObject {
-    
+
     public static final double REF_HEAT_CAPACITY = 14300.0;
 
     protected double[] position;
@@ -26,29 +28,33 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
      * Status
      */
     private double rotationAngle;
+    private double lastBreakTime;
+    private double timeInsideRocheLimit;  // the time steps of this inside other's roche limit
+    protected double dieTime = -1;
+    private int debrisLevel;
 
     private String colorCode;
     private final Texture texture;
 
     protected transient double[] lastAcceleration;
-//    protected transient double[] orbitBasic;  // semi-major, eccentricity
+    //    protected transient double[] orbitBasic;  // semi-major, eccentricity
     protected transient CelestialObject gravityMaster;
     protected transient CelestialObject hillMaster;
     protected transient double hillRadius;
     protected transient double possibleRocheLimit;
     protected transient double approxRocheLimit;
 
-    public CelestialObject(String name,
-                           double mass,
-                           double equatorialRadius,
-                           double polarRadius,
-                           double[] position,
-                           double[] velocity,
-                           double[] rotationAxis,
-                           double angularVelocity,
-                           String colorCode,
-                           Texture diffuseMap,
-                           double avgTemp) {
+    CelestialObject(String name,
+                    double mass,
+                    double equatorialRadius,
+                    double polarRadius,
+                    double[] position,
+                    double[] velocity,
+                    double[] rotationAxis,
+                    double angularVelocity,
+                    String colorCode,
+                    Texture diffuseMap,
+                    double avgTemp) {
 
         if (position.length != velocity.length) {
             throw new IllegalArgumentException("You are in what dimensional world?");
@@ -67,11 +73,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.thermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, avgTemp);
 
         this.texture = diffuseMap;
-        
+
 //        convertToFxAxisTilt(this.rotationAxis);
-        
+
 //        rotation = new Rotate(0, Rotate.Y_AXIS);
-        
+
         updateTransforms();
 
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
@@ -184,7 +190,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
         return co;
     }
-    
+
     private void updateTransforms() {
 //        model.getTransforms().clear();
 //        
@@ -206,7 +212,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         if (axis[2] < 0) {
             axis = VectorOperations.reverseVector(axis);
         }
-        
+
         double targetX = axis[0];
         double targetY = axis[1];
         double targetZ = axis[2];
@@ -322,7 +328,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     protected void updateRotation(double timeSteps) {
         double deg = Math.toDegrees(angularVelocity) * timeSteps;
-        
+
         int sign = 1;
         if (rotationAxis[rotationAxis.length - 1] < 0) {
             sign = -1;
@@ -343,7 +349,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double momentOfInertiaRot() {
         return momentOfInertiaRot(mass, equatorialRadius);
     }
-    
+
     public double shapeFactor() {
         if (polarRadius > equatorialRadius) throw new RuntimeException();
         if (polarRadius == equatorialRadius) return 1.0;
@@ -359,7 +365,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return VectorOperations.scale(rotationAxis, momentOfInertiaRot() * angularVelocity);
     }
 
-    private double computeNewAngularVelocity(double[] totalAngularMomentum, 
+    private double computeNewAngularVelocity(double[] totalAngularMomentum,
                                              double totalMass,
                                              double newEquatorialRadius) {
         double momentOfInertia = momentOfInertiaRot(totalMass, newEquatorialRadius); // Adjust for new mass and shape
@@ -377,11 +383,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double getZ() {
         return position[2];
     }
-    
+
     public boolean isEmittingLight() {
         return getLuminosity() > 0;
     }
-    
+
     public double getLuminosity() {
         if (name.equals("Sun")) {
             return 3.828e26;
@@ -458,7 +464,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return mass;
     }
 
-    public double getRadius() {
+    public double getAverageRadius() {
         return (2 * equatorialRadius + polarRadius) / 3;
     }
 
@@ -503,7 +509,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public void forcedSetRotation(double[] axis, double angularVelocity) {
         this.rotationAxis = VectorOperations.normalize(axis);
         updateTransforms();
-        
+
         this.angularVelocity = angularVelocity;
     }
 
@@ -511,22 +517,132 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.mass = mass;
     }
 
+    public void gainMattersFrom(Simulator simulator, CelestialObject object) {
+
+    }
+
+    public CelestialObject disassemble(Simulator simulator,
+                                       CelestialObject forceSource,
+                                       double actualRocheLimit) {
+        if (debrisLevel > 2) {
+            return null;
+        }
+        double timeSinceLastDisassemble = simulator.getTimeStepAccumulator() - lastBreakTime;
+        if (timeSinceLastDisassemble < Simulator.MIN_DISASSEMBLE_TIME) {
+            return null;
+        }
+        if (getAverageRadius() < Simulator.MIN_DEBRIS_RADIUS) {
+            return null;
+        }
+        double dt = VectorOperations.distance(position, forceSource.position);
+        double volumeInRoche = intersectionVolume(actualRocheLimit, getAverageRadius(), dt);
+
+        if (volumeInRoche < Simulator.MIN_DEBRIS_VOLUME * 2) {
+            return null;
+        }
+        // Calculate probability of event occurring using exponential function
+        double probability = 1 - Math.exp(-Simulator.DISASSEMBLE_LAMBDA * timeInsideRocheLimit);
+//        System.out.println("Prob:" + probability);
+        if (simulator.random.nextDouble() < probability) {
+            // break up
+            timeInsideRocheLimit = 0;
+            lastBreakTime = simulator.getTimeStepAccumulator();
+            double debrisVol = simulator.random.nextDouble(Simulator.MIN_DEBRIS_VOLUME,
+                    Math.min(volumeInRoche - Simulator.MIN_DEBRIS_VOLUME, getVolume() / 2));
+
+            System.out.println("Disassemble!");
+
+            double energyBefore = transitionalKineticEnergy() +
+                    rotationalKineticEnergy() +
+                    simulator.gravitationalBindingEnergyOf(this) +
+                    thermalEnergy +
+                    simulator.potentialEnergyBetween(this, forceSource);
+
+            double debrisRadius = calculateRadiusByVolume(debrisVol);
+            double debrisMass = getDensity() * debrisVol;
+
+            double[] AB = VectorOperations.subtract(forceSource.position, position);
+            // Distance between the centers
+            double distanceAB = VectorOperations.magnitude(AB);
+            double t = ((getEquatorialRadius() + debrisRadius) * 1.01) / distanceAB;
+            // Interpolate to find the collision point (starting from A's center)
+            double[] debrisPos = VectorOperations.add(position,
+                    VectorOperations.scale(AB, t));
+            double[] relVel = VectorOperations.subtract(velocity, forceSource.velocity);
+            double[] debrisRelVel = VectorOperations.scale(relVel, 1.0);
+            double[] debrisVel = VectorOperations.add(forceSource.velocity, debrisRelVel);
+
+            double temperature = getBodyAverageTemperature();
+
+            CelestialObject debris = new CelestialObject(
+                    name + "-debris",
+                    debrisMass,
+                    debrisRadius,
+                    debrisRadius,
+                    debrisPos,
+                    debrisVel,
+                    Arrays.copyOf(rotationAxis, rotationAxis.length),
+                    0,
+                    Util.darker(colorCode, 0.25),
+                    null,
+                    temperature
+            );
+            debris.debrisLevel = debrisLevel + 1;
+            debris.lastBreakTime = lastBreakTime;
+
+            double remVolume = getVolume() - debrisVol;
+
+            this.mass -= debrisMass;
+            this.thermalEnergy -= debris.thermalEnergy;
+
+            setRadiusByVolume(remVolume);
+
+            // do energy conservation
+            double thisEnergyAfter = transitionalKineticEnergy() +
+                    rotationalKineticEnergy() +
+                    simulator.gravitationalBindingEnergyOf(this) +
+                    thermalEnergy;
+            double debrisEnergy = debris.transitionalKineticEnergy() +
+                    debris.rotationalKineticEnergy() +
+                    simulator.gravitationalBindingEnergyOf(debris) +
+                    debris.thermalEnergy;
+            double gPotEnergy = simulator.potentialEnergyBetween(this, debris) +
+                    simulator.potentialEnergyBetween(this, forceSource) +
+                    simulator.potentialEnergyBetween(debris, forceSource);
+            double energyAfter = thisEnergyAfter +
+                    debrisEnergy +
+                    gPotEnergy;
+            double energyChange = energyBefore - energyAfter;
+
+            // distribute the remaining energy
+            debris.thermalEnergy += energyChange / 2;
+            thermalEnergy += energyChange / 2;
+
+            return debris;
+        } else {
+            timeInsideRocheLimit += simulator.timeStep;
+            return null;
+        }
+    }
+
     public void collideWith(Simulator simulator, CelestialObject other, double[] collisionPoint) {
         if (other.mass > this.mass) {
             throw new RuntimeException("Calling 'collideWith()' in the wrong order");
         }
+
+        System.out.println(name + " collides with " + other.getName());
 
         // Step 2: Calculate initial total energy (translational + rotational + gravitational potential)
         double initialEnergy = this.rotationalKineticEnergy() +
                 this.transitionalKineticEnergy() +
                 other.rotationalKineticEnergy() +
                 other.transitionalKineticEnergy() +
-                this.thermalEnergy + 
+                this.thermalEnergy +
                 other.thermalEnergy +
                 simulator.potentialEnergyBetween(this, other) +
-                simulator.gravitationalBindingEnergyOf(this) + 
+                simulator.gravitationalBindingEnergyOf(this) +
                 simulator.gravitationalBindingEnergyOf(other);
-        
+
         // Step 1: Combine masses
         double totalMass = this.mass + other.mass;
         double totalVolume = this.getVolume() + other.getVolume();
@@ -541,8 +657,9 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         // Step 3: Calculate angular momentum of the system before collision
         double[] L_A = this.angularMomentum();
         double[] r_BA = VectorOperations.subtract(collisionPoint, this.position);
+        double[] relVel = VectorOperations.subtract(other.velocity, velocity);
         double[] L_B_to_A = VectorOperations.crossProduct(r_BA,
-                VectorOperations.scale(other.velocity, other.mass));
+                VectorOperations.scale(relVel, other.mass));
 
         // Step 4: Combine angular momenta
         double[] totalAngularMomentum = VectorOperations.add(L_A, L_B_to_A);
@@ -554,19 +671,19 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         // Step 5: Compute new rotation axis and angular velocity for object A
         double[] newRotationAxis = VectorOperations.normalize(totalAngularMomentum);
         double newAngVel = computeNewAngularVelocity(totalAngularMomentum, totalMass, newEqRadius);
-        
+
         // Step 5: Assign the new attributes to the surviving object
         this.mass = totalMass;
         this.velocity = newVelocity;
         this.rotationAxis = newRotationAxis;
         this.angularVelocity = newAngVel;
-        
+
         updateTransforms();
-        
+
         // Step 6: Determine remaining energy for translational motion
-        double newEnergySum = this.rotationalKineticEnergy() + 
+        double newEnergySum = this.rotationalKineticEnergy() +
                 this.transitionalKineticEnergy() +
-                simulator.gravitationalBindingEnergyOf(this) + 
+                simulator.gravitationalBindingEnergyOf(this) +
                 this.thermalEnergy;
         double difference = initialEnergy - newEnergySum;
 //        System.out.println("Energy difference: " + difference);
@@ -588,21 +705,26 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double getThermalEnergy() {
         return thermalEnergy;
     }
-    
+
     public double getBodyAverageTemperature() {
         return thermalEnergy / mass / REF_HEAT_CAPACITY;
     }
-    
+
     public static double calculateThermalEnergyByTemperature(double c, double mass, double k) {
         return c * mass * k;
     }
 
-    public void destroy() {
+    public void destroy(double dieTime) {
         this.exist = false;
+        this.dieTime = dieTime;
 //        model.setVisible(false);
         // let them be garbage collected
 //        model = null;
 //        scale = null;
+    }
+
+    public double getDieTime() {
+        return dieTime;
     }
 
     public Texture getTexture() {
@@ -645,5 +767,38 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public static double angularVelocityOf(double rotationPeriod) {
         if (rotationPeriod == Double.POSITIVE_INFINITY) return 0;
         return 2 * Math.PI / rotationPeriod;
+    }
+
+    public static double calculateRadiusByVolume(double volume) {
+        return Math.pow(3 * volume / (4 * Math.PI), 1.0 / 3);
+    }
+
+    public static double intersectionVolume(double r1, double r2, double d) {
+        // Check if the spheres are not intersecting
+        if (d >= r1 + r2) {
+            return 0.0;
+        }
+
+        // If the spheres are perfectly overlapping
+        if (d == 0 && r1 == r2) {
+            return (4.0 / 3.0) * Math.PI * Math.pow(r1, 3); // Volume of one sphere
+        }
+
+        // Volume of intersection for overlapping spheres
+        double part1 = Math.PI / (12.0 * d);
+        double term1 = Math.pow(r1 + r2 - d, 2);
+        double term2 = Math.pow(d, 2) + 2 * d * (r1 + r2) - 3 * Math.pow(r1 - r2, 2);
+
+        return part1 * term1 * term2;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
     }
 }

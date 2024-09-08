@@ -3,6 +3,7 @@ package com.trashsoftware.gravity2.gui;
 import com.jme3.math.ColorRGBA;
 
 public class GuiUtils {
+    
     public static String colorToHex(ColorRGBA color) {
         int red = (int) (color.getRed() * 255);
         int green = (int) (color.getGreen() * 255);

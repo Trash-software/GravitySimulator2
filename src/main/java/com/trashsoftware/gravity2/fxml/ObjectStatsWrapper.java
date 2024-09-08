@@ -249,7 +249,7 @@ public class ObjectStatsWrapper extends HBox {
 
     public void update(Simulator simulator, UnitsConverter uc) {
         massLabel.setText(uc.mass(object.getMass()));
-        diameterLabel.setText(uc.distance(object.getRadius() * 2));
+        diameterLabel.setText(uc.distance(object.getAverageRadius() * 2));
         double vol = object.getVolume();
         densityLabel.setText(uc.mass(object.getMass() / vol) + "/m³");
         speedLabel.setText(uc.speed(object.getSpeed()));

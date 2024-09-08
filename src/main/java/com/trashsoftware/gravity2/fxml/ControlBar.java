@@ -9,7 +9,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -30,7 +29,7 @@ public class ControlBar implements Initializable {
     @FXML
     ToggleGroup orbitShowingGroup, refFrameGroup;
     @FXML
-    RadioButton showTraceBtn, showPathBtn, showOrbitBtn;
+    RadioButton showNoneBtn, showTraceBtn, showPathBtn, showOrbitBtn;
     @FXML
     RadioButton refStaticBtn, refSystemBtn, refTargetBtn;
     @FXML
@@ -43,11 +42,11 @@ public class ControlBar implements Initializable {
     private ResourceBundle strings;
 
     private double lastRealTimeStep;
-    
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         this.strings = resourceBundle;
-        
+
         setRadioButtons();
         setCheckBoxes();
         setSliders();
@@ -59,7 +58,7 @@ public class ControlBar implements Initializable {
 
         setKeyboardActions();
     }
-    
+
     private void setKeyboardActions() {
         Scene scene = window.getScene();
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
@@ -82,12 +81,14 @@ public class ControlBar implements Initializable {
             }
         });
     }
-    
+
     private void setRadioButtons() {
         orbitShowingGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
-            if (newValue == showTraceBtn) {
+            if (newValue == showNoneBtn) {
+                jmeApp.setTracePathOrbit(false, false, false);
+            } else if (newValue == showTraceBtn) {
                 jmeApp.setTracePathOrbit(true, false, false);
             } else if (newValue == showPathBtn) {
                 jmeApp.setTracePathOrbit(false, true, false);
@@ -95,7 +96,7 @@ public class ControlBar implements Initializable {
                 jmeApp.setTracePathOrbit(true, false, true);
             }
         });
-        
+
         refFrameGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
@@ -108,20 +109,20 @@ public class ControlBar implements Initializable {
             }
         });
     }
-    
+
     private void setCheckBoxes() {
         nameOnCanvasCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
             jmeApp.toggleLabelShowing(newValue);
         });
-        
+
         barycenterCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
             jmeApp.toggleBarycenterShowing(newValue);
         });
-        
+
         hillSpheresCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
@@ -134,7 +135,7 @@ public class ControlBar implements Initializable {
             jmeApp.setShowRocheLimit(newValue);
         });
     }
-    
+
     private void setSliders() {
         pathLengthSlider.setMin(1);
         pathLengthSlider.setMax(50000);
@@ -149,15 +150,15 @@ public class ControlBar implements Initializable {
         });
         pathLengthSlider.setValue(5000.0);
     }
-    
+
     public void setFocus() {
         clearFocusBtn.setDisable(false);
     }
-    
+
     public void setLand() {
         clearLandBtn.setDisable(false);
         refTargetBtn.setSelected(true);
-        
+
         refStaticBtn.setDisable(true);
         refSystemBtn.setDisable(true);
         refTargetBtn.setDisable(true);
@@ -170,7 +171,7 @@ public class ControlBar implements Initializable {
 //        effPotentialContourMenu.setSelected(false);
 //        effPotentialContourMenu.setDisable(true);
     }
-    
+
     @FXML
     public void clearLandAction() {
         getJmeApp().clearLand();
@@ -180,12 +181,12 @@ public class ControlBar implements Initializable {
         refSystemBtn.setDisable(false);
         refTargetBtn.setDisable(false);
     }
-    
+
     @FXML
     public void speedUpAction() {
         getJmeApp().speedUpAction();
     }
-    
+
     @FXML
     public void speedDownAction() {
         getJmeApp().speedDownAction();
@@ -208,7 +209,7 @@ public class ControlBar implements Initializable {
         getJmeApp().setPlaying(false);
         playPauseBtn.setText("⏵");
     }
-    
+
     @FXML
     public void showObjectPaneAction() {
         Window objWindow = fxApp.getObjectListPanel().getWindow();
@@ -222,21 +223,23 @@ public class ControlBar implements Initializable {
     public FxApp getFxApp() {
         return fxApp;
     }
-    
+
     public JmeApp getJmeApp() {
         if (getFxApp() == null) return null;
         return getFxApp().getJmeApp();
     }
-    
+
     public void oneFrameFast(double frameTimeMs) {
-        
+
     }
 
     public void oneFrameSlow(double frameTimeMs) {
         UnitsConverter uc = getFxApp().getUnitConverter();
-        
+
+        JmeApp jmeApp = getJmeApp();
+        if (jmeApp == null) return;
         // update playing speed
-        Simulator simulator = getJmeApp().getSimulator();
+        Simulator simulator = jmeApp.getSimulator();
         if (simulator == null) return;
         double timeStep = simulator.getTimeStepAccumulator();
         double diff = timeStep - lastRealTimeStep;
@@ -245,7 +248,8 @@ public class ControlBar implements Initializable {
         lastRealTimeStep = timeStep;
 
         speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
-        
+
         timeStepText.setText(uc.dateTime(timeStep, strings));
+        jmeApp.gcDiedModels();
     }
 }

@@ -5,6 +5,7 @@ import com.trashsoftware.gravity2.fxml.units.AdaptiveUnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.OriginalUnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.JmeApp;
+import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.SystemPresets;
 import javafx.animation.AnimationTimer;
@@ -75,9 +76,15 @@ public class FxApp extends Application {
     }
     
     public void notifyObjectCountChanged(Simulator simulator) {
+        // Since updating info pane can be time-consuming,
+        // there might be this scenario:
+        // the reload info pane in running, but the jme ui has triggered new simulation steps
+        // which modifies the simulators object list
+        // causing concurrent modification exception
+        List<CelestialObject> objectsCopy = new ArrayList<>(simulator.getObjects());
         Platform.runLater(() -> {
             if (objectListPanel != null) {
-                objectListPanel.reloadInfoPane(simulator);
+                objectListPanel.reloadInfoPane(simulator, objectsCopy);
             }
         });
     }

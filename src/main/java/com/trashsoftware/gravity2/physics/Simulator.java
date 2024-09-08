@@ -11,9 +11,15 @@ public class Simulator {
 
     public static final double PATH_INTERVAL = 100.0;
     public static final int PATH_LIMIT = 1048576;
+    public static final double MIN_DISASSEMBLE_TIME = 500.0;
+    public static final double MIN_DEBRIS_RADIUS = 1e4;
+    public static final double MIN_DEBRIS_VOLUME = 4.0 / 3 * Math.PI * Math.pow(MIN_DEBRIS_RADIUS, 3);
+    public static final double DISASSEMBLE_LAMBDA = 3e-5;
+    public static final double MAX_TIME_AFTER_DIE = 3e5;
+    
     public static final double PLANET_MAX_MASS = 0.8;
 
-    private double timeStep = 1;
+    protected double timeStep = 1;
     private transient double lastTimeStepAccumulator = 0;
     private double timeStepAccumulator = 0;
     private final int dimension;
@@ -35,12 +41,14 @@ public class Simulator {
     // temp buffers
     private double[][] forcesBuffer;
     private double[] dimDtBuffer;
+    private final List<CelestialObject> debrisBuffer = new ArrayList<>();
 
     private transient final Map<CelestialObject, HieraticalSystem> systemMap = new HashMap<>();
     private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
     private transient int forceCounter1, forceCounter2;
 
     private final ForkJoinPool forceCalculationPool = new ForkJoinPool();
+    protected final Random random = new Random();
 
     public Simulator(int dimension, double G, double gravityDtPower) {
         this.dimension = dimension;
@@ -123,6 +131,7 @@ public class Simulator {
      */
     public SimResult simulate(int nPhysicalFrames, boolean highPerformanceMode) {
         int nObj = objects.size();
+        boolean changeHappen = false;
 
         SimResult result = SimResult.NORMAL;
 
@@ -156,7 +165,9 @@ public class Simulator {
             }
 
             // Check for collisions and handle them
-            handleCollisions(objects);
+            if (handleCollisions(objects)) {
+                changeHappen = true;
+            }
 
             // Calculate forces based on new positions
             calculateAllForces(objects);
@@ -182,6 +193,14 @@ public class Simulator {
                     }
                 }
             }
+            
+            if (!debrisBuffer.isEmpty()) {
+                for (CelestialObject debris : debrisBuffer) {
+                    addObject(debris);
+                }
+                debrisBuffer.clear();
+                changeHappen = true;
+            }
 
             if (!highPerformanceMode) {
                 if (timeStepAccumulator - lastTimeStepAccumulator >= PATH_INTERVAL) {
@@ -206,7 +225,7 @@ public class Simulator {
 
         updateBarycenter();
 
-        boolean changed = objects.size() != nObj;
+        boolean changed = changeHappen || objects.size() != nObj;
         if (changed) {
             keepOrder();
             if (result == SimResult.NORMAL) result = SimResult.NUM_CHANGED;
@@ -224,41 +243,21 @@ public class Simulator {
         return result;
     }
 
-    private void handleCollisions(List<CelestialObject> objects) {
+    private boolean handleCollisions(List<CelestialObject> objects) {
+        boolean happen = false;
         int n = objects.size();
         for (int i = n - 1; i >= 0; i--) {
             CelestialObject coi = objects.get(i);
             for (int j = i - 1; j >= 0; j--) {
                 CelestialObject coj = objects.get(j);
                 double distance = VectorOperations.distance(coi.position, coj.position);
-                boolean collide = distance < objects.get(i).getRadius() + objects.get(j).getRadius();
+                boolean collide = distance < coi.getAverageRadius() + coj.getAverageRadius();
 
                 // Determine which object is heavier
                 CelestialObject heavier = coi.mass >= coj.mass ? coi : coj;
                 CelestialObject lighter = heavier == coi ? coj : coi;
-
-                boolean enterRoche = false;
-                if (!collide) {
-                    if (distance < heavier.possibleRocheLimit) {
-                        double realRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
-                        enterRoche = distance < realRoche;
-                    }
-                }
-
+                
                 if (collide) {
-                    // Calculate new mass and velocity for the heavier object
-//                    double newMass = heavier.mass + lighter.mass;
-//                    double[] newVelocity = new double[dimension];
-//                    for (int d = 0; d < dimension; d++) {
-//                        newVelocity[d] = (heavier.mass * heavier.velocity[d] + lighter.mass * lighter.velocity[d]) / newMass;
-//                    }
-//
-//                    // Update the heavier object with the new mass and velocity
-//                    double newVolume = heavier.getVolume() + lighter.getVolume();
-//                    heavier.mass = newMass;
-//                    heavier.velocity = newVelocity;
-//                    heavier.setRadiusByVolume(newVolume);
-
                     double[] AB = VectorOperations.subtract(lighter.position, heavier.position);
                     // Distance between the centers
                     double distanceAB = VectorOperations.magnitude(AB);
@@ -272,14 +271,43 @@ public class Simulator {
                     // Remove the lighter object
                     objects.remove(lighter);
                     systemMap.remove(lighter);
-                    lighter.destroy();
+                    lighter.destroy(timeStepAccumulator);
 
                     // Adjust loop counters to account for the removed object
                     n--;
+                    happen = true;
                     break; // Restart checking for collisions with updated list
+                } else {
+                    // not collide, check roche
+                    if (distance < lighter.possibleRocheLimit) {
+                        // heavier one is also inside lighter's roche limit
+                        // unlikely to happen, but put it here
+                        double actualRoche = computeRocheLimitSolid(lighter, heavier.getDensity());
+                        if (distance - heavier.getAverageRadius() < actualRoche) {
+//                            lighter.gainMattersFrom(this, heavier);
+                            CelestialObject debris = heavier.disassemble(this, lighter, actualRoche);
+                            if (debris != null) {
+                                debrisBuffer.add(debris);
+                            }
+                        }
+                    }
+
+                    if (distance < heavier.possibleRocheLimit) {
+                        // This is the most common scenario
+                        // if the above happen, this will also likely to happen
+                        double actualRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
+                        if (distance - lighter.getAverageRadius() < actualRoche) {
+//                            heavier.gainMattersFrom(this, lighter);
+                            CelestialObject debris = lighter.disassemble(this, heavier, actualRoche);
+                            if (debris != null) {
+                                debrisBuffer.add(debris);
+                            }
+                        }
+                    }
                 }
             }
         }
+        return happen;
     }
 
     public void updateForceThreshold() {
@@ -853,7 +881,7 @@ public class Simulator {
     }
 
     public static double computeRocheLimitSolid(CelestialObject master, double smallDensity) {
-        double r = master.getRadius();
+        double r = master.getAverageRadius();
         double masterDensity = master.getDensity();
         return r * 1.260 * Math.cbrt(masterDensity / smallDensity);
     }
@@ -863,7 +891,7 @@ public class Simulator {
     }
 
     public static double computeRocheLimitLiquid(CelestialObject master, double smallDensity) {
-        double r = master.getRadius();
+        double r = master.getAverageRadius();
         double masterDensity = master.getDensity();
         return r * 2.423 * Math.cbrt(masterDensity / smallDensity);
     }

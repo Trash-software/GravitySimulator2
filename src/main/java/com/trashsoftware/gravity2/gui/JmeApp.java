@@ -61,6 +61,7 @@ public class JmeApp extends SimpleApplication {
 
     //    private final Map<CelestialObject, Geometry> lineGeometries = new HashMap<>();
     private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
+    private final Map<CelestialObject, ObjectModel> diedObjects = new HashMap<>();
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private Node axisMarkNode;
@@ -111,11 +112,11 @@ public class JmeApp extends SimpleApplication {
             int nPhysicalFrames = Math.round(tpf * 1000);
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
-                loadObjectsToView();
+                reloadObjects();
                 getFxApp().notifyObjectCountChanged(simulator);
             } else if (sr == Simulator.SimResult.TOO_FAST) {
                 getFxApp().getControlBar().speedDownAction();
-                loadObjectsToView();
+                reloadObjects();
                 getFxApp().notifyObjectCountChanged(simulator);
             }
 
@@ -177,7 +178,7 @@ public class JmeApp extends SimpleApplication {
 
         compassNode = new CompassNode(this);
         compassNode.setLocalTranslation(100, screenHeight - 100, 0);
-        
+
         lonLatTextNode = new GuiTextNode(this);
         lonLatTextNode.setLocalTranslation(20, screenHeight - 200, 0);
     }
@@ -206,10 +207,10 @@ public class JmeApp extends SimpleApplication {
             compassNode.setLocalRotation(new Quaternion().fromAngleAxis(rad, Vector3f.UNIT_Z));
 
             UnitsConverter uc = getFxApp().getUnitConverter();
-            
+
             String lon = uc.longitude(firstPersonStar.getGeologicalLongitude());
             String lat = uc.latitude(firstPersonStar.getLatitude());
-            
+
             lonLatTextNode.setText(String.format("%s\n%s\n%s",
                     lon, lat, uc.distance(firstPersonStar.getAltitude())));
         }
@@ -227,6 +228,17 @@ public class JmeApp extends SimpleApplication {
                 om.orbit.setMesh(om.blank);
             }
         }
+//        for (ObjectModel om : diedObjects.values()) {
+//            if (!showFullPath) {
+//                om.path.setMesh(om.blank);
+//            }
+//            if (!showTrace) {
+//                om.pathGradient.setMesh(om.blank);
+//            }
+//            if (!showOrbit) {
+//                om.orbit.setMesh(om.blank);
+//            }
+//        }
     }
 
     private void initializeSimulator() {
@@ -234,23 +246,29 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
+        rocheEffectTest();
 //        solarSystemTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
 
-    void loadObjectsToView() {
+    void reloadObjects() {
         List<CelestialObject> objects = simulator.getObjects();
         Set<CelestialObject> objectSet = new HashSet<>(objects);
 
         // garbage collect for those destroyed things
-//        modelMap.entrySet().removeIf(entry -> !objects.contains(entry.getKey()));
+        for (var iterator = modelMap.entrySet().iterator(); iterator.hasNext(); ) {
+            var entry = iterator.next();
+            if (!objectSet.contains(entry.getKey())) {
+                ObjectModel om = entry.getValue();
 
-        for (ObjectModel om : modelMap.values()) {
-            if (!objectSet.contains(om.object)) {
+                // transfer it into died objects
+                iterator.remove();
+                diedObjects.put(entry.getKey(), om);
+
                 // died object
                 rootNode.detachChild(om.objectNode);
                 rootNode.detachChild(om.orbit);
@@ -268,6 +286,7 @@ public class JmeApp extends SimpleApplication {
             ObjectModel om = modelMap.get(object);
             if (om == null) {
                 om = new ObjectModel(object, this);
+                System.out.println("Creating " + object.getName());
                 modelMap.put(object, om);
                 rootNode.attachChild(om.objectNode);
 
@@ -275,6 +294,9 @@ public class JmeApp extends SimpleApplication {
                 rootNode.attachChild(om.path);
                 rootNode.attachChild(om.orbit);
                 rootNode.attachChild(om.pathGradient);
+                
+                // Synchronize the global label showing status to the new object
+                om.setShowLabel(showLabel);
             }
             om.notifyObjectChanged();
         }
@@ -371,7 +393,7 @@ public class JmeApp extends SimpleApplication {
         // Add listeners for zooming
         inputManager.addListener(analogListener, "ZoomIn", "ZoomOut");
     }
-    
+
     public void performAction(String name, boolean isPressed, float tpf) {
         if (name.equals("LeftClick")) {
             leftButtonPressed = isPressed;
@@ -898,7 +920,8 @@ public class JmeApp extends SimpleApplication {
         for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
 //            if (obj.getMass() < minimumMassShowing) continue;
-            ObjectModel om = modelMap.get(obj);
+            ObjectModel om = getObjectModel(obj);
+            if (om == null) continue;
 
             var path = entry.getValue();
             Iterator<double[]> centerPath = switch (refFrame) {
@@ -1034,7 +1057,8 @@ public class JmeApp extends SimpleApplication {
                 index++;
             }
 
-            ObjectModel om = modelMap.get(obj);
+            ObjectModel om = getObjectModel(obj);
+            if (om == null) continue;
             drawPolyLine(vertices, om);
         }
     }
@@ -1132,7 +1156,7 @@ public class JmeApp extends SimpleApplication {
 
         scale = 0.1f;
 
-        loadObjectsToView();
+        reloadObjects();
     }
 
     private void simpleTest2() {
@@ -1159,7 +1183,7 @@ public class JmeApp extends SimpleApplication {
 
         scale = 5e-7f;
 
-        loadObjectsToView();
+        reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
     }
 
@@ -1199,21 +1223,49 @@ public class JmeApp extends SimpleApplication {
 
         scale = 5e-9f;
 
-        loadObjectsToView();
+        reloadObjects();
     }
 
     private void solarSystemTest() {
         scale = SystemPresets.solarSystem(simulator);
         scale *= 0.5;
 
-        loadObjectsToView();
+        reloadObjects();
     }
 
     private void ellipseClusterTest() {
         scale = SystemPresets.ellipseCluster(simulator, 150);
 
-        loadObjectsToView();
+        reloadObjects();
 
+        ambientLight.setColor(ColorRGBA.White);
+    }
+
+    private void rocheEffectTest() {
+        CelestialObject earth = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.earth,
+                new double[]{-5e6, 1e6, -1e6},
+                new double[3],
+                scale
+        );
+//        earth.forceSetMass(earth.getMass() * 10);
+        simulator.addObject(earth);
+        CelestialObject moon = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.moon,
+                new double[]{5e7, 0, 5e6},
+                new double[3],
+                scale
+        );
+        simulator.addObject(moon);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.30);
+        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+        moon.setVelocity(vel);
+
+        scale = 5e-7f;
+
+        reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
     }
 
@@ -1236,6 +1288,19 @@ public class JmeApp extends SimpleApplication {
                 }
             });
         }
+    }
+    
+    protected ObjectModel getObjectModel(CelestialObject object) {
+        ObjectModel om = modelMap.get(object);
+        if (om == null) {
+            om = diedObjects.get(object);
+            if (om == null) {
+//                throw new IllegalArgumentException("Object " + object.getName() + " has no model.");
+//                System.err.println("Object " + object.getName() + " has no model.");
+                return null;
+            }
+        }
+        return om;
     }
 
     // Controller interactions
@@ -1264,7 +1329,7 @@ public class JmeApp extends SimpleApplication {
             scale = targetScale;
 //            double factor = targetScale / scale;
 //            scaleScene((float) factor);
-            
+
             focusOn(object);
 
             // reset to a top view
@@ -1304,7 +1369,7 @@ public class JmeApp extends SimpleApplication {
     public void setRefFrame(RefFrame refFrame) {
         this.refFrame = refFrame;
     }
-    
+
     public void setShowHillSphere(boolean show) {
         enqueue(() -> {
             for (CelestialObject object : simulator.getObjects()) {
@@ -1313,7 +1378,7 @@ public class JmeApp extends SimpleApplication {
             }
         });
     }
-    
+
     public void setShowRocheLimit(boolean show) {
         enqueue(() -> {
             for (CelestialObject object : simulator.getObjects()) {
@@ -1337,6 +1402,16 @@ public class JmeApp extends SimpleApplication {
 
     public boolean isFirstPerson() {
         return firstPersonStar != null;
+    }
+
+    public void gcDiedModels() {
+        double now = simulator.getTimeStepAccumulator();
+        for (var it = diedObjects.entrySet().iterator(); it.hasNext(); ) {
+            var entry = it.next();
+            if (now - entry.getKey().getDieTime() > Simulator.MAX_TIME_AFTER_DIE) {
+                it.remove();
+            }
+        }
     }
 
     public enum RefFrame {

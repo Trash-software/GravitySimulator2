@@ -55,7 +55,7 @@ public class ObjectModel {
     protected PointLightShadowFilter plsf;
     protected FilterPostProcessor fpp;
 
-    private float lastRotateAngle;
+    protected Quaternion tiltRotation;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
@@ -216,10 +216,10 @@ public class ObjectModel {
         double[] axisD = object.getRotationAxis();
         Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
 
-        Quaternion tiltQuaternion = new Quaternion();
-        tiltQuaternion.lookAt(axis, Vector3f.UNIT_Z);
+        tiltRotation = new Quaternion();
+        tiltRotation.lookAt(axis, Vector3f.UNIT_Z);
 
-        rotatingNode.setLocalRotation(tiltQuaternion);
+        rotatingNode.setLocalRotation(tiltRotation);
     }
 
     public void updateModelPosition(double scale) {
@@ -310,11 +310,18 @@ public class ObjectModel {
     }
 
     private void rotateModel() {
-        float rotateAngle = (float) object.getRotationAngle();
-        Quaternion rotation = new Quaternion().fromAngleAxis(FastMath.DEG_TO_RAD * (rotateAngle - lastRotateAngle), Vector3f.UNIT_Z);
-        rotatingNode.rotate(rotation);
+        // Convert the current rotation degrees to radians
+        float currentRotationRad = FastMath.DEG_TO_RAD * (float) object.getRotationAngle();
 
-        lastRotateAngle = rotateAngle;
+        // Create a quaternion representing the current rotation around the Earth's axis (Y-axis)
+        Quaternion rotation = new Quaternion();
+        rotation.fromAngleAxis(currentRotationRad, Vector3f.UNIT_Z);
+
+        // Combine the tilt rotation (23.5 degrees) with the current rotation
+        Quaternion combinedRotation = tiltRotation.mult(rotation);
+
+        // Apply the combined rotation to the sphere geometry
+        rotatingNode.setLocalRotation(combinedRotation);
     }
 
     public void setShowLabel(boolean showLabel) {
