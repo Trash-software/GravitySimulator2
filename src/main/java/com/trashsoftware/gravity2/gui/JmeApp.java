@@ -301,6 +301,14 @@ public class JmeApp extends SimpleApplication {
         return 100.0 / avgRadius;
     }
 
+    /**
+     * @return a good scale of closely viewing the object
+     */
+    private double get3rdPersonObjectViewScale(CelestialObject object) {
+        double radius = object.getEquatorialRadius();
+        return 30.0 / radius;
+    }
+
     private void setCamera1stPerson() {
         cam.setFrustumPerspective(45f,
                 (float) cam.getWidth() / cam.getHeight(),
@@ -334,10 +342,10 @@ public class JmeApp extends SimpleApplication {
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true); // Show the mouse cursor
 
-        inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("MoveUp", new KeyTrigger(KeyInput.KEY_UP));
-        inputManager.addMapping("MoveDown", new KeyTrigger(KeyInput.KEY_DOWN));
-        inputManager.addListener(actionListener, "MoveForward", "MoveUp", "MoveDown");
+        inputManager.addMapping("KeyW", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("KeyUp", new KeyTrigger(KeyInput.KEY_UP));
+        inputManager.addMapping("KeyDown", new KeyTrigger(KeyInput.KEY_DOWN));
+        inputManager.addListener(actionListener, "KeyW", "KeyUp", "KeyDown");
 
         // Map the mouse buttons
         inputManager.addMapping("LeftClick", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -363,9 +371,8 @@ public class JmeApp extends SimpleApplication {
         // Add listeners for zooming
         inputManager.addListener(analogListener, "ZoomIn", "ZoomOut");
     }
-
-    // Action listener to track button press/release
-    private final ActionListener actionListener = (name, isPressed, tpf) -> {
+    
+    public void performAction(String name, boolean isPressed, float tpf) {
         if (name.equals("LeftClick")) {
             leftButtonPressed = isPressed;
             if (!isPressed) {
@@ -399,14 +406,17 @@ public class JmeApp extends SimpleApplication {
             rightButtonPressed = isPressed;
         } else if (name.equals("MiddleClick")) {
             middleButtonPressed = isPressed;
-        } else if (name.equals("MoveForward")) {
+        } else if (name.equals("KeyW")) {
             keyWPressed = isPressed;
-        } else if (name.equals("MoveUp")) {
+        } else if (name.equals("KeyUp")) {
             keyUpPressed = isPressed;
-        } else if (name.equals("MoveDown")) {
+        } else if (name.equals("KeyDown")) {
             keyDownPressed = isPressed;
         }
-    };
+    }
+
+    // Action listener to track button press/release
+    private final ActionListener actionListener = this::performAction;
 
     private final AnalogListener analogListener = new AnalogListener() {
         @Override
@@ -562,7 +572,10 @@ public class JmeApp extends SimpleApplication {
             ObjectModel om = modelMap.get(object);
 
             System.out.println("Scale: " + scale);
-            scale = get1stPersonDefaultScale();
+            double targetScale = get1stPersonDefaultScale();
+            scale = targetScale;
+//            double factor = targetScale / scale;
+//            scaleScene((float) factor);
             System.out.println("New scale: " + scale);
 
             setCamera1stPerson();
@@ -1135,7 +1148,7 @@ public class JmeApp extends SimpleApplication {
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.moon,
-                new double[]{5e7, 0, 5e6},
+                new double[]{1e8, 0, 5e6},
                 new double[3],
                 scale
         );
@@ -1247,8 +1260,16 @@ public class JmeApp extends SimpleApplication {
             firstPersonStar = null;
 
             setCamera3rdPerson();
+            double targetScale = get3rdPersonObjectViewScale(object);
+            scale = targetScale;
+//            double factor = targetScale / scale;
+//            scaleScene((float) factor);
             
             focusOn(object);
+
+            // reset to a top view
+            cam.setLocation(lookAtPoint.add(new Vector3f(0, 0, 100)));
+            cam.lookAt(lookAtPoint, worldUp);
         });
     }
 
@@ -1282,6 +1303,24 @@ public class JmeApp extends SimpleApplication {
 
     public void setRefFrame(RefFrame refFrame) {
         this.refFrame = refFrame;
+    }
+    
+    public void setShowHillSphere(boolean show) {
+        enqueue(() -> {
+            for (CelestialObject object : simulator.getObjects()) {
+                ObjectModel om = modelMap.get(object);
+                om.setShowHillSphere(show);
+            }
+        });
+    }
+    
+    public void setShowRocheLimit(boolean show) {
+        enqueue(() -> {
+            for (CelestialObject object : simulator.getObjects()) {
+                ObjectModel om = modelMap.get(object);
+                om.setShowRocheLimit(show);
+            }
+        });
     }
 
     public double getScale() {

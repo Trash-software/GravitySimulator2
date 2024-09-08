@@ -240,7 +240,7 @@ public class Simulator {
                 boolean enterRoche = false;
                 if (!collide) {
                     if (distance < heavier.possibleRocheLimit) {
-                        double realRoche = computeRocheLimit(heavier, lighter.getDensity());
+                        double realRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
                         enterRoche = distance < realRoche;
                     }
                 }
@@ -848,11 +848,11 @@ public class Simulator {
         return computeRocheLimitLiquid(master, Math.min(100.0, master.getDensity()));
     }
 
-    public static double computeRocheLimit(CelestialObject master) {
-        return computeRocheLimit(master, 1500.0);
+    public static double computeRocheLimitSolid(CelestialObject master) {
+        return computeRocheLimitSolid(master, 1500.0);
     }
 
-    public static double computeRocheLimit(CelestialObject master, double smallDensity) {
+    public static double computeRocheLimitSolid(CelestialObject master, double smallDensity) {
         double r = master.getRadius();
         double masterDensity = master.getDensity();
         return r * 1.260 * Math.cbrt(masterDensity / smallDensity);

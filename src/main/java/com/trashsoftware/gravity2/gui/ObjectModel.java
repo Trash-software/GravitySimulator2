@@ -4,6 +4,7 @@ import com.jme3.font.BitmapText;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -33,12 +34,16 @@ public class ObjectModel {
     protected ObjectNode objectNode = new ObjectNode();
     protected Node rotatingNode;
     protected Geometry model;
+    protected Geometry hillSphereModel;
+    protected Geometry rocheLimitModel;
     protected BitmapText labelText;
     protected Node labelNode;
     protected Geometry path;
     protected Geometry orbit;
     protected Geometry pathGradient;
     private boolean showLabel = true;
+    private boolean showHillSphere = false;
+    private boolean showRocheLimit = false;
     protected Mesh blank = new Mesh();
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
@@ -62,7 +67,7 @@ public class ObjectModel {
 
         blank.setBuffer(VertexBuffer.Type.Position, 3,
                 BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
-        
+
         int samples;
         if (object.getTexture() == null) {
             samples = 32;
@@ -178,6 +183,31 @@ public class ObjectModel {
 //        System.out.println(scaledLuminosity);
     }
 
+    private Geometry createTransparentSphere(String name, float opacity) {
+        // Create a sphere mesh
+        Sphere sphereMesh = new Sphere(32, 64, (float) object.getEquatorialRadius());  // 32 segments, radius 1
+        Geometry sphere = new Geometry(name, sphereMesh);
+
+        // Create an unshaded material for the sphere
+        Material mat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+
+        // Set a semi-transparent color (RGBA format, where A is alpha/transparency)
+        mat.setColor("Color", GuiUtils.opaqueOf(color, 0.1f));  // Red with 50% transparency
+
+        // Enable transparency
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+
+        // Apply the material to the sphere geometry
+        sphere.setMaterial(mat);
+
+        // Ensure transparency is rendered correctly
+        sphere.setQueueBucket(RenderQueue.Bucket.Transparent);
+        
+//        sphere.setLocalScale(0.01f);  // initially invisible
+
+        return sphere;
+    }
+
     /**
      * Notify this model that its owner model may have some internal change
      */
@@ -202,7 +232,7 @@ public class ObjectModel {
         float polarScale = (float) (radiusScale * ratio);
         rotatingNode.setLocalScale(eqScale, eqScale, polarScale);
 
-        float shift = (float) (scale * object.getPolarRadius());
+        float shift = (float) (scale * object.getEquatorialRadius());
 
         labelNode.setLocalTranslation(shift, shift, 0f);
 
@@ -221,6 +251,12 @@ public class ObjectModel {
         if (object.isEmittingLight()) {
             emissionLight.setPosition(xyz);
             adjustPointLight();
+        }
+        if (showHillSphere) {
+            adjustHillSphereScale((float) scale);
+        }
+        if (showRocheLimit) {
+            adjustRocheLimitScale((float) scale);
         }
     }
 
@@ -291,6 +327,54 @@ public class ObjectModel {
             } else {
                 objectNode.detachChild(labelNode);
             }
+        }
+    }
+
+    public void setShowHillSphere(boolean show) {
+        boolean wasShow = showHillSphere;
+        showHillSphere = show;
+        if (wasShow != show) {
+            if (show) {
+                if (hillSphereModel == null) {
+                    hillSphereModel = createTransparentSphere("Hill sphere " + object.getName(),
+                            0.1f);
+                }
+                objectNode.attachChild(hillSphereModel);
+            } else {
+                objectNode.detachChild(hillSphereModel);
+            }
+        }
+    }
+
+    public void setShowRocheLimit(boolean show) {
+        boolean wasShow = showRocheLimit;
+        showRocheLimit = show;
+        if (wasShow != show) {
+            if (show) {
+                if (rocheLimitModel == null) {
+                    rocheLimitModel = createTransparentSphere("Roche sphere " + object.getName(),
+                            0.2f);
+                }
+                objectNode.attachChild(rocheLimitModel);
+            } else {
+                objectNode.detachChild(rocheLimitModel);
+            }
+        }
+    }
+
+    private void adjustHillSphereScale(float baseScale) {
+        if (hillSphereModel != null && object.getHillMaster() != null) {
+            float ratio = (float) (object.getHillRadius() / object.getEquatorialRadius());
+            hillSphereModel.setLocalScale(ratio * baseScale);
+//            System.out.println(hillSphereModel.getWorldTranslation() + " " + hillSphereModel.getWorldScale());
+        }
+    }
+
+    private void adjustRocheLimitScale(float baseScale) {
+        if (rocheLimitModel != null) {
+            float ratio = (float) (object.getApproxRocheLimit() / object.getEquatorialRadius());
+//            System.out.println(object.getName() + ratio);
+            rocheLimitModel.setLocalScale(ratio * baseScale);
         }
     }
 

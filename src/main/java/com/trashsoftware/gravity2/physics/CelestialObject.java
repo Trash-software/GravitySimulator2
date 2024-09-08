@@ -1,6 +1,5 @@
 package com.trashsoftware.gravity2.physics;
 
-import com.jme3.scene.Geometry;
 import com.jme3.texture.Texture;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import org.json.JSONArray;
@@ -28,12 +27,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
      */
     private double rotationAngle;
 
-//    private Geometry model;
-//    private final Scale viewScale = new Scale(1, 1, 1);
-//    private final Rotate axisTilt;
-//    private final Rotate rotation;
-//    private double shownScale = 1.0;
-
     private String colorCode;
     private final Texture texture;
 
@@ -42,10 +35,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected transient CelestialObject gravityMaster;
     protected transient CelestialObject hillMaster;
     protected transient double hillRadius;
-    protected transient Geometry hillSphereModel;
     protected transient double possibleRocheLimit;
     protected transient double approxRocheLimit;
-    protected transient Geometry rocheSphereModel;
 
     public CelestialObject(String name,
                            double mass,
@@ -84,7 +75,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         updateTransforms();
 
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
-        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
+//        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
+        approxRocheLimit = Simulator.computeRocheLimitSolid(this);
     }
 
     public static CelestialObject create2d(String name,
@@ -611,41 +603,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         // let them be garbage collected
 //        model = null;
 //        scale = null;
-        hillSphereModel = null;
-        rocheSphereModel = null;
     }
 
     public Texture getTexture() {
         return texture;
-    }
-
-    public Geometry getHillSphereModel() {
-//        if (hillSphereModel == null) {
-//            hillSphereModel = new Sphere();
-//            PhongMaterial material = new PhongMaterial();
-//            material.setDiffuseColor(MainView.opaqueOf(color.brighter(), 0.05));
-//            hillSphereModel.setMaterial(material);
-//        }
-        return hillSphereModel;
-    }
-
-    public void setHillSphereRadius(double hillRadius) {
-//        getHillSphereModel().setRadius(hillRadius * shownScale);
-    }
-
-    public Geometry getRocheSphereModel() {
-//        if (rocheSphereModel == null) {
-//            rocheSphereModel = new Sphere();
-//            PhongMaterial material = new PhongMaterial();
-//            material.setDiffuseColor(MainView.opaqueOf(color.darker(), 0.1));
-//            rocheSphereModel.setMaterial(material);
-//        }
-        return rocheSphereModel;
-    }
-
-    public void setRocheSphereRadius(double rocheLimit) {
-//        getRocheSphereModel().setRadius(rocheLimit * shownScale);
-//        System.out.println(name + " Set to " + (rocheLimit * shownScale) + " radius: " + (radius * shownScale));
     }
 
     public CelestialObject getGravityMaster() {

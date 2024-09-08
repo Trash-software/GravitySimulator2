@@ -270,7 +270,7 @@ public class ObjectStatsWrapper extends HBox {
         thermalEnergyLabel.setText(uc.energy(object.getThermalEnergy()));
         avgTempLabel.setText(uc.temperature(object.getBodyAverageTemperature()));
         
-        rocheLimitSolidLabel.setText(uc.distance(Simulator.computeRocheLimit(object)));
+        rocheLimitSolidLabel.setText(uc.distance(Simulator.computeRocheLimitSolid(object)));
         rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
         rotationPeriodLabel.setText(uc.time(object.getRotationPeriod()));

@@ -6,7 +6,9 @@ import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.Simulator;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -54,6 +56,31 @@ public class ControlBar implements Initializable {
     public void setWindow(Stage window, FxApp fxApp) {
         this.window = window;
         this.fxApp = fxApp;
+
+        setKeyboardActions();
+    }
+    
+    private void setKeyboardActions() {
+        Scene scene = window.getScene();
+        scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+//            System.out.println(event.getCode());
+            switch (event.getCode()) {
+                case W -> jmeApp.performAction("KeyW", true, 1.0f);
+                case UP -> jmeApp.performAction("KeyUp", true, 1.0f);
+                case DOWN -> jmeApp.performAction("KeyDown", true, 1.0f);
+            }
+        });
+        scene.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            switch (event.getCode()) {
+                case W -> jmeApp.performAction("KeyW", false, 1.0f);
+                case UP -> jmeApp.performAction("KeyUp", false, 1.0f);
+                case DOWN -> jmeApp.performAction("KeyDown", false, 1.0f);
+            }
+        });
     }
     
     private void setRadioButtons() {
@@ -93,6 +120,18 @@ public class ControlBar implements Initializable {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
             jmeApp.toggleBarycenterShowing(newValue);
+        });
+        
+        hillSpheresCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.setShowHillSphere(newValue);
+        });
+
+        rocheLimitCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.setShowRocheLimit(newValue);
         });
     }
     
