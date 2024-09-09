@@ -267,9 +267,10 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
-//        rocheEffectTest();
-        solarSystemTest();
+        rocheEffectTest();
+//        solarSystemTest();
 //        solarSystemWithCometsTest();
+//        tidalTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -1269,6 +1270,35 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 5e-7f;
+
+        reloadObjects();
+        ambientLight.setColor(ColorRGBA.White);
+    }
+
+    private void tidalTest() {
+        CelestialObject jupiter = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.jupiter,
+                new double[]{0, 0, 0},
+                new double[3],
+                scale
+        );
+//        earth.forceSetMass(earth.getMass() * 10);
+        simulator.addObject(jupiter);
+        CelestialObject moon = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.mars,
+                new double[]{2e8, 0, 1e5},
+                new double[3],
+                scale
+        );
+        moon.forcedSetRotation(moon.getRotationAxis(), 1e-2);
+        simulator.addObject(moon);
+        double[] vel = simulator.computeVelocityOfN(jupiter, moon, 0.99);
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+        moon.setVelocity(vel);
+
+        scale = 1e-7f;
 
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);

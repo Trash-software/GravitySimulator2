@@ -24,6 +24,7 @@ public class Simulator {
     private double timeStepAccumulator = 0;
     private final int dimension;
     protected double tidalBrakeFactor = 1;
+//    protected double tidalBrakeFactor = 1e24;
 
     private final double G;
     private final double gravityDtPower;
@@ -1385,80 +1386,140 @@ public class Simulator {
         for (CelestialObject object : objects) {
             // for each pair of parent-children, compute them
             if (object.hillMaster != null) {
-                double[] bc = barycenterOf(object, object.hillMaster);
-                double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
-                double[] ae = OrbitCalculator.computeBasic(
-                        object,
-                        bc,
-                        object.mass + object.hillMaster.mass,
-                        relVel,
-                        G
-                );
+//                double[] bc = barycenterOf(object, object.hillMaster);
+//                double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
+//                double[] ae = OrbitCalculator.computeBasic(
+//                        object,
+//                        bc,
+//                        object.mass + object.hillMaster.mass,
+//                        relVel,
+//                        G
+//                );
 //                double[] bcVel = barycenterVelocityOf(object, object.hillMaster);
-                double[] r = VectorOperations.subtract(object.position, object.hillMaster.position);
-                double dt = VectorOperations.magnitude(r);
-                double[] avVector = VectorOperations.crossProduct(r, relVel);
-                double orbitAngularVel = -avVector[avVector.length - 1] / (dt * dt);
+//                double[] r = VectorOperations.subtract(object.position, object.hillMaster.position);
+//                double dt = VectorOperations.magnitude(r);
+//                double[] orbitAngularMomentum = VectorOperations.crossProduct(r, relVel);
+//                double orbitAngularVel = -orbitAngularMomentum[orbitAngularMomentum.length - 1] / (dt * dt);
                 
                 // both use a same set of orbit params, 
                 // otherwise the hill master will have too small semi-major
-                tidalBrake(object.hillMaster, object, ae[0], orbitAngularVel, timeStep);
-                tidalBrake(object, object.hillMaster, ae[0], orbitAngularVel, timeStep);
+                tidalBrake(object.hillMaster, object, timeStep);
+                tidalBrake(object, object.hillMaster, timeStep);
             }
         }
     }
     
     private void tidalBrake(CelestialObject primary, 
-                            CelestialObject secondary, 
-                            double semiMajor,
-                            double orbitAngularVel,
+                            CelestialObject secondary,
                             double timeStep) {
         
-        double rotationKE = secondary.rotationalKineticEnergy();
+        double primaryRotKE = primary.rotationalKineticEnergy();
+        double secondaryTransKE = secondary.transitionalKineticEnergy();
+
+        double[] relVel = VectorOperations.subtract(secondary.velocity, primary.velocity);
+        double[] relPos = VectorOperations.subtract(secondary.position, primary.position);
+        double dt = VectorOperations.magnitude(relPos);
+        double[] angularV = VectorOperations.scale(primary.rotationAxis, primary.angularVelocity);
+        double[] orbitAngularMomentum = VectorOperations.crossProduct(relPos, relVel);
+//        double orbitAngularVel = Math.sqrt(G * primary.mass / Math.pow(dt, 3));
+        double orbitAngularVel = VectorOperations.magnitude(relVel) / dt;
         
+        double alignment = VectorOperations.dotProduct(angularV, orbitAngularMomentum);
+
+//        System.out.println(secondary.name + " " + alignment + " " + orbitAngularVel + " " + primary.angularVelocity);
+        
+        // prograde or retrograde
+        double sign = alignment >= 0 ? 1 : -1;
+//        if (sign > 0 && orbitAngularVel > primary.angularVelocity) {
+//            // prograde but child moves faster than parent's rotation
+//            sign = -sign;
+//        }
+
         // must be negative
         double tidalBrakingAngularVel = tidalBrakingVelocity(primary,
                 secondary,
-                semiMajor) * tidalBrakeFactor * timeStep;
-//        System.out.println(secondary.name + " " + semiMajor + " " + orbitAngularVel + " " + tidalBrakingAngularVel);
-        // todo: rotation axis
-        if (secondary.angularVelocity > orbitAngularVel) {
-            secondary.angularVelocity += tidalBrakingAngularVel;
-            if (secondary.angularVelocity < orbitAngularVel) {
-                // reduced too much
-                secondary.angularVelocity = orbitAngularVel;
-            }
-        } else if (secondary.angularVelocity < orbitAngularVel) {
-            secondary.angularVelocity -= tidalBrakingAngularVel;
-            if (secondary.angularVelocity > orbitAngularVel) {
-                // reduced too much
-                secondary.angularVelocity = orbitAngularVel;
-            }
+                dt) * tidalBrakeFactor * timeStep;
+        double tidalSpeedChange = tidalSpeedChange(primary, 
+                secondary, 
+                dt) * tidalBrakeFactor * timeStep;
+        
+        double w = (primary.angularVelocity - orbitAngularVel) * sign;
+        
+//        System.out.println(secondary.name + " " + dt + 
+//                ", angular: " + 
+//                orbitAngularVel + " " + primary.angularVelocity +
+//                ", brake: " + tidalBrakingAngularVel * w + 
+//                ", speed change: " + (-tidalSpeedChange * w) + 
+//                ", w: " + w);
+        
+        primary.angularVelocity += tidalBrakingAngularVel * w;
+//        double avAfterAdd = primary.angularVelocity + tidalBrakingAngularVel * w;
+//        if (primary.angularVelocity < orbitAngularVel) {
+//            primary.angularVelocity += 
+//        }
+//        if (primary.angularVelocity < orbitAngularVel && avAfterAdd >= orbitAngularVel) {
+//            primary.angularVelocity = orbitAngularVel;
+//        } else if (primary.angularVelocity > orbitAngularVel && avAfterAdd <= orbitAngularVel) {
+//            primary.angularVelocity = orbitAngularVel;
+//        } else {
+//            primary.angularVelocity = avAfterAdd;
+//        }
+        
+        // fixme: weird
+        if (secondary.mass < primary.mass) {
+            double[] velChange = VectorOperations.scale(VectorOperations.normalize(relVel),
+                    -tidalSpeedChange * w * 1e8);
+            VectorOperations.addInPlace(secondary.velocity, velChange);
         }
         
-        double newRotationKE = secondary.rotationalKineticEnergy();
-        secondary.thermalEnergy += (rotationKE - newRotationKE);
+//        if (primary.angularVelocity > orbitAngularVel) {
+//            primary.angularVelocity += tidalBrakingAngularVel;
+//            if (primary.angularVelocity < orbitAngularVel) {
+//                // reduced too much
+//                primary.angularVelocity = orbitAngularVel;
+//            }
+//        } else if (primary.angularVelocity < orbitAngularVel) {
+//            primary.angularVelocity -= tidalBrakingAngularVel;
+//            if (primary.angularVelocity > orbitAngularVel) {
+//                // reduced too much
+//                primary.angularVelocity = orbitAngularVel;
+//            }
+//        }
+
+        double newPrimaryRotKE = primary.rotationalKineticEnergy();
+        double newSecondaryTransKE = secondary.transitionalKineticEnergy();
+        
+        primary.thermalEnergy += (primaryRotKE - newPrimaryRotKE);
+        primary.thermalEnergy += (secondaryTransKE - newSecondaryTransKE);
     }
 
+    /**
+     * The change of angular speed to the primary body
+     */
     public double tidalBrakingVelocity(CelestialObject primary, 
                                        CelestialObject secondary,
-                                       double semiMajor) {
+                                       double distance) {
         
-        double up = 3 * secondary.tidalLoveNumber * G * Math.pow(primary.mass, 2) *
-                Math.pow(secondary.getEquatorialRadius(), 3);
-        double down = secondary.dissipationFunction * Math.pow(semiMajor, 6) *
-                secondary.momentOfInertiaRot();
+//        double up = 3 * secondary.tidalLoveNumber * G * Math.pow(primary.mass, 2) *
+//                Math.pow(secondary.getEquatorialRadius(), 3);
+//        double down = primary.dissipationFunction * Math.pow(distance, 6) *
+//                secondary.momentOfInertiaRot();
+//        return -up / down;
+        double up = primary.tidalLoveNumber * Math.pow(primary.equatorialRadius, 3) * secondary.mass;
+        double down = primary.dissipationFunction * primary.mass * Math.pow(distance, 6);
         return -up / down;
     }
-    
-    public double tidalOrbitalDecay(CelestialObject primary, 
-                                    CelestialObject secondary,
-                                    double semiMajor) {
-        double part1 = -9.0 / 2.0 * secondary.tidalLoveNumber * 
-                Math.pow(secondary.getEquatorialRadius(), 5) / secondary.dissipationFunction;
-        double part2 = primary.mass / secondary.mass;
-        double part3 = Math.sqrt(G * primary.mass / Math.pow(semiMajor, 7));
-        return part1 * part2 * part3;
+
+    /**
+     * The tidal speed change to the secondary body
+     */
+    public double tidalSpeedChange(CelestialObject primary,
+                                   CelestialObject secondary,
+                                   double distance) {
+        double kUp = Math.pow(primary.equatorialRadius, 5) * secondary.getMass() * Math.sqrt(G * primary.getMass());
+        double kDown = primary.dissipationFunction * primary.getMass() * secondary.getMass();
+        double k = kUp / kDown;
+        return -k / Math.pow(distance, 11.0 / 2);
     }
     
     public static double[] barycenterVelocityOf(AbstractObject... celestialObjects) {

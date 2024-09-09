@@ -271,11 +271,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     protected void updateRotation(double timeSteps) {
         double deg = Math.toDegrees(angularVelocity) * timeSteps;
-
-//        int sign = 1;
-//        if (rotationAxis[rotationAxis.length - 1] < 0) {
-//            sign = -1;
-//        }
+        
         rotationAngle += deg;
         if (rotationAngle >= 360) rotationAngle -= 360;
         else if (rotationAngle < 0) rotationAngle += 360;
