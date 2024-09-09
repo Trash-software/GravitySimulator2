@@ -219,6 +219,30 @@ public class SystemPresets {
             "#708090", 0.058, 150, charon
     );
 
+    static {
+        mercury.setRelativeToParentEquator(false);
+        venus.setRelativeToParentEquator(false);
+        earth.setRelativeToParentEquator(false);
+        moon.setRelativeToParentEquator(false);
+
+        mars.setRelativeToParentEquator(false);
+        jupiter.setRelativeToParentEquator(false);
+        saturn.setRelativeToParentEquator(false);
+        uranus.setRelativeToParentEquator(false);
+        neptune.setRelativeToParentEquator(false);
+        triton.setRelativeToParentEquator(false);
+
+        pluto.setRelativeToParentEquator(false);
+        eris.setRelativeToParentEquator(false);
+        haumea.setRelativeToParentEquator(false);
+        makemake.setRelativeToParentEquator(false);
+        ceres.setRelativeToParentEquator(false);
+
+        pallas.setRelativeToParentEquator(false);
+        vesta.setRelativeToParentEquator(false);
+        hygiea.setRelativeToParentEquator(false);
+    }
+
     // Sun with all its planets and dwarf planets
     public static ObjectInfo sun = new ObjectInfo(
             "Sun", 1.989e30, 696340, 696340, 696340, 0, 0, 0, 0, 0, 7.25, 0.0, 25.38,
@@ -243,10 +267,10 @@ public class SystemPresets {
         makeSystem(simulator, sun, 1, 1e3, 1e3);
 
         CelestialObject sun = simulator.findByName("Sun");
-        
+
         double mean = neptune.semiMajorAxis * 1.5 * 1e3;
         double std = mean * 0.25;
-        
+
         addComets(simulator, sun, 80, mean, std);
 
         return 0.005 * 1e-7;
@@ -415,27 +439,27 @@ public class SystemPresets {
                                     double radiusMul,
                                     double distanceMul,
                                     Vector3f parentOrbitPlaneNormal) {
-        double[] position = calculateXYZPosition(
-                info.semiMajorAxis * distanceMul,
-                Math.toRadians(info.eccentricity),
-                Math.toRadians(info.inclination),
-                Math.toRadians(info.argumentOfPeriapsis),
-                Math.toRadians(info.ascendingNode),
-                Math.toRadians(info.trueAnomaly)
-        );
+        double[] position;
         double[] velocity;
         Vector3f axis;
-        Vector3f orbitPlaneNormal = calculateOrbitalPlaneNormal(
+        Vector3f localEclipticPlaneNormal = calculateOrbitalPlaneNormal(
                 (float) Math.toRadians(info.inclination),
                 (float) Math.toRadians(info.argumentOfPeriapsis),
                 (float) Math.toRadians(info.ascendingNode));
+        double[] eclipticPlaneNormal;
         if (parent != null) {
             // todo: check this correctness for moons
-            position = VectorOperations.add(position, parent.position);
-
+            // position and velocity respect to local plane
+            double[] relPos = calculatePosition(
+                    info.semiMajorAxis * distanceMul,
+                    Math.toRadians(info.eccentricity),
+                    Math.toRadians(info.inclination),
+                    Math.toRadians(info.argumentOfPeriapsis),
+                    Math.toRadians(info.ascendingNode),
+                    Math.toRadians(info.trueAnomaly)
+            );
             double mu = simulator.getG() * (parent.getMass() + info.mass * massMul);
-
-            velocity = calculateVelocity(
+            double[] relVel = calculateVelocity(
                     info.semiMajorAxis * distanceMul,
                     Math.toRadians(info.eccentricity),
                     Math.toRadians(info.inclination),
@@ -444,6 +468,42 @@ public class SystemPresets {
                     Math.toRadians(info.trueAnomaly),
                     mu
             );
+            
+            double[] parentEclipticNormal = GuiUtils.toDoubleArray(parentOrbitPlaneNormal);
+            
+//            double[] refPlaneNormal;
+//            Vector3f axisPlaneNormal;
+            if (info.relativeToParentEquator) {
+//                refPlaneNormal = parent.rotationAxis;
+                
+                relPos = rotateToParentEclipticPlane(relPos, parent.rotationAxis);
+                position = rotateToXYPlane(relPos, parentEclipticNormal);
+                relVel = rotateToParentEclipticPlane(relVel, parent.rotationAxis);
+                velocity = rotateToXYPlane(relVel, parentEclipticNormal);
+                
+                eclipticPlaneNormal = rotateToParentEclipticPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parent.rotationAxis);
+                eclipticPlaneNormal = rotateToXYPlane(eclipticPlaneNormal, parentEclipticNormal);
+
+//                System.out.println(info.name);
+//                System.out.println(Arrays.toString(position));
+//                System.out.println(Arrays.toString(velocity));
+                
+//                axisPlaneNormal = GuiUtils.fromDoubleArray(refPlaneNormal);
+                if (info.name.equals("Charon")) {
+                    System.out.println("Charon planes:");
+//                    System.out.println(axisPlaneNormal);
+                    System.out.println(Arrays.toString(eclipticPlaneNormal));
+                }
+            } else {
+//                axisPlaneNormal = parentOrbitPlaneNormal;
+                
+                position = rotateToXYPlane(relPos, parentEclipticNormal);
+                velocity = rotateToXYPlane(relVel, parentEclipticNormal);
+                eclipticPlaneNormal = rotateToXYPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parentEclipticNormal);
+            }
+
+            position = VectorOperations.add(position, parent.position);
+            
             velocity = VectorOperations.add(velocity, parent.velocity);
 
             axis = calculateRotationAxis(
@@ -451,29 +511,20 @@ public class SystemPresets {
                     (float) Math.toRadians(info.inclination),
                     (float) Math.toRadians(info.argumentOfPeriapsis),
                     (float) Math.toRadians(info.tilt),
-                    parentOrbitPlaneNormal
+                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
             );
         } else {
+            position = new double[3];
             velocity = new double[3];
             axis = new Vector3f(0, 0, 1);
+            eclipticPlaneNormal = new double[]{0, 0, 1};
         }
 
         if (info.name.equals("Earth")) {
+            System.out.println("This is earth");
             System.out.println(info.inclination + " " + info.ascendingNode);
             System.out.println(Arrays.toString(position) + Arrays.toString(velocity));
         }
-
-//        if (parent != null) {
-//            double sf = 1.0 - ecc;
-//            if (info.inclination > 90 && info.inclination < 270) sf = -sf;
-//            initVel = simulator.computeVelocityOfN(parent.position,
-//                    parent.mass,
-//                    parent.velocity,
-//                    pos,
-//                    info.mass * massMul,
-//                    sf);
-//        } else {
-//        }
 
         CelestialObject co = createObject(simulator,
                 info,
@@ -492,7 +543,7 @@ public class SystemPresets {
                     massMul,
                     radiusMul,
                     distanceMul,
-                    orbitPlaneNormal
+                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
             );
         }
     }
@@ -858,60 +909,111 @@ public class SystemPresets {
         return 0.4 + 0.3 * n;
     }
 
-    public static double[] calculateXYZPosition(double a,
-                                                double e,
-                                                double i, double omega, double omegaBig, double nu) {
+    // Calculate 3D position from orbital elements relative to Saturn's equatorial plane
+    public static double[] calculatePosition(double a,
+                                             double e,
+                                             double i,
+                                             double omega,
+                                             double omegaBig,
+                                             double nu) {
         // Step 1: Calculate the distance from the focus to the object (r)
         double r = (a * (1 - e * e)) / (1 + e * Math.cos(nu));
 
-        // Step 2: Calculate the position in the orbital plane (x', y', z')
+        // Step 2: Calculate the position in the orbital plane (x', y', z') relative to Saturn's equator
         double xPrime = r * Math.cos(nu);
         double yPrime = r * Math.sin(nu);
-        double zPrime = 0;
+        double zPrime = 0; // This is the orbital plane, z' is zero
 
-        // Step 3: Apply the rotations to get the position in 3D space (x, y, z)
-
-        // Rotate by -ω around Z-axis
+        // Step 3: Apply the standard rotations for orbital elements
         double[] position = {xPrime, yPrime, zPrime};
+
+        // Rotate by -ω (argument of periapsis) around Z-axis (Saturn's equatorial)
         position = rotateAroundZAxis(position, omega);
 
-        // Rotate by -i around X-axis
+        // Rotate by -i (inclination, with respect to Saturn's equatorial plane) around X-axis
         position = rotateAroundXAxis(position, i);
 
-        // Rotate by -Ω around Z-axis
+        // Rotate by -Ω (longitude of ascending node) around Z-axis
         position = rotateAroundZAxis(position, omegaBig);
 
-        return position;
+        return position; // This is the position relative to Saturn's equatorial plane
     }
 
-    public static double[] calculateVelocity(double a, double e, double i, double omega, double omegaBig, double nu, double mu) {
+    // Calculate 3D velocity from orbital elements relative to Saturn's equatorial plane
+    public static double[] calculateVelocity(double a,
+                                             double e,
+                                             double i,
+                                             double omega,
+                                             double omegaBig,
+                                             double nu,
+                                             double mu) {
+        // Step 1: Calculate the semi-latus rectum
         double p = a * (1 - e * e);
 
+        // Step 2: Calculate radial and tangential velocities in the orbital plane
         double Vr = Math.sqrt(mu / p) * e * Math.sin(nu);
         double Vtheta = Math.sqrt(mu / p) * (1 + e * Math.cos(nu));
 
+        // Step 3: Calculate velocity components in the orbital plane (Vx', Vy', Vz') relative to Saturn's equator
         double VxPrime = Vr * Math.cos(nu) - Vtheta * Math.sin(nu);
         double VyPrime = Vr * Math.sin(nu) + Vtheta * Math.cos(nu);
         double VzPrime = 0;
 
+        // Step 4: Apply the same rotations for orbital elements
         double[] velocity = {VxPrime, VyPrime, VzPrime};
+
+        // Rotate by -ω (argument of periapsis) around Z-axis (Saturn's equatorial)
         velocity = rotateAroundZAxis(velocity, omega);
+
+        // Rotate by -i (inclination, with respect to Saturn's equatorial plane) around X-axis
         velocity = rotateAroundXAxis(velocity, i);
+
+        // Rotate by -Ω (longitude of ascending node) around Z-axis
         velocity = rotateAroundZAxis(velocity, omegaBig);
 
-        return velocity;
+        return velocity; // This is the velocity relative to Saturn's equatorial plane
+    }
+
+    // Rotate the position and velocity from Saturn's equatorial plane to Saturn's ecliptic plane
+    public static double[] rotateToParentEclipticPlane(double[] vector, double[] parentRotationAxis) {
+        // Use Saturn's rotation axis to rotate the vector from the equatorial plane to the ecliptic plane
+        double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, new double[]{0, 0, 1}); // Cross product with Z-axis
+        if (VectorOperations.magnitude(rotationAxis) == 0) return vector;
+        double angle = -Math.acos(VectorOperations.dotProduct(parentRotationAxis, new double[]{0, 0, 1}));
+        return VectorOperations.rotateVector(vector, rotationAxis, angle);
+    }
+
+    // Rotate the position and velocity from Saturn's ecliptic plane to Earth's ecliptic plane (XY-plane)
+    public static double[] rotateToXYPlane(double[] vector, double[] parentEclipticNormal) {
+        // Use Saturn's ecliptic normal vector to rotate the vector to align with Earth's ecliptic plane
+        double[] rotationAxis = VectorOperations.crossProduct(parentEclipticNormal, new double[]{0, 0, 1}); // Cross product with Z-axis
+        if (VectorOperations.magnitude(rotationAxis) == 0) return vector;
+        double angle = Math.acos(VectorOperations.dotProduct(parentEclipticNormal, new double[]{0, 0, 1}));
+        return VectorOperations.rotateVector(vector, rotationAxis, angle);
+    }
+
+    // Rotate the position and velocity from Saturn's equatorial plane to Earth's ecliptic plane
+    public static double[] rotateFromParentEquatorialToXYPlane(double[] vector, double[] parentRotationAxis, double[] parentEclipticNormal) {
+        // Step 1: Rotate from Saturn's equatorial plane to Saturn's ecliptic plane (using Saturn's rotation axis)
+        double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, parentEclipticNormal);
+        double angle = Math.acos(VectorOperations.dotProduct(parentRotationAxis, parentEclipticNormal));
+        double[] rotatedVector = VectorOperations.rotateVector(vector, rotationAxis, angle);
+
+        // Step 2: Rotate from Saturn's ecliptic plane to Earth's ecliptic plane (assuming Earth's ecliptic is the XY plane)
+        // Since Earth's ecliptic is defined as the XY-plane (Z-axis as normal), no additional rotation is needed.
+        return rotatedVector;
     }
 
     public static Vector3f calculateRotationAxis(float i,
                                                  float omega,
                                                  float omegaBig,
                                                  float tilt,
-                                                 Vector3f parentOrbitalPlaneNormal) {
+                                                 Vector3f referencePlaneNormal) {
         Vector3f axis;
-        if (parentOrbitalPlaneNormal == null) {
+        if (referencePlaneNormal == null) {
             axis = planetRotationAxis(i, omega, omegaBig, tilt);
         } else {
-            axis = moonRotationAxis(i, omega, omegaBig, tilt, parentOrbitalPlaneNormal);
+            axis = moonRotationAxis(i, omega, omegaBig, tilt, referencePlaneNormal);
         }
 
         return axis;
@@ -1018,30 +1120,67 @@ public class SystemPresets {
         return new double[]{point[0], yNew, zNew};
     }
 
-
     public static void main(String[] args) {
         for (int i = 0; i < 12; i++) System.out.println(refinedTitiusBode(i));
     }
 
-    public record ObjectInfo(
-            String name,
-            double mass,
-            double radius,
-            double equatorialRadius,
-            double polarRadius,
-            double semiMajorAxis,
-            double eccentricity,
-            double argumentOfPeriapsis,
-            double inclination,
-            double ascendingNode,
-            double trueAnomaly,
-            double tilt,
-            double rotationPeriod, // Rotation period in Earth days
-            String colorCode,
-            double loveNumber,
-            double dissipationFunction,
-            ObjectInfo... children
-    ) {
+    public static class ObjectInfo {
+        public final String name;
+        public final double mass;
+        public final double radius;
+        public final double equatorialRadius;
+        public final double polarRadius;
+        public final double semiMajorAxis;
+        public final double eccentricity;
+        public final double argumentOfPeriapsis;
+        public final double inclination;
+        public final double ascendingNode;
+        public final double trueAnomaly;
+        public final double tilt;
+        public final double rotationPeriod; // Rotation period in Earth days
+        public final String colorCode;
+        public final double loveNumber;
+        public final double dissipationFunction;
+        public final ObjectInfo[] children;
+
+        /**
+         * Whether the orbital elements are related to parent's equatorial plane or ecliptic plane.
+         * If true and parent exists, the inclination, etc., are respected to parent's equatorial plane,
+         * Otherwise, respected to the absolute xy-plane (earth's ecliptic plane)
+         */
+        private boolean relativeToParentEquator = true;
+
+        public ObjectInfo(String name, double mass, double radius, double equatorialRadius, double polarRadius,
+                          double semiMajorAxis, double eccentricity, double argumentOfPeriapsis, double inclination,
+                          double ascendingNode, double trueAnomaly, double tilt, double rotationPeriod,
+                          String colorCode, double loveNumber, double dissipationFunction, ObjectInfo... children) {
+            this.name = name;
+            this.mass = mass;
+            this.radius = radius;
+            this.equatorialRadius = equatorialRadius;
+            this.polarRadius = polarRadius;
+            this.semiMajorAxis = semiMajorAxis;
+            this.eccentricity = eccentricity;
+            this.argumentOfPeriapsis = argumentOfPeriapsis;
+            this.inclination = inclination;
+            this.ascendingNode = ascendingNode;
+            this.trueAnomaly = trueAnomaly;
+            this.tilt = tilt;
+            this.rotationPeriod = rotationPeriod;
+            this.colorCode = colorCode;
+            this.loveNumber = loveNumber;
+            this.dissipationFunction = dissipationFunction;
+            this.children = children;
+        }
+
+        public void setRelativeToParentEquator(boolean relativeToParentEquator) {
+            this.relativeToParentEquator = relativeToParentEquator;
+        }
+
+        public boolean isRelativeToParentEquator() {
+            return relativeToParentEquator;
+        }
+
         @Override
         public String toString() {
             return name;

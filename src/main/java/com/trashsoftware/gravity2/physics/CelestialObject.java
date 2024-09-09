@@ -74,12 +74,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
         this.texture = diffuseMap;
 
-//        convertToFxAxisTilt(this.rotationAxis);
-
-//        rotation = new Rotate(0, Rotate.Y_AXIS);
-
-        updateTransforms();
-
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
 //        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
         approxRocheLimit = Simulator.computeRocheLimitSolid(this);
@@ -191,57 +185,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return co;
     }
 
-    private void updateTransforms() {
-//        model.getTransforms().clear();
-//        
-//        double ratio = polarRadius / equatorialRadius;
-//        // Step 1: Create a custom affine transformation
-//        Affine transform = new Affine();
-//
-//        // Step 2: Apply the tilt (rotation around X-axis by 26.7 degrees)
-//        Rotate axisTilt = convertToFxAxisTilt(rotationAxis);
-//        transform.appendRotation(axisTilt.getAngle(), 0, 0, 0, axisTilt.getAxis());
-//        transform.appendScale(1.0, ratio, 1.0);
-//
-//        model.getTransforms().addAll(transform, rotation, viewScale);
-    }
-
-    private static Object convertToFxAxisTilt(double[] axis) {
-//        System.out.println(Arrays.toString(axis));
-        // Desired direction (x, y, z)
-        if (axis[2] < 0) {
-            axis = VectorOperations.reverseVector(axis);
-        }
-
-        double targetX = axis[0];
-        double targetY = axis[1];
-        double targetZ = axis[2];
-
-        // Normalize the target direction vector
-        double length = Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ);
-        double unitX = targetX / length;
-        double unitY = targetY / length;
-        double unitZ = targetZ / length;
-
-        // Initial direction vector (assumed along X-axis)
-        double initialX = 0;
-        double initialY = 1;
-        double initialZ = 0;
-
-        // Calculate the cross product (axis of rotation)
-        double axisX = initialY * unitZ - initialZ * unitY;
-        double axisY = initialZ * unitX - initialX * unitZ;
-        double axisZ = initialX * unitY - initialY * unitX;
-
-        // Calculate the angle between the two vectors using the dot product
-        double dotProduct = initialX * unitX + initialY * unitY + initialZ * unitZ;
-        double angle = Math.toDegrees(Math.acos(dotProduct));
-
-        // Apply the rotation to the sphere
-//        return new Rotate(angle, new Point3D(axisX, axisY, axisZ));
-        return null;
-    }
-
     public static CelestialObject fromJson(JSONObject json) {
         JSONArray positionArr = json.getJSONArray("position");
         JSONArray velocityArr = json.getJSONArray("velocity");
@@ -329,11 +272,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected void updateRotation(double timeSteps) {
         double deg = Math.toDegrees(angularVelocity) * timeSteps;
 
-        int sign = 1;
-        if (rotationAxis[rotationAxis.length - 1] < 0) {
-            sign = -1;
-        }
-        rotationAngle += deg * sign;
+//        int sign = 1;
+//        if (rotationAxis[rotationAxis.length - 1] < 0) {
+//            sign = -1;
+//        }
+        rotationAngle += deg;
         if (rotationAngle >= 360) rotationAngle -= 360;
         else if (rotationAngle < 0) rotationAngle += 360;
     }
@@ -508,7 +451,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
      */
     public void forcedSetRotation(double[] axis, double angularVelocity) {
         this.rotationAxis = VectorOperations.normalize(axis);
-        updateTransforms();
 
         this.angularVelocity = angularVelocity;
     }
@@ -677,8 +619,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.velocity = newVelocity;
         this.rotationAxis = newRotationAxis;
         this.angularVelocity = newAngVel;
-
-        updateTransforms();
 
         // Step 6: Determine remaining energy for translational motion
         double newEnergySum = this.rotationalKineticEnergy() +

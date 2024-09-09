@@ -1,6 +1,7 @@
 package com.trashsoftware.gravity2.gui;
 
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 
 public class GuiUtils {
     
@@ -181,5 +182,14 @@ public class GuiUtils {
         f[1] = g;
         f[2] = b;
         return f;
+    }
+    
+    public static Vector3f fromDoubleArray(double[] doubles) {
+        if (doubles.length != 3) throw new IllegalArgumentException();
+        return new Vector3f((float) doubles[0], (float) doubles[1], (float) doubles[2]);
+    }
+    
+    public static double[] toDoubleArray(Vector3f vector3f) {
+        return new double[]{vector3f.x, vector3f.y, vector3f.z};
     }
 }

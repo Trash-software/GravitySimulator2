@@ -81,9 +81,9 @@ public class ObjectListPanel extends AbstractObjectPanel {
         spawnPresetBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && newValue.value != null) {
                 colorPicker.setDisable(true);
-                createNameInput.setText(newValue.value.name());
-                createMassInput.setText(String.valueOf(newValue.value.mass()));
-                createRadiusInput.setText(String.valueOf(newValue.value.radius()));
+                createNameInput.setText(newValue.value.name);
+                createMassInput.setText(String.valueOf(newValue.value.mass));
+                createRadiusInput.setText(String.valueOf(newValue.value.radius));
             } else {
                 colorPicker.setDisable(false);
             }

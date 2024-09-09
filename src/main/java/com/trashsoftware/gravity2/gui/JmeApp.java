@@ -266,9 +266,10 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest();
 //        simpleTest2();
 //        simpleTest3();
+//        simpleTest4();
 //        rocheEffectTest();
-//        solarSystemTest();
-        solarSystemWithCometsTest();
+        solarSystemTest();
+//        solarSystemWithCometsTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -1243,6 +1244,34 @@ public class JmeApp extends SimpleApplication {
         scale = 5e-9f;
 
         reloadObjects();
+    }
+
+    private void simpleTest4() {
+        CelestialObject earth = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.earth,
+                new double[]{-5e6, 1e6, -1e6},
+                new double[3],
+                scale
+        );
+//        earth.forceSetMass(earth.getMass() * 10);
+        simulator.addObject(earth);
+        CelestialObject moon = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.charon,
+                new double[]{1e8, 0, 5e6},
+                new double[3],
+                scale
+        );
+        simulator.addObject(moon);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
+        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+        moon.setVelocity(vel);
+
+        scale = 5e-7f;
+
+        reloadObjects();
+        ambientLight.setColor(ColorRGBA.White);
     }
 
     private void solarSystemTest() {

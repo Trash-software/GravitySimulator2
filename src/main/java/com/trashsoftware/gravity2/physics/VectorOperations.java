@@ -1,5 +1,7 @@
 package com.trashsoftware.gravity2.physics;
 
+import java.util.Arrays;
+
 public class VectorOperations {
     public static double[] add(double[] a, double[] b) {
         double[] result = new double[a.length];
@@ -146,6 +148,69 @@ public class VectorOperations {
             res[i] = -vec[i];
         }
         return res;
+    }
+
+//    public static double[] rotateAroundAxis(double[] vector, double[] axis, double angle) {
+//        double cosAngle = Math.cos(angle);
+//        double sinAngle = Math.sin(angle);
+//        double oneMinusCos = 1.0 - cosAngle;
+//
+//        double x = vector[0];
+//        double y = vector[1];
+//        double z = vector[2];
+//
+//        double u = axis[0];
+//        double v = axis[1];
+//        double w = axis[2];
+//
+//        double uvw = u * x + v * y + w * z;
+//        return new double[]{
+//                (u * uvw) * oneMinusCos + x * cosAngle + (-w * y + v * z) * sinAngle,
+//                (v * uvw) * oneMinusCos + y * cosAngle + (w * x - u * z) * sinAngle,
+//                (w * uvw) * oneMinusCos + z * cosAngle + (-v * x + u * y) * sinAngle
+//        };
+//    }
+
+    // Function to rotate vector v around axis by a given angle (in radians)
+    public static double[] rotateVector(double[] v, double[] axis, double angle) {
+        double[] result = new double[3];
+
+        // Normalize the axis
+        double axisLength = Math.sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
+        if (axisLength == 0) {
+            throw new IllegalArgumentException("Rotation axis cannot be a zero vector");
+        }
+        double[] k = {axis[0] / axisLength, axis[1] / axisLength, axis[2] / axisLength};
+
+        // Calculate cos and sin of the angle
+        double cosTheta = Math.cos(angle);
+        double sinTheta = Math.sin(angle);
+
+        // Cross product of k and v (k x v)
+        double[] crossProd = {
+                k[1] * v[2] - k[2] * v[1],
+                k[2] * v[0] - k[0] * v[2],
+                k[0] * v[1] - k[1] * v[0]
+        };
+
+        // Dot product of k and v (k · v)
+        double dotProd = k[0] * v[0] + k[1] * v[1] + k[2] * v[2];
+
+        // Applying Rodrigues' formula
+        result[0] = v[0] * cosTheta + crossProd[0] * sinTheta + k[0] * dotProd * (1 - cosTheta);
+        result[1] = v[1] * cosTheta + crossProd[1] * sinTheta + k[1] * dotProd * (1 - cosTheta);
+        result[2] = v[2] * cosTheta + crossProd[2] * sinTheta + k[2] * dotProd * (1 - cosTheta);
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+//        double[] v = new double[]{1, 2, 3};
+//        double[] axis = VectorOperations.normalize(new double[]{0.0, 0.9, 0.2});
+//        double[] res1 = rotateVector(v, axis, Math.toRadians(30));
+//        double[] res2 = rotateAroundAxis(v, axis, Math.toRadians(30));
+//        System.out.println(Arrays.toString(res1));
+//        System.out.println(Arrays.toString(res2));
     }
 }
 

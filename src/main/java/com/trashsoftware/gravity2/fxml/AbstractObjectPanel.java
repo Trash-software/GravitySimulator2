@@ -59,7 +59,7 @@ public abstract class AbstractObjectPanel implements Initializable {
             if (value == null) {
                 return FxApp.getStrings().getString("spawnPresetCustom");
             } else {
-                return value.name();
+                return value.name;
             }
         }
     }
