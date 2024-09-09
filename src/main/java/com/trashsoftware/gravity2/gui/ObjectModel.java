@@ -41,6 +41,7 @@ public class ObjectModel {
     protected Geometry path;
     protected Geometry orbit;
     protected Geometry pathGradient;
+    protected Geometry axis;
     private boolean showLabel = true;
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
@@ -162,6 +163,14 @@ public class ObjectModel {
         Material matLine2 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         matLine2.setColor("Color", darkerColor);
         orbit.setMaterial(matLine2);
+        
+        axis = new Geometry("Axis", blank);
+        Material matLine4 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        matLine4.setColor("Color", color);
+        axis.setMaterial(matLine4);
+        rotatingNode.attachChild(axis);
+        
+        createAxisMesh();
 
         // Create a geometry, apply the mesh, and set the material
         pathGradient = new Geometry("PathGradient", blank);
@@ -169,6 +178,24 @@ public class ObjectModel {
 //        matLine3.setColor("Color", darkerColor);
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
         pathGradient.setMaterial(matLine3);
+    }
+    
+    private void createAxisMesh() {
+        Mesh mesh = new Mesh();
+        Vector3f[] vertices = new Vector3f[2];
+        vertices[0] = new Vector3f(0, 0, 0);
+        vertices[1] = new Vector3f(0, 0, (float) (object.getPolarRadius() * 1.5));
+
+        mesh.setMode(Mesh.Mode.Lines);
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+        // Set up indices to connect the vertices as line segments
+        short[] indices = new short[]{0, 1};
+        mesh.setBuffer(VertexBuffer.Type.Index, 2, BufferUtils.createShortBuffer(indices));
+        
+        mesh.updateBound();
+        mesh.updateCounts();
+        
+        axis.setMesh(mesh);
     }
 
     private void adjustPointLight() {
@@ -331,8 +358,10 @@ public class ObjectModel {
         if (wasShowLabel != showLabel) {
             if (showLabel) {
                 objectNode.attachChild(labelNode);
+                rotatingNode.attachChild(axis);
             } else {
                 objectNode.detachChild(labelNode);
+                rotatingNode.detachChild(axis);
             }
         }
     }

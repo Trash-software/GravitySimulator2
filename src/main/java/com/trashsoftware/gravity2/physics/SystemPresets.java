@@ -441,7 +441,8 @@ public class SystemPresets {
                                     Vector3f parentOrbitPlaneNormal) {
         double[] position;
         double[] velocity;
-        Vector3f axis;
+        double[] localAxis = randomAxisToZ(info.tilt);
+        double[] axisD;
         Vector3f localEclipticPlaneNormal = calculateOrbitalPlaneNormal(
                 (float) Math.toRadians(info.inclination),
                 (float) Math.toRadians(info.argumentOfPeriapsis),
@@ -468,56 +469,63 @@ public class SystemPresets {
                     Math.toRadians(info.trueAnomaly),
                     mu
             );
-            
+
             double[] parentEclipticNormal = GuiUtils.toDoubleArray(parentOrbitPlaneNormal);
-            
+
 //            double[] refPlaneNormal;
 //            Vector3f axisPlaneNormal;
             if (info.relativeToParentEquator) {
 //                refPlaneNormal = parent.rotationAxis;
-                
+
                 relPos = rotateToParentEclipticPlane(relPos, parent.rotationAxis);
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
                 relVel = rotateToParentEclipticPlane(relVel, parent.rotationAxis);
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
-                
+
                 eclipticPlaneNormal = rotateToParentEclipticPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parent.rotationAxis);
                 eclipticPlaneNormal = rotateToXYPlane(eclipticPlaneNormal, parentEclipticNormal);
+
+                axisD = rotateToParentEclipticPlane(localAxis, parent.rotationAxis);
+                axisD = rotateToXYPlane(axisD, parentEclipticNormal);
 
 //                System.out.println(info.name);
 //                System.out.println(Arrays.toString(position));
 //                System.out.println(Arrays.toString(velocity));
-                
+
 //                axisPlaneNormal = GuiUtils.fromDoubleArray(refPlaneNormal);
                 if (info.name.equals("Charon")) {
                     System.out.println("Charon planes:");
-//                    System.out.println(axisPlaneNormal);
+                    System.out.println(Arrays.toString(axisD));
                     System.out.println(Arrays.toString(eclipticPlaneNormal));
                 }
             } else {
 //                axisPlaneNormal = parentOrbitPlaneNormal;
-                
+
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
                 eclipticPlaneNormal = rotateToXYPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parentEclipticNormal);
+
+                double[] revEPN = VectorOperations.scale(eclipticPlaneNormal, 1);
+                axisD = rotateToParentEclipticPlane(localAxis, revEPN);
+                axisD = rotateToXYPlane(axisD, parentEclipticNormal);
             }
 
             position = VectorOperations.add(position, parent.position);
-            
+
             velocity = VectorOperations.add(velocity, parent.velocity);
 
-            axis = calculateRotationAxis(
-                    (float) Math.toRadians(info.eccentricity),
-                    (float) Math.toRadians(info.inclination),
-                    (float) Math.toRadians(info.argumentOfPeriapsis),
-                    (float) Math.toRadians(info.tilt),
-                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
-            );
+//            axis = calculateRotationAxis(
+//                    (float) Math.toRadians(info.eccentricity),
+//                    (float) Math.toRadians(info.inclination),
+//                    (float) Math.toRadians(info.argumentOfPeriapsis),
+//                    (float) Math.toRadians(info.tilt),
+//                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
+//            );
         } else {
             position = new double[3];
             velocity = new double[3];
-            axis = new Vector3f(0, 0, 1);
             eclipticPlaneNormal = new double[]{0, 0, 1};
+            axisD = localAxis;
         }
 
         if (info.name.equals("Earth")) {
@@ -530,7 +538,8 @@ public class SystemPresets {
                 info,
                 position,
                 velocity,
-                new double[]{axis.x, axis.y, axis.z},
+                axisD,
+//                new double[]{axis.x, axis.y, axis.z},
                 massMul,
                 radiusMul);
 
@@ -1016,6 +1025,13 @@ public class SystemPresets {
             axis = moonRotationAxis(i, omega, omegaBig, tilt, referencePlaneNormal);
         }
 
+        return axis;
+    }
+
+    private static double[] localRotationAxis(double tilt) {
+        double radTilt = Math.toRadians(tilt);
+        double[] axis = new double[]{0, 0, 1};
+        axis = VectorOperations.rotateVector(axis, new double[]{1, 0, 0}, radTilt);
         return axis;
     }
 
