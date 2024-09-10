@@ -267,10 +267,10 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
-        rocheEffectTest();
+//        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
-//        tidalTest();
+        tidalTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -1288,13 +1288,13 @@ public class JmeApp extends SimpleApplication {
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.mars,
-                new double[]{2e8, 0, 1e5},
+                new double[]{1e8, 0, 1e5},
                 new double[3],
                 scale
         );
         moon.forcedSetRotation(moon.getRotationAxis(), 1e-2);
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(jupiter, moon, 0.99);
+        double[] vel = simulator.computeVelocityOfN(jupiter, moon, -0.99);
 //        vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 

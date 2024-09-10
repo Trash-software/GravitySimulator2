@@ -1430,10 +1430,6 @@ public class Simulator {
         
         // prograde or retrograde
         double sign = alignment >= 0 ? 1 : -1;
-//        if (sign > 0 && orbitAngularVel > primary.angularVelocity) {
-//            // prograde but child moves faster than parent's rotation
-//            sign = -sign;
-//        }
 
         // must be negative
         double tidalBrakingAngularVel = tidalBrakingVelocity(primary,
@@ -1443,7 +1439,7 @@ public class Simulator {
                 secondary, 
                 dt) * tidalBrakeFactor * timeStep;
         
-        double w = (primary.angularVelocity - orbitAngularVel) * sign;
+        double w = (primary.angularVelocity - orbitAngularVel);
         
 //        System.out.println(secondary.name + " " + dt + 
 //                ", angular: " + 
@@ -1451,7 +1447,8 @@ public class Simulator {
 //                ", brake: " + tidalBrakingAngularVel * w + 
 //                ", speed change: " + (-tidalSpeedChange * w) + 
 //                ", w: " + w);
-        
+
+//        System.out.println(primary.name + " " + primary.angularVelocity + " " + (orbitAngularVel * sign));
         primary.angularVelocity += tidalBrakingAngularVel * w;
 //        double avAfterAdd = primary.angularVelocity + tidalBrakingAngularVel * w;
 //        if (primary.angularVelocity < orbitAngularVel) {
@@ -1465,26 +1462,15 @@ public class Simulator {
 //            primary.angularVelocity = avAfterAdd;
 //        }
         
-        // fixme: weird
         if (secondary.mass < primary.mass) {
+            double w2 = (primary.angularVelocity * sign - orbitAngularVel);
+            double speedChange = -tidalSpeedChange * w2 * 1e7;
+//            System.out.println(primary.name + " " + primary.angularVelocity * sign + " " + orbitAngularVel);
+//            System.out.println(speedChange);
             double[] velChange = VectorOperations.scale(VectorOperations.normalize(relVel),
-                    -tidalSpeedChange * w * 1e8);
+                    speedChange);
             VectorOperations.addInPlace(secondary.velocity, velChange);
         }
-        
-//        if (primary.angularVelocity > orbitAngularVel) {
-//            primary.angularVelocity += tidalBrakingAngularVel;
-//            if (primary.angularVelocity < orbitAngularVel) {
-//                // reduced too much
-//                primary.angularVelocity = orbitAngularVel;
-//            }
-//        } else if (primary.angularVelocity < orbitAngularVel) {
-//            primary.angularVelocity -= tidalBrakingAngularVel;
-//            if (primary.angularVelocity > orbitAngularVel) {
-//                // reduced too much
-//                primary.angularVelocity = orbitAngularVel;
-//            }
-//        }
 
         double newPrimaryRotKE = primary.rotationalKineticEnergy();
         double newSecondaryTransKE = secondary.transitionalKineticEnergy();
