@@ -1288,11 +1288,11 @@ public class JmeApp extends SimpleApplication {
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.mars,
-                new double[]{1e8, 0, 1e5},
+                new double[]{2e8, 0, 1e5},
                 new double[3],
                 scale
         );
-        moon.forcedSetRotation(moon.getRotationAxis(), 1e-2);
+        moon.forcedSetRotation(moon.getRotationAxis(), 1e-3);
         simulator.addObject(moon);
         double[] vel = simulator.computeVelocityOfN(jupiter, moon, -0.99);
 //        vel[2] = VectorOperations.magnitude(vel) * 0.1;

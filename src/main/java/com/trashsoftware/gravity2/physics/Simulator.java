@@ -23,8 +23,8 @@ public class Simulator {
     private transient double lastTimeStepAccumulator = 0;
     private double timeStepAccumulator = 0;
     private final int dimension;
-    protected double tidalBrakeFactor = 1;
-//    protected double tidalBrakeFactor = 1e24;
+    protected double tidalEffectFactor = 1;
+//    protected double tidalEffectFactor = 1e25;
 
     private final double G;
     private final double gravityDtPower;
@@ -1421,6 +1421,7 @@ public class Simulator {
         double dt = VectorOperations.magnitude(relPos);
         double[] angularV = VectorOperations.scale(primary.rotationAxis, primary.angularVelocity);
         double[] orbitAngularMomentum = VectorOperations.crossProduct(relPos, relVel);
+        double[] orbitPlaneNormal = VectorOperations.normalize(orbitAngularMomentum);
 //        double orbitAngularVel = Math.sqrt(G * primary.mass / Math.pow(dt, 3));
         double orbitAngularVel = VectorOperations.magnitude(relVel) / dt;
         
@@ -1434,10 +1435,10 @@ public class Simulator {
         // must be negative
         double tidalBrakingAngularVel = tidalBrakingVelocity(primary,
                 secondary,
-                dt) * tidalBrakeFactor * timeStep;
+                dt) * tidalEffectFactor * timeStep;
         double tidalSpeedChange = tidalSpeedChange(primary, 
                 secondary, 
-                dt) * tidalBrakeFactor * timeStep;
+                dt) * tidalEffectFactor * timeStep;
         
         double w = (primary.angularVelocity - orbitAngularVel);
         
@@ -1450,21 +1451,46 @@ public class Simulator {
 
 //        System.out.println(primary.name + " " + primary.angularVelocity + " " + (orbitAngularVel * sign));
         primary.angularVelocity += tidalBrakingAngularVel * w;
-//        double avAfterAdd = primary.angularVelocity + tidalBrakingAngularVel * w;
-//        if (primary.angularVelocity < orbitAngularVel) {
-//            primary.angularVelocity += 
-//        }
-//        if (primary.angularVelocity < orbitAngularVel && avAfterAdd >= orbitAngularVel) {
-//            primary.angularVelocity = orbitAngularVel;
-//        } else if (primary.angularVelocity > orbitAngularVel && avAfterAdd <= orbitAngularVel) {
-//            primary.angularVelocity = orbitAngularVel;
-//        } else {
-//            primary.angularVelocity = avAfterAdd;
-//        }
+        
+        // change of axis
+        // Compute the angle of misalignment theta
+        double cosTheta = VectorOperations.dotProduct(
+                primary.rotationAxis, orbitPlaneNormal);
+        double theta = Math.acos(cosTheta);
+        // Compute the cross product of the rotation axis and orbital normal vector
+        double[] axisCross = VectorOperations.crossProduct(primary.rotationAxis, orbitPlaneNormal);
+        double[] axisCrossUnit = VectorOperations.normalize(axisCross);
+
+        double cMinusA = 0.4 * primary.mass * Math.pow(primary.getEquatorialRadius(), 2) *
+                primary.tidalLoveNumber / 3;
+        // Compute the torque constant tau_0
+        double tau_0 = (3 * G * secondary.mass * cMinusA) / Math.pow(dt, 3);
+        double tau = tau_0 * Math.sin(theta) * (tidalEffectFactor * 3e-26);
+
+//        // Final torque
+//        double[] torque = VectorOperations.scale(axisCross, tau_0 * Math.sin(theta));
+//        System.out.println(primary.name + " " + theta + " " + Arrays.toString(torque) + " " + VectorOperations.magnitude(torque));
+        
+        // Initial angular momentum
+        double[] L0 = primary.angularMomentum();
+        // Change in angular momentum due to torque
+        double axisChange = tau / VectorOperations.magnitude(L0) * timeStep;
+//        System.out.println(primary.name + " " + axisChange);
+        
+        double[] newAxis = VectorOperations.rotateVector(primary.rotationAxis, axisCrossUnit, axisChange);
+        primary.updateRotationAxis(newAxis);
+        
+//        double[] deltaL = VectorOperations.scale(torque, timeStep * 1e3);
+        // New angular momentum
+//        double[] Lnew = VectorOperations.add(L0, deltaL);
+        // Compute the new axis of rotation
+//        double[] newAxis = VectorOperations.normalize(Lnew);
+//        primary.updateRotationAxis(newAxis);
+//        System.out.println(primary.name + " " + Arrays.toString(primary.rotationAxis) + " " + Arrays.toString(newAxis));
         
         if (secondary.mass < primary.mass) {
             double w2 = (primary.angularVelocity * sign - orbitAngularVel);
-            double speedChange = -tidalSpeedChange * w2 * 1e7;
+            double speedChange = -tidalSpeedChange * w2 * 5e6;
 //            System.out.println(primary.name + " " + primary.angularVelocity * sign + " " + orbitAngularVel);
 //            System.out.println(speedChange);
             double[] velChange = VectorOperations.scale(VectorOperations.normalize(relVel),

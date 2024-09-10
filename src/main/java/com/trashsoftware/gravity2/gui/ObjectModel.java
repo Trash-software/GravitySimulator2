@@ -48,6 +48,8 @@ public class ObjectModel {
     protected Mesh blank = new Mesh();
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
+    
+    protected Vector3f rotationAxis;
 
     protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
@@ -241,10 +243,10 @@ public class ObjectModel {
     public void notifyObjectChanged() {
         // set the visual rotation axis
         double[] axisD = object.getRotationAxis();
-        Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
+        rotationAxis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
 
         tiltRotation = new Quaternion();
-        tiltRotation.lookAt(axis, Vector3f.UNIT_Z);
+        tiltRotation.lookAt(rotationAxis, Vector3f.UNIT_Z);
 
         rotatingNode.setLocalRotation(tiltRotation);
     }
@@ -337,6 +339,14 @@ public class ObjectModel {
     }
 
     private void rotateModel() {
+        // set the visual rotation axis
+        double[] axisD = object.getRotationAxis();
+        Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
+
+        if (!axis.equals(rotationAxis)) {
+            notifyObjectChanged();
+        }
+        
         // Convert the current rotation degrees to radians
         float currentRotationRad = FastMath.DEG_TO_RAD * (float) object.getRotationAngle();
 

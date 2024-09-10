@@ -300,7 +300,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return 0.4 * mass * equatorialRadius * equatorialRadius;
     }
 
-    private double[] angularMomentum() {
+    public double[] angularMomentum() {
         return VectorOperations.scale(rotationAxis, momentOfInertiaRot() * angularVelocity);
     }
 
@@ -436,6 +436,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     public double[] getRotationAxis() {
         return rotationAxis;
+    }
+    
+    public void updateRotationAxis(double[] newRotationAxis) {
+        this.rotationAxis = newRotationAxis;
     }
 
     public double getRotationAngle() {
