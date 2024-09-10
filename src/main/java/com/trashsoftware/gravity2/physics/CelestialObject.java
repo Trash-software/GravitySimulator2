@@ -679,6 +679,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return hillMaster;
     }
 
+    @Override
+    public CelestialObject getMaster() {
+        return hillMaster;
+    }
+
     public double getHillRadius() {
         return hillRadius;
     }

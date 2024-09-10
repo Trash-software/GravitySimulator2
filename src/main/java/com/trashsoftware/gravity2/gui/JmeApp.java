@@ -11,10 +11,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.*;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
@@ -219,15 +216,23 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void clearUnUsedMeshes() {
-        for (ObjectModel om : modelMap.values()) {
-            if (!showFullPath) {
-                om.path.setMesh(om.blank);
-            }
-            if (!showTrace) {
-                om.pathGradient.setMesh(om.blank);
-            }
-            if (!showOrbit) {
-                om.orbit.setMesh(om.blank);
+        for (Spatial spatial : rootNode.getChildren()) {
+            if (spatial instanceof Geometry geometry) {
+                if (!showFullPath) {
+                    if (spatial.getName().startsWith("Path")) {
+                        geometry.setMesh(ObjectModel.blank);
+                    }
+                }
+                if (!showTrace) {
+                    if (spatial.getName().startsWith("Trace")) {
+                        geometry.setMesh(ObjectModel.blank);
+                    }
+                }
+                if (!showOrbit) {
+                    if (spatial.getName().startsWith("Orbit")) {
+                        geometry.setMesh(ObjectModel.blank);
+                    }
+                }
             }
         }
         // todo: destroyed object's mesh still on screen
@@ -267,10 +272,10 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
-//        rocheEffectTest();
+        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
-        tidalTest();
+//        tidalTest();
 //        ellipseClusterTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -314,7 +319,7 @@ public class JmeApp extends SimpleApplication {
                 // Initialize the geometry for the curve (we'll reuse this each frame)
                 rootNode.attachChild(om.path);
                 rootNode.attachChild(om.orbit);
-                rootNode.attachChild(om.pathGradient);
+                rootNode.attachChild(om.trace);
                 
                 // Synchronize the global label showing status to the new object
                 om.setShowLabel(showLabel);
@@ -898,9 +903,10 @@ public class JmeApp extends SimpleApplication {
                 // velocity relative to parent system's barycenter movement
                 double[] velocity = VectorOperations.subtract(child.getVelocity(),
                         parentSystem.getVelocity());
-                OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(child,
+                double[] position = VectorOperations.subtract(child.getPosition(), 
+                        parent.getPosition());
+                OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
                         velocity,
-                        barycenter,
                         child.getMass() + parent.getMass(),
                         simulator.getG());
 
@@ -915,7 +921,7 @@ public class JmeApp extends SimpleApplication {
         ObjectModel om = modelMap.get(co);
 
         Mesh mesh = om.orbit.getMesh();
-        if (mesh == null || mesh == om.blank) {
+        if (mesh == null || mesh == ObjectModel.blank) {
             mesh = new Mesh();
             mesh.setMode(Mesh.Mode.LineStrip);
             om.orbit.setMesh(mesh);
@@ -1014,11 +1020,11 @@ public class JmeApp extends SimpleApplication {
             }
 
             // Create the mesh for the curve
-            Mesh mesh = om.pathGradient.getMesh();
-            if (mesh == null || mesh == om.blank) {
+            Mesh mesh = om.trace.getMesh();
+            if (mesh == null || mesh == ObjectModel.blank) {
                 mesh = new Mesh();
                 mesh.setMode(Mesh.Mode.LineStrip);
-                om.pathGradient.setMesh(mesh);
+                om.trace.setMesh(mesh);
             }
 
             // Set the vertices
@@ -1090,7 +1096,7 @@ public class JmeApp extends SimpleApplication {
         // Create a mesh and set it to line mode
         Mesh mesh = om.path.getMesh();
 
-        if (mesh == null || mesh == om.blank) {
+        if (mesh == null || mesh == ObjectModel.blank) {
             mesh = new Mesh();
             mesh.setMode(Mesh.Mode.Lines);
             om.path.setMesh(mesh);

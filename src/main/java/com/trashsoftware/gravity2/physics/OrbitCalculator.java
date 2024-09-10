@@ -37,12 +37,11 @@ public class OrbitCalculator {
         return new double[]{a, e};
     }
 
-    public static OrbitalElements computeOrbitSpecs3d(AbstractObject star,
+    public static OrbitalElements computeOrbitSpecs3d(double[] relativePosition,
                                                       double[] relativeVelocity,
-                                                      double[] barycenter,
                                                       double totalMass,
                                                       double G) {
-        double[] r = VectorOperations.subtract(star.getPosition(), barycenter);
+        double[] r = relativePosition;
         double[] v = relativeVelocity;
         double mu = G * totalMass;
 

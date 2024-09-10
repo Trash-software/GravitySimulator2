@@ -983,7 +983,7 @@ public class SystemPresets {
         return velocity; // This is the velocity relative to Saturn's equatorial plane
     }
 
-    // Rotate the position and velocity from Saturn's equatorial plane to Saturn's ecliptic plane
+    // Rotate the position and velocity from Planet's equatorial plane to Planet's ecliptic plane
     public static double[] rotateToParentEclipticPlane(double[] vector, double[] parentRotationAxis) {
         // Use Saturn's rotation axis to rotate the vector from the equatorial plane to the ecliptic plane
         double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, new double[]{0, 0, 1}); // Cross product with Z-axis
@@ -992,7 +992,7 @@ public class SystemPresets {
         return VectorOperations.rotateVector(vector, rotationAxis, angle);
     }
 
-    // Rotate the position and velocity from Saturn's ecliptic plane to Earth's ecliptic plane (XY-plane)
+    // Rotate the position and velocity from Planet's ecliptic plane to XY-plane
     public static double[] rotateToXYPlane(double[] vector, double[] parentEclipticNormal) {
         // Use Saturn's ecliptic normal vector to rotate the vector to align with Earth's ecliptic plane
         double[] rotationAxis = VectorOperations.crossProduct(parentEclipticNormal, new double[]{0, 0, 1}); // Cross product with Z-axis
@@ -1001,16 +1001,28 @@ public class SystemPresets {
         return VectorOperations.rotateVector(vector, rotationAxis, angle);
     }
 
-    // Rotate the position and velocity from Saturn's equatorial plane to Earth's ecliptic plane
-    public static double[] rotateFromParentEquatorialToXYPlane(double[] vector, double[] parentRotationAxis, double[] parentEclipticNormal) {
-        // Step 1: Rotate from Saturn's equatorial plane to Saturn's ecliptic plane (using Saturn's rotation axis)
-        double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, parentEclipticNormal);
-        double angle = Math.acos(VectorOperations.dotProduct(parentRotationAxis, parentEclipticNormal));
-        double[] rotatedVector = VectorOperations.rotateVector(vector, rotationAxis, angle);
+    public static double[] rotateFromXYPlaneToPlanetEclipticPlane(double[] vector, double[] parentEclipticNormal) {
+        // The rotation axis should be the same as in rotateToXYPlane but with the opposite angle
+        double[] rotationAxis = VectorOperations.crossProduct(parentEclipticNormal, new double[]{0, 0, 1}); // Cross product with Z-axis
+        if (VectorOperations.magnitude(rotationAxis) == 0) return vector; // No rotation needed if already aligned
 
-        // Step 2: Rotate from Saturn's ecliptic plane to Earth's ecliptic plane (assuming Earth's ecliptic is the XY plane)
-        // Since Earth's ecliptic is defined as the XY-plane (Z-axis as normal), no additional rotation is needed.
-        return rotatedVector;
+        // The angle is the same as in rotateToXYPlane but with a negative sign
+        double angle = -Math.acos(VectorOperations.dotProduct(parentEclipticNormal, new double[]{0, 0, 1}));
+
+        // Apply the rotation in the opposite direction
+        return VectorOperations.rotateVector(vector, rotationAxis, angle);
+    }
+
+    public static double[] rotateFromPlanetEclipticPlaneToEquatorialPlane(double[] vector, double[] parentRotationAxis) {
+        // The rotation axis should be the same as in rotateToParentEclipticPlane but with the opposite angle
+        double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, new double[]{0, 0, 1}); // Cross product with Z-axis
+        if (VectorOperations.magnitude(rotationAxis) == 0) return vector; // No rotation needed if already aligned
+
+        // The angle is the same as in rotateToParentEclipticPlane but with a negative sign
+        double angle = Math.acos(VectorOperations.dotProduct(parentRotationAxis, new double[]{0, 0, 1}));
+
+        // Apply the rotation in the opposite direction
+        return VectorOperations.rotateVector(vector, rotationAxis, angle);
     }
 
     public static Vector3f calculateRotationAxis(float i,

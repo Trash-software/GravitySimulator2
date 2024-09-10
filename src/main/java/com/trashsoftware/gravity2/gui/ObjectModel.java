@@ -26,6 +26,12 @@ import com.trashsoftware.gravity2.physics.OrbitalElements;
 
 public class ObjectModel {
     public static final int COLOR_GRADIENTS = 16;
+    protected static Mesh blank = new Mesh();
+    static {
+        blank.setBuffer(VertexBuffer.Type.Position, 3,
+                BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
+    }
+    
     protected final CelestialObject object;
     protected final ColorRGBA color;
     protected final ColorRGBA opaqueColor;
@@ -40,12 +46,12 @@ public class ObjectModel {
     protected Node labelNode;
     protected Geometry path;
     protected Geometry orbit;
-    protected Geometry pathGradient;
+    protected Geometry trace;
     protected Geometry axis;
     private boolean showLabel = true;
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
-    protected Mesh blank = new Mesh();
+    
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
     
@@ -67,9 +73,6 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
-
-        blank.setBuffer(VertexBuffer.Type.Position, 3,
-                BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
 
         int samples;
         if (object.getTexture() == null) {
@@ -175,11 +178,11 @@ public class ObjectModel {
         createAxisMesh();
 
         // Create a geometry, apply the mesh, and set the material
-        pathGradient = new Geometry("PathGradient", blank);
+        trace = new Geometry("Trace", blank);
         Material matLine3 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 //        matLine3.setColor("Color", darkerColor);
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
-        pathGradient.setMaterial(matLine3);
+        trace.setMaterial(matLine3);
     }
     
     private void createAxisMesh() {

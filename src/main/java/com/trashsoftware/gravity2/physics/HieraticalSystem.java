@@ -101,6 +101,11 @@ public class HieraticalSystem implements AbstractObject {
     }
 
     @Override
+    public HieraticalSystem getMaster() {
+        return parent;
+    }
+
+    @Override
     public double getMass() {
         if (isObject()) return master.getMass();
         else return systemMass;

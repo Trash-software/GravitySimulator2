@@ -274,7 +274,6 @@ public class ObjectStatsWrapper extends HBox {
         rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
         rotationPeriodLabel.setText(uc.time(object.getRotationPeriod()));
-        rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(object.getAxisTiltAngle()));
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
@@ -290,19 +289,49 @@ public class ObjectStatsWrapper extends HBox {
             HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
             parentLabel.setText(parent.getName());
 
+//            double[] relPos = VectorOperations.subtract(object.getPosition(), parent.getPosition());
+//            double[] relVel = VectorOperations.subtract(object.getVelocity(), parent.getVelocity());
+            double[] orbitPlaneNormal = system.getEclipticPlaneNormal();
+            
+            double axisTiltToOrbit = Math.acos(VectorOperations.dotProduct(
+                    object.getRotationAxis(),
+                    orbitPlaneNormal
+            ));
+            rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
+//            double axisTiltToParentEquator = Math.acos(VectorOperations.dotProduct(
+//                    object.getRotationAxis(),
+//                    parent.getRotationAxis()
+//            ));
+            
             double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
             double[] velocity = VectorOperations.subtract(system.getVelocity(), parentSystem.getVelocity());
-            OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(object,
+            
+            double[] position = VectorOperations.subtract(system.getPosition(), barycenter);
+            OrbitalElements oe;
+            
+            if (level >= 2) {
+                // moons
+                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
+                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
+                position = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(position, parent.getRotationAxis());
+                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
+                velocity = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(velocity, parent.getRotationAxis());
+            } else {
+                // planets
+                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
+                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
+                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
+            }
+            oe = OrbitCalculator.computeOrbitSpecs3d(position,
                     velocity,
-                    barycenter,
                     system.getMass() + parent.getMass(),
                     simulator.getG());
 
             double dt = Math.hypot(object.getX() - parent.getX(), object.getY() - parent.getY());
             distanceLabel.setText(uc.distance(dt));
 
-            double a = specs.semiMajorAxis;
-            double e = specs.eccentricity;
+            double a = oe.semiMajorAxis;
+            double e = oe.eccentricity;
             double aph = a * (1 + e);
             double per = a * (1 - e);
 
@@ -311,11 +340,11 @@ public class ObjectStatsWrapper extends HBox {
             semiMajorLabel.setText(uc.distance(a));
             eccLabel.setText(String.format("%.4f", e));
             avgDistanceLabel.setText(uc.distance(mean));
-            periodLabel.setText(uc.time(specs.period));
+            periodLabel.setText(uc.time(oe.period));
             aphelionLabel.setText(uc.distance(aph));
             perihelionLabel.setText(uc.distance(per));
-            inclinationLabel.setText(uc.angleDegreeDecimal(specs.inclination));
-            ascendingNodeLabel.setText(uc.angleDegreeDecimal(specs.ascendingNode));
+            inclinationLabel.setText(uc.angleDegreeDecimal(oe.inclination));
+            ascendingNodeLabel.setText(uc.angleDegreeDecimal(oe.ascendingNode));
             hillRadiusLabel.setText(uc.distance(object.getHillRadius()));
         } else {
             parentLabel.setText("free");
@@ -329,6 +358,7 @@ public class ObjectStatsWrapper extends HBox {
             inclinationLabel.setText("--");
             ascendingNodeLabel.setText("--");
             hillRadiusLabel.setText("--");
+            rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(object.getAxisTiltAngle()));
         }
     }
 
