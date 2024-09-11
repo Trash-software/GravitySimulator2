@@ -118,8 +118,9 @@ public class FxApp extends Application {
         new Thread(() -> {
             jmeApp = new JmeApp(this);
             AppSettings settings = new AppSettings(true);
-            settings.setWidth(1536);
-            settings.setHeight(864);
+//            settings.setFullscreen(true);
+            settings.setWidth(1600);
+            settings.setHeight(900);
             jmeApp.setSettings(settings);
             jmeApp.setShowSettings(false);
             jmeApp.setPauseOnLostFocus(false); // Ensure continuous rendering

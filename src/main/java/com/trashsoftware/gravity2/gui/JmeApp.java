@@ -105,6 +105,7 @@ public class JmeApp extends SimpleApplication {
         initializeSimulator();
 
         setCamera3rdPerson();
+        updateLabelShowing();
     }
 
     @Override
@@ -245,33 +246,6 @@ public class JmeApp extends SimpleApplication {
                 }
             }
         }
-        // todo: destroyed object's mesh still on screen
-//        for (ObjectModel om : diedObjects.values()) {
-//            if (!showFullPath) {
-//                om.path.setMesh(om.blank);
-//            }
-//            if (!showTrace) {
-//                om.pathGradient.setMesh(om.blank);
-//            }
-//            if (!showOrbit) {
-//                om.orbit.setMesh(om.blank);
-//            }
-//        }
-//        List<CelestialObject> newDestroyed = simulator.getAndClearNewlyDestroyed();
-//        for (CelestialObject co : newDestroyed) {
-//            ObjectModel om = getObjectModel(co);
-//            if (om != null) {
-//                if (!showFullPath) {
-//                    om.path.setMesh(om.blank);
-//                }
-//                if (!showTrace) {
-//                    om.pathGradient.setMesh(om.blank);
-//                }
-//                if (!showOrbit) {
-//                    om.orbit.setMesh(om.blank);
-//                }
-//            }
-//        }
     }
 
     private void initializeSimulator() {
@@ -279,14 +253,15 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        rocheEffectTest();
-        solarSystemTest();
+//        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        tidalTest();
 //        ellipseClusterTest();
+//        chaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -530,7 +505,7 @@ public class JmeApp extends SimpleApplication {
                         screenCenter.addLocal(up);
                         if (focusing != null) centerRelToFocus.addLocal(up);
                     }
-                    cam.lookAt(lookAtPoint, worldUp);
+//                    cam.lookAt(lookAtPoint, worldUp);
                 } else {
                     if (name.equals("MouseMoveX-")) {
                         // Move the camera horizontally when dragging the left button
@@ -650,20 +625,19 @@ public class JmeApp extends SimpleApplication {
         // Create a quaternion for rotation based on the given axis and amount
         Quaternion rotation = new Quaternion().fromAngleAxis(amount, axis);
 
-        // Calculate the direction vector from the pivot point to the camera
-        Vector3f direction = cam.getLocation().subtract(lookAtPoint);
-
-        // Apply the rotation to the direction vector
+        // Rotate the camera's direction vector and up vector using the quaternion
+        Vector3f direction = cam.getLocation().subtract(lookAtPoint).normalizeLocal();
         direction = rotation.mult(direction);
 
+        // Apply the rotation to the camera's up vector to maintain orientation
+        Vector3f upVector = rotation.mult(cam.getUp());
+
         // Calculate the new camera position based on the rotated direction
-        Vector3f newCamPos = lookAtPoint.add(direction);
+        Vector3f newCamPos = lookAtPoint.add(direction.mult(cam.getLocation().distance(lookAtPoint)));
 
         // Set the new camera location and update its orientation
         cam.setLocation(newCamPos);
-        cam.lookAt(lookAtPoint, worldUp);
-
-//        System.out.println(cam.getLocation());
+        cam.lookAt(lookAtPoint, upVector);
     }
 
     private void scaleScene(float scaleFactor) {
@@ -749,7 +723,7 @@ public class JmeApp extends SimpleApplication {
         screenCenter.setY(focusingLastY * scale);
         screenCenter.setZ(focusingLastZ * scale);
 
-        getFxApp().getControlBar().setFocus();
+        getFxApp().getControlBar().setFocus(focusing);
     }
 
     private void moveScreenWithFocus() {
@@ -780,14 +754,14 @@ public class JmeApp extends SimpleApplication {
 //        cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), firstPersonStar.getUpVector());
     }
 
-    private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
-        float dt = cam.getLocation().distance(oldLookAt);
-
-        Vector3f direction = cam.getDirection();
-        Vector3f newLocation = newLookAt.subtract(direction.mult(dt));
-        cam.setLocation(newLocation);
-        cam.lookAt(newLookAt, worldUp);
-    }
+//    private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
+//        float dt = cam.getLocation().distance(oldLookAt);
+//
+//        Vector3f direction = cam.getDirection();
+//        Vector3f newLocation = newLookAt.subtract(direction.mult(dt));
+//        cam.setLocation(newLocation);
+//        cam.lookAt(newLookAt, worldUp);
+//    }
     
     private void computeSpawningMaster() {
         HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
@@ -1516,11 +1490,21 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void ellipseClusterTest() {
-        scale = SystemPresets.ellipseCluster(simulator, 150);
+        scale = SystemPresets.ellipseCluster(simulator, 180);
+        simulator.setEnableDisassemble(false);
 
         reloadObjects();
 
-        ambientLight.setColor(ColorRGBA.White);
+        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+    }
+
+    private void chaosSolarSystemTest() {
+        scale = SystemPresets.randomStarSystem(simulator, 200);
+        simulator.setEnableDisassemble(false);
+
+        reloadObjects();
+
+//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
 
     private void rocheEffectTest() {

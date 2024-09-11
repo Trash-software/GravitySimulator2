@@ -3,6 +3,7 @@ package com.trashsoftware.gravity2.fxml;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.gui.JmeApp;
+import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -151,8 +152,12 @@ public class ControlBar implements Initializable {
         pathLengthSlider.setValue(5000.0);
     }
 
-    public void setFocus() {
+    public void setFocus(CelestialObject co) {
         clearFocusBtn.setDisable(false);
+        
+        if (fxApp.getObjectListPanel() != null) {
+            fxApp.getObjectListPanel().scrollTo(co);
+        }
     }
 
     public void setLand() {

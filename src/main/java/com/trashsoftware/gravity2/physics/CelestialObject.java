@@ -156,6 +156,15 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         System.arraycopy(velocity, 0, co.velocity, 0, velocity.length);
         return co;
     }
+    
+    public static CelestialObject create3d(String name,
+                                           double mass,
+                                           double radius,
+                                           double[] position,
+                                           double[] velocity,
+                                           String colorCode) {
+        return createNd(name, mass, radius, 3, position, velocity, colorCode);
+    }
 
     public static CelestialObject createNd(String name,
                                            double mass,

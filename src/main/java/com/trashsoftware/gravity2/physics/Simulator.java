@@ -30,6 +30,7 @@ public class Simulator {
     private final double gravityDtPower;
     private double epsilon = 0.0;
     private double cutOffForce;
+    private boolean enableDisassemble = true;
 
     /**
      * All objects, always sorted from massive to light
@@ -118,6 +119,14 @@ public class Simulator {
     public void setEpsilon(double epsilon) {
         this.epsilon = epsilon;
         updateForceThreshold();
+    }
+
+    public void setEnableDisassemble(boolean enableDisassemble) {
+        this.enableDisassemble = enableDisassemble;
+    }
+
+    public boolean isEnableDisassemble() {
+        return enableDisassemble;
     }
 
     public double getG() {
@@ -280,7 +289,7 @@ public class Simulator {
                     n--;
                     happen = true;
                     break; // Restart checking for collisions with updated list
-                } else {
+                } else if (enableDisassemble) {
                     // not collide, check roche
                     if (distance < lighter.possibleRocheLimit) {
                         // heavier one is also inside lighter's roche limit
@@ -1245,8 +1254,8 @@ public class Simulator {
         double speedMag = Math.sqrt(speedFactor * G * totalMass / Math.pow(distance, gravityDtPower - 1));
         double[] res = new double[dimension];
 
-        double vx = dtAtD[1] / distance * speedMag * sign;
-        double vy = -dtAtD[0] / distance * speedMag * sign;
+        double vx = -dtAtD[1] / distance * speedMag * sign;
+        double vy = dtAtD[0] / distance * speedMag * sign;
 
         res[0] = vx;
         res[1] = vy;

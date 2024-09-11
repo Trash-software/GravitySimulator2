@@ -10,6 +10,7 @@ import com.trashsoftware.gravity2.physics.SystemPresets;
 import com.trashsoftware.gravity2.physics.Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -213,6 +214,11 @@ public class ObjectListPanel extends AbstractObjectPanel {
         Platform.runLater(() -> window.show());
     }
     
+    public boolean isObjectExpanded() {
+        Node root = celestialContainer.getContent();
+        return root instanceof ObjectStatsWrapper;
+    }
+    
     @FXML
     public void spawnModeAction() {
         JmeApp jmeApp = fxApp.getJmeApp();
@@ -282,5 +288,34 @@ public class ObjectListPanel extends AbstractObjectPanel {
             return 0;
         }
         return speed;
+    }
+    
+    public void scrollTo(CelestialObject co) {
+        Node root = celestialContainer.getContent();
+        if (root == celestialListPane) {
+            Node target = null;
+            for (int i = 0; i < celestialListPane.getChildren().size(); i++) {
+                Node node = celestialListPane.getChildren().get(i);
+                if (node instanceof ObjectStatsWrapper osw) {
+                    if (co == osw.object) {
+                        target = node;
+                        break;
+                    }
+                }
+            }
+            if (target != null) {
+                // Get the bounds of the node relative to the ScrollPane content
+                Bounds nodeBounds = target.localToScene(target.getBoundsInLocal());
+                Bounds scrollPaneBounds = celestialContainer.localToScene(celestialContainer.getBoundsInLocal());
+
+                // Calculate the position to scroll
+                double scrollTop = nodeBounds.getMinY() - scrollPaneBounds.getMinY();
+
+                // Scroll to the node (vertically in this case)
+                celestialContainer.setVvalue(scrollTop / (celestialContainer.getContent().getBoundsInLocal().getHeight() - celestialContainer.getViewportBounds().getHeight()));
+            } else {
+                System.err.println("?");
+            }
+        }
     }
 }

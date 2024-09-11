@@ -839,9 +839,21 @@ public class SystemPresets {
 
         double speed = 1e3;
 
+        double centroidMass = 1e26;
+        CelestialObject centroid = CelestialObject.create3d(
+                "Centroid",
+                centroidMass,
+                CelestialObject.radiusOf(centroidMass, 1e5),
+                new double[3],
+                new double[3],
+                "#ffff00"
+        );
+        centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-3);
+        simulator.addObject(centroid);
+
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
-            double mass = rand.nextDouble(1e23, 1e25);
+            double mass = rand.nextDouble(1e22, 1e25);
             double density = rand.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
 
@@ -859,11 +871,10 @@ public class SystemPresets {
             x = x * a;
             y = y * b;
             z = z * c;
-            CelestialObject co = CelestialObject.createNd(
+            CelestialObject co = CelestialObject.create3d(
                     "Star" + i,
                     mass,
                     radius,
-                    3,
                     new double[]{x, y, z},
                     new double[]{
                             rand.nextDouble(-speed, speed),
@@ -872,10 +883,81 @@ public class SystemPresets {
                     },
                     cc
             );
+            double[] axis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
+            axis = VectorOperations.normalize(axis);
+            double angVel = rand.nextDouble(1e-8, 1e-1);
+            co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
         }
 
         return 10 / c;
+    }
+
+    public static double randomStarSystem(Simulator simulator, int n) {
+        double a = 5e10;
+        double b = 5e10;
+        double c = 2e9;
+
+        double speed = 1e3;
+
+        double centroidMass = 1e29;
+        CelestialObject centroid = CelestialObject.create3d(
+                "Sun",
+                centroidMass,
+                CelestialObject.radiusOf(centroidMass, 1.2e3),
+                new double[3],
+                new double[3],
+                "#ffff00"
+        );
+
+        centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-4);
+        simulator.addObject(centroid);
+
+        Random rand = new Random();
+        for (int i = 0; i < n; i++) {
+            double mass = rand.nextDouble(1e23, 1e26);
+            double density = rand.nextDouble(500, 6000);
+            double radius = CelestialObject.radiusOf(mass, density);
+
+            double x, y, z;
+
+            // Generate random point within a unit sphere using the rejection method
+            do {
+                x = 2 * rand.nextDouble() - 1;
+                y = 2 * rand.nextDouble() - 1;
+                z = 2 * rand.nextDouble() - 1;
+            } while (x * x + y * y + z * z > 1);
+
+            // Scale the point to the ellipsoid
+            String cc = Util.randomColorCode();
+            x = x * a;
+            y = y * b;
+            z = z * c;
+
+            CelestialObject co = CelestialObject.create3d(
+                    "Planet" + i,
+                    mass,
+                    radius,
+                    new double[]{x, y, z},
+                    new double[3],
+                    cc
+            );
+            double[] velocity = simulator.computeVelocityOfN(centroid,
+                    co,
+                    rand.nextDouble(0.75, 0.99),
+                    new double[]{0, 0, 1});
+            co.setVelocity(velocity);
+
+            double[] axis = new double[]{rand.nextDouble(0.0, 0.25), 
+                    rand.nextDouble(0.0, 0.5), 
+                    rand.nextDouble(0.5, 1.0)};
+            axis = VectorOperations.normalize(axis);
+            double angVel = rand.nextDouble(1e-8, 1e-3);
+            co.forcedSetRotation(axis, angVel);
+            simulator.addObject(co);
+        }
+
+        return 30 / (a + b + c);
     }
 
     public static double testCollision(Simulator simulator) {
@@ -1007,7 +1089,8 @@ public class SystemPresets {
     public static double[] rotateFromXYPlaneToPlanetEclipticPlane(double[] vector, double[] parentEclipticNormal) {
         // The rotation axis should be the same as in rotateToXYPlane but with the opposite angle
         double[] rotationAxis = VectorOperations.crossProduct(parentEclipticNormal, new double[]{0, 0, 1}); // Cross product with Z-axis
-        if (VectorOperations.magnitude(rotationAxis) == 0) return vector; // No rotation needed if already aligned
+        if (VectorOperations.magnitude(rotationAxis) == 0)
+            return vector; // No rotation needed if already aligned
 
         // The angle is the same as in rotateToXYPlane but with a negative sign
         double angle = -Math.acos(VectorOperations.dotProduct(parentEclipticNormal, new double[]{0, 0, 1}));
@@ -1019,7 +1102,8 @@ public class SystemPresets {
     public static double[] rotateFromPlanetEclipticPlaneToEquatorialPlane(double[] vector, double[] parentRotationAxis) {
         // The rotation axis should be the same as in rotateToParentEclipticPlane but with the opposite angle
         double[] rotationAxis = VectorOperations.crossProduct(parentRotationAxis, new double[]{0, 0, 1}); // Cross product with Z-axis
-        if (VectorOperations.magnitude(rotationAxis) == 0) return vector; // No rotation needed if already aligned
+        if (VectorOperations.magnitude(rotationAxis) == 0)
+            return vector; // No rotation needed if already aligned
 
         // The angle is the same as in rotateToParentEclipticPlane but with a negative sign
         double angle = Math.acos(VectorOperations.dotProduct(parentRotationAxis, new double[]{0, 0, 1}));

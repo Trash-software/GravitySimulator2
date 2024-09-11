@@ -18,6 +18,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.PointLightShadowFilter;
 import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.util.BufferUtils;
@@ -88,7 +89,9 @@ public class ObjectModel {
         Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
 
         if (object.getTexture() == null) {
+            mat.setBoolean("UseMaterialColors", true);
             mat.setColor("Diffuse", color);
+            mat.setColor("Ambient", color);
         } else {
             mat.setTexture("DiffuseMap", object.getTexture());
         }
@@ -104,20 +107,20 @@ public class ObjectModel {
             surfaceLight.setColor(ColorRGBA.White);
             model.addLight(surfaceLight);
 
-//            // Add shadow renderer
-//            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
-//                    1024);
-//            plsr.setLight(emissionLight);
-//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-//            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-//            jmeApp.getViewPort().addProcessor(plsr);
+            // Add shadow renderer
+            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
+                    1024);
+            plsr.setLight(emissionLight);
+            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+            jmeApp.getViewPort().addProcessor(plsr);
 
             // Add shadow filter for softer shadows
-//            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-//            plsf.setLight(emissionLight);
-//            plsf.setEnabled(true);
+            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+            plsf.setLight(emissionLight);
+            plsf.setEnabled(true);
             fpp = new FilterPostProcessor(jmeApp.getAssetManager());
-//            fpp.addFilter(plsf);
+            fpp.addFilter(plsf);
 
             // Add bloom effect to enhance the star's glow
             BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
