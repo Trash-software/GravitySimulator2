@@ -263,6 +263,12 @@ public class SystemPresets {
         return 0.005 * 1e-7;
     }
 
+    public static double smallSolarSystem(Simulator simulator) {
+        makeSystem(simulator, sun, 1, 1e3, 1e2);
+
+        return 0.005 * 1e-6;
+    }
+
     public static double solarSystemWithComets(Simulator simulator) {
         makeSystem(simulator, sun, 1, 1e3, 1e3);
 
@@ -894,11 +900,11 @@ public class SystemPresets {
     }
 
     public static double randomStarSystem(Simulator simulator, int n) {
-        double a = 5e10;
-        double b = 5e10;
-        double c = 2e9;
+        double a = 2e10;
+        double b = 2e10;
+        double c = 1e9;
 
-        double speed = 1e3;
+        double flatRatio = c / (a + b) * 2;
 
         double centroidMass = 1e29;
         CelestialObject centroid = CelestialObject.create3d(
@@ -919,20 +925,20 @@ public class SystemPresets {
             double density = rand.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
 
-            double x, y, z;
+            double x, y;
 
             // Generate random point within a unit sphere using the rejection method
             do {
                 x = 2 * rand.nextDouble() - 1;
                 y = 2 * rand.nextDouble() - 1;
-                z = 2 * rand.nextDouble() - 1;
-            } while (x * x + y * y + z * z > 1);
+            } while (x * x + y * y > 1);
 
             // Scale the point to the ellipsoid
             String cc = Util.randomColorCode();
             x = x * a;
             y = y * b;
-            z = z * c;
+            double dtToCenter = Math.sqrt(x * x + y * y);
+            double z = rand.nextDouble(-dtToCenter, dtToCenter) * flatRatio;
 
             CelestialObject co = CelestialObject.create3d(
                     "Planet" + i,
@@ -953,6 +959,9 @@ public class SystemPresets {
                     rand.nextDouble(0.5, 1.0)};
             axis = VectorOperations.normalize(axis);
             double angVel = rand.nextDouble(1e-8, 1e-3);
+            if (rand.nextDouble() < 0.1) {
+                axis = VectorOperations.reverseVector(axis);
+            }
             co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
         }

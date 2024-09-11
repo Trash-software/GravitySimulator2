@@ -30,7 +30,7 @@ public class JmeApp extends SimpleApplication {
     private MouseManagement leftButton = new MouseManagement();
     private MouseManagement rightButton = new MouseManagement();
     private MouseManagement midButton = new MouseManagement();
-    
+
     private boolean keyWPressed, keyUpPressed, keyDownPressed;
 
     private float horizontalSpeed = 50.0f;
@@ -76,7 +76,7 @@ public class JmeApp extends SimpleApplication {
     //    private final Set<Spatial> eachFrameErase = new HashSet<>();
     private AmbientLight ambientLight;
     private RefFrame refFrame = RefFrame.STATIC;
-    
+
     protected SpawningObject spawning;
 
     public static JmeApp getInstance() {
@@ -142,7 +142,7 @@ public class JmeApp extends SimpleApplication {
             moveCameraWithFirstPerson();
             updateCompass();
         }
-        
+
         if (spawning != null) {
             computeSpawningMaster();
             drawSpawningConnection();
@@ -176,9 +176,10 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void initMarks() {
-        axisMarkNode = create3DCrossAt(
+        axisMarkNode = createHalfCrossAt(
+                "AxisMark",
                 Vector3f.ZERO,
-                0.01f, true, true);
+                0.01f);
 
         int screenWidth = settings.getWidth();
         int screenHeight = settings.getHeight();
@@ -188,7 +189,7 @@ public class JmeApp extends SimpleApplication {
 
         lonLatTextNode = new GuiTextNode(this);
         lonLatTextNode.setLocalTranslation(20, screenHeight - 200, 0);
-        
+
         gridPlaneNode = new GridPlane(this);
         gridPlaneNode.setLocalTranslation(0, 0, 0);
     }
@@ -244,6 +245,11 @@ public class JmeApp extends SimpleApplication {
                         geometry.setMesh(ObjectModel.blank);
                     }
                 }
+//                if (!showBarycenter) {
+//                    if (spatial.getName().startsWith("#Barycenter")) {
+//                        geometry.setMesh(ObjectModel.blank);
+//                    }
+//                }
             }
         }
     }
@@ -253,12 +259,13 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
+        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
@@ -305,13 +312,13 @@ public class JmeApp extends SimpleApplication {
                 rootNode.attachChild(om.path);
                 rootNode.attachChild(om.orbit);
                 rootNode.attachChild(om.trace);
-                
+
                 // Synchronize the global label showing status to the new object
                 om.setShowLabel(showLabel);
             }
             om.notifyObjectChanged();
         }
-        
+
         if (spawning != null) {
             rootNode.attachChild(spawning.model.objectNode);
             rootNode.attachChild(spawning.model.orbit);
@@ -417,7 +424,7 @@ public class JmeApp extends SimpleApplication {
             boolean wasDragging = leftButton.dragging;
             leftButton.press(isPressed);
             if (isPressed) {
-                
+
             } else {
                 if (spawning != null && !wasDragging) {
                     spawn();
@@ -453,7 +460,7 @@ public class JmeApp extends SimpleApplication {
             boolean wasDragging = rightButton.dragging;
             rightButton.press(isPressed);
             if (isPressed) {
-                
+
             } else {
                 if (spawning != null && !wasDragging) {
                     exitSpawningMode();
@@ -481,7 +488,7 @@ public class JmeApp extends SimpleApplication {
                 if (rightButton.pressed) rightButton.updateDragging();
                 if (midButton.pressed) midButton.updateDragging();
             }
-            
+
             if (leftButton.pressed) {
                 if (firstPersonStar == null) {
                     if (name.equals("MouseMoveX-")) {
@@ -559,7 +566,7 @@ public class JmeApp extends SimpleApplication {
                     zoomOutAction();
                 }
             }
-            
+
             if (firstPersonStar == null && !leftButton.pressed) {
                 if (spawning != null) {
                     if (name.startsWith("MouseMove")) {
@@ -569,7 +576,7 @@ public class JmeApp extends SimpleApplication {
             }
         }
     };
-    
+
     private void updateSpawningPosition() {
         // Get the 2D mouse coordinates
         Vector2f mouseCoords = inputManager.getCursorPosition();
@@ -578,7 +585,7 @@ public class JmeApp extends SimpleApplication {
         Vector3f origin = cam.getWorldCoordinates(mouseCoords, 0f);  // Near plane
         Vector3f direction = cam.getWorldCoordinates(mouseCoords, 1f).subtractLocal(origin).normalizeLocal();  // Far plane
         Ray ray = new Ray(origin, direction);
-        
+
         Plane plane = getSpawningPlane();
 
         // Intersect the ray with the defined plane
@@ -589,7 +596,7 @@ public class JmeApp extends SimpleApplication {
             spawning.model.updateModelPosition(scale);
         }
     }
-    
+
     private Plane getSpawningPlane() {
         CelestialObject master = spawning.getSpawnRelative();
         if (master == null) {
@@ -604,14 +611,14 @@ public class JmeApp extends SimpleApplication {
             return new Plane(planeNormal, constant);
         }
     }
-    
+
     private void spawn() {
         simulator.addObject(spawning.object);
-        
+
         CelestialObject master = spawning.object.getHillMaster();
         if (master != null) {
             double speed = spawning.orbitSpeed;
-            double[] velocity = simulator.computeVelocityOfN(master, spawning.object, speed, 
+            double[] velocity = simulator.computeVelocityOfN(master, spawning.object, speed,
                     spawning.planeNormal);
             spawning.object.setVelocity(velocity);
         }
@@ -762,7 +769,7 @@ public class JmeApp extends SimpleApplication {
 //        cam.setLocation(newLocation);
 //        cam.lookAt(newLookAt, worldUp);
 //    }
-    
+
     private void computeSpawningMaster() {
         HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
         CelestialObject dominant = hillMaster.master;
@@ -777,7 +784,7 @@ public class JmeApp extends SimpleApplication {
                 spawning.planeNormal = dominant.getRotationAxis();
             }
         }
-        
+
         CelestialObject gravityMaster = simulator.computeGravityMaster(spawning.object);
         if (gravityMaster != null) {
             // this does not consider the mass.
@@ -809,7 +816,7 @@ public class JmeApp extends SimpleApplication {
     public double realZFromPane(float paneZ) {
         return (paneZ + screenCenter.z) / scale + refOffsetZ;
     }
-    
+
     public Vector3f panePosition(double[] realPos) {
         if (realPos.length != 3) throw new IndexOutOfBoundsException();
         return new Vector3f(
@@ -818,7 +825,7 @@ public class JmeApp extends SimpleApplication {
                 paneZ(realPos[2])
         );
     }
-    
+
     public double[] realPosition(Vector3f panePos) {
         return new double[]{
                 realXFromPane(panePos.x),
@@ -858,25 +865,21 @@ public class JmeApp extends SimpleApplication {
         }
         if (globalBarycenterNode != null) {
             double[] barycenter = simulator.barycenter();
-            float x = paneX(barycenter[0]);
-            float y = paneY(barycenter[1]);
-            float z = paneZ(barycenter[2]);
-            globalBarycenterNode.setLocalTranslation(x, y, z);
+            Vector3f scenePos = panePosition(barycenter);
+            globalBarycenterNode.setLocalTranslation(scenePos);
         }
     }
 
     private void updateBarycenterNode(HieraticalSystem hs) {
         if (!hs.isObject()) {
             double[] barycenter = hs.getPosition();
-            float x = paneX(barycenter[0]);
-            float y = paneY(barycenter[1]);
-            float z = paneZ(barycenter[2]);
+            Vector3f scenePos = panePosition(barycenter);
 
             ObjectModel om = modelMap.get(hs.master);
             if (om.barycenterMark == null) {
                 System.err.println("System " + hs.master.getName() + " does not have valid barycenter mark");
             } else {
-                om.barycenterMark.setLocalTranslation(x, y, z);
+                om.barycenterMark.setLocalTranslation(scenePos);
                 for (HieraticalSystem child : hs.getChildrenSorted()) {
                     updateBarycenterNode(child);
                 }
@@ -909,7 +912,9 @@ public class JmeApp extends SimpleApplication {
             float z = paneZ(barycenter[2]);
 
             if (globalBarycenterNode == null) {
-                globalBarycenterNode = create3DCrossAt(Vector3f.ZERO, 3, false, false);
+                globalBarycenterNode = createFullCrossAt(
+                        "#BarycenterGlobal",
+                        Vector3f.ZERO, 3, ColorRGBA.Yellow);
             }
             globalBarycenterNode.setLocalTranslation(x, y, z);
             rootNode.attachChild(globalBarycenterNode);
@@ -925,7 +930,10 @@ public class JmeApp extends SimpleApplication {
 
             ObjectModel om = modelMap.get(hs.master);
             if (om.barycenterMark == null) {
-                om.barycenterMark = create3DCrossAt(Vector3f.ZERO, (float) markSize, false, false);
+                om.barycenterMark = createFullCrossAt(
+                        "#Barycenter" + om.object.getName(),
+                        Vector3f.ZERO, (float) markSize,
+                        ColorRGBA.White);
                 om.barycenterMark.setLocalTranslation(x, y, z);
             }
 
@@ -937,34 +945,38 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    public Node create3DCrossAt(Vector3f center, float length,
-                                boolean axisColor, boolean half) {
-        Node crossNode = new Node("3D Cross at " + center.toString());
+    public Node createFullCrossAt(String name, Vector3f center, float length, ColorRGBA color) {
+        Node crossNode = new Node(name);
+
+        // X-axis lines
+        crossNode.attachChild(createLine(center.subtract(new Vector3f(length, 0, 0)), center.add(new Vector3f(length, 0, 0)), color));
+
+        // Y-axis lines
+        crossNode.attachChild(createLine(center.subtract(new Vector3f(0, length, 0)), center.add(new Vector3f(0, length, 0)), color));
+
+        // Z-axis lines
+        crossNode.attachChild(createLine(center.subtract(new Vector3f(0, 0, length)), center.add(new Vector3f(0, 0, length)), color));
+
+        return crossNode;
+    }
+
+    public Node createHalfCrossAt(String name, Vector3f center, float length) {
+        Node crossNode = new Node(name);
         ColorRGBA xColor, yColor, zColor;
-        if (axisColor) {
-            xColor = ColorRGBA.Red;
-            yColor = ColorRGBA.Green;
-            zColor = ColorRGBA.Blue;
-        } else {
-            xColor = ColorRGBA.White;
-            yColor = ColorRGBA.White;
-            zColor = ColorRGBA.White;
-        }
+
+        xColor = ColorRGBA.Red;
+        yColor = ColorRGBA.Green;
+        zColor = ColorRGBA.Blue;
+
 
         // X-axis lines
         crossNode.attachChild(createLine(center, center.add(new Vector3f(length, 0, 0)), xColor));
-        if (!half)
-            crossNode.attachChild(createLine(center, center.add(new Vector3f(-length, 0, 0)), xColor));
 
         // Y-axis lines
         crossNode.attachChild(createLine(center, center.add(new Vector3f(0, length, 0)), yColor));
-        if (!half)
-            crossNode.attachChild(createLine(center, center.add(new Vector3f(0, -length, 0)), yColor));
 
         // Z-axis lines
         crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, length)), zColor));
-        if (!half)
-            crossNode.attachChild(createLine(center, center.add(new Vector3f(0, 0, -length)), zColor));
 
         return crossNode;
     }
@@ -987,19 +999,19 @@ public class JmeApp extends SimpleApplication {
 
         return geom;
     }
-    
+
     private void drawSpawningConnection() {
         if (spawning != null) {
             CelestialObject hillMaster = spawning.object.getHillMaster();
             CelestialObject gravityMaster = spawning.object.getGravityMaster();
-            
+
             Vector3f selfPos = panePosition(spawning.object.getPosition());
-            
+
             if (hillMaster != null) {
                 double realDt = VectorOperations.distance(spawning.object.getPosition(),
                         hillMaster.getPosition());
                 String dtText = getFxApp().getUnitConverter().distance(realDt);
-                
+
                 Vector3f masterPos = panePosition(hillMaster.getPosition());
                 spawning.primaryLine.show(selfPos, masterPos, dtText);
             } else {
@@ -1027,7 +1039,7 @@ public class JmeApp extends SimpleApplication {
             drawSpawningOrbit();
         }
     }
-    
+
     private void drawSpawningOrbit() {
         CelestialObject parent = spawning.object.getHillMaster();
         if (parent != null && parent.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
@@ -1037,10 +1049,10 @@ public class JmeApp extends SimpleApplication {
             double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
 
             // velocity relative to parent system's barycenter movement
-            double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed, 
+            double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed,
                     spawning.planeNormal);
             velocity = VectorOperations.subtract(velocity, parent.getVelocity());
-            
+
             double[] position = VectorOperations.subtract(child.getPosition(),
                     parent.getPosition());
             OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
@@ -1053,7 +1065,7 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-    
+
     private void drawOrbitOf(CelestialObject object) {
         CelestialObject parent = object.getHillMaster();
         if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
@@ -1482,6 +1494,13 @@ public class JmeApp extends SimpleApplication {
         reloadObjects();
     }
 
+    private void smallSolarSystemTest() {
+        scale = SystemPresets.smallSolarSystem(simulator);
+        scale *= 0.5;
+
+        reloadObjects();
+    }
+
     private void solarSystemWithCometsTest() {
         scale = SystemPresets.solarSystemWithComets(simulator);
         scale *= 0.5;
@@ -1555,7 +1574,7 @@ public class JmeApp extends SimpleApplication {
             });
         }
     }
-    
+
     protected ObjectModel getObjectModel(CelestialObject object) {
         ObjectModel om = modelMap.get(object);
         if (om == null) {
@@ -1654,10 +1673,6 @@ public class JmeApp extends SimpleApplication {
         });
     }
 
-    public void setSpawning(CelestialObject co) {
-        // todo
-    }
-
     public double getScale() {
         return scale;
     }
@@ -1673,23 +1688,23 @@ public class JmeApp extends SimpleApplication {
     public boolean isFirstPerson() {
         return firstPersonStar != null;
     }
-    
+
     public boolean isInSpawningMode() {
         return spawning != null;
     }
-    
+
     public void enterSpawningMode(CelestialObject co, double orbitSpeed) {
         enqueue(() -> {
             ObjectModel om = new ObjectModel(co, this);
-            spawning = new SpawningObject(this, om, -orbitSpeed);
-            
+            spawning = new SpawningObject(this, om, orbitSpeed);
+
             rootNode.attachChild(spawning.primaryLine);
             rootNode.attachChild(spawning.secondaryLine);
 
             reloadObjects();
         });
     }
-    
+
     public void exitSpawningMode() {
         enqueue(() -> {
             if (spawning != null) {
@@ -1697,7 +1712,7 @@ public class JmeApp extends SimpleApplication {
                 rootNode.detachChild(spawning.model.orbit);
                 rootNode.detachChild(spawning.primaryLine);
                 rootNode.detachChild(spawning.secondaryLine);
-                
+
                 gridPlaneNode.hide();
 
                 spawning = null;
@@ -1720,12 +1735,12 @@ public class JmeApp extends SimpleApplication {
         SYSTEM,
         TARGET
     }
-    
+
     public class MouseManagement {
         boolean pressed;
         boolean dragging;
         Vector2f initClickPos;
-        
+
         void press(boolean pressed) {
             this.pressed = pressed;
             if (pressed) {
@@ -1734,10 +1749,10 @@ public class JmeApp extends SimpleApplication {
                 dragging = false;
             }
         }
-        
+
         void updateDragging() {
             if (initClickPos == null) return;
-            
+
             Vector2f pos = inputManager.getCursorPosition();
             float dt = pos.distance(initClickPos);
 
