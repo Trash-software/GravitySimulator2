@@ -141,7 +141,7 @@ public class ObjectModel {
         labelText.setColor(ColorRGBA.White);
 
         // Attach the text to a Node positioned above the object
-        labelNode = new Node("LabelNode");
+        labelNode = new Node("ObjectNameLabel");
         labelNode.attachChild(labelText);
 //        labelText.setLocalTranslation(0, 2.5f, 0); // Center the text above the object
 

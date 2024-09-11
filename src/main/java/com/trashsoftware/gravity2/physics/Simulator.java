@@ -16,7 +16,7 @@ public class Simulator {
     public static final double MIN_DEBRIS_VOLUME = 4.0 / 3 * Math.PI * Math.pow(MIN_DEBRIS_RADIUS, 3);
     public static final double DISASSEMBLE_LAMBDA = 3e-5;
     public static final double MAX_TIME_AFTER_DIE = 3e5;
-    
+
     public static final double PLANET_MAX_MASS = 0.8;
 
     protected double timeStep = 1;
@@ -195,7 +195,7 @@ public class Simulator {
                     }
                 }
             }
-            
+
             if (!debrisBuffer.isEmpty()) {
                 for (CelestialObject debris : debrisBuffer) {
                     addObject(debris);
@@ -258,7 +258,7 @@ public class Simulator {
                 // Determine which object is heavier
                 CelestialObject heavier = coi.mass >= coj.mass ? coi : coj;
                 CelestialObject lighter = heavier == coi ? coj : coi;
-                
+
                 if (collide) {
                     double[] AB = VectorOperations.subtract(lighter.position, heavier.position);
                     // Distance between the centers
@@ -1176,33 +1176,38 @@ public class Simulator {
      * Velocity in any other dimensions are 0.
      */
 
-    public double[] computeOrbitVelocity(CelestialObject dominant, CelestialObject placing) {
-        return computeVelocityOfN(dominant, placing, 1);
+    public double[] computeOrbitVelocity(CelestialObject dominant, CelestialObject placing,
+                                         double[] planeNormal) {
+        return computeVelocityOfN(dominant, placing, 1, planeNormal);
     }
 
-    public double[] computeEscapeVelocity(CelestialObject dominant, CelestialObject placing) {
-        return computeVelocityOfN(dominant, placing, 2);
+    public double[] computeEscapeVelocity(CelestialObject dominant, CelestialObject placing,
+                                          double[] planeNormal) {
+        return computeVelocityOfN(dominant, placing, 2, planeNormal);
     }
 
-    public double[] computeVelocityOfN(CelestialObject dominant, CelestialObject placing,
-                                       double speedFactor) {
-        return computeVelocityOfN(dominant.position, dominant.mass,
-                dominant.velocity,
+    public double[] computeVelocityOfN(AbstractObject dominant, AbstractObject placing,
+                                       double speedFactor, double[] planeNormal) {
+        return computeVelocityOfN(dominant.getPosition(), dominant.getMass(),
+                dominant.getVelocity(),
                 placing,
-                speedFactor);
+                speedFactor,
+                planeNormal);
     }
 
     public double[] computeVelocityOfN(double[] dominantPos,
                                        double dominantMass,
                                        double[] dominantVelocity,
-                                       CelestialObject placing,
-                                       double speedFactor) {
+                                       AbstractObject placing,
+                                       double speedFactor,
+                                       double[] planeNormal) {
         return computeVelocityOfN(dominantPos,
                 dominantMass,
                 dominantVelocity,
-                placing.position,
-                placing.mass,
-                speedFactor);
+                placing.getPosition(),
+                placing.getMass(),
+                speedFactor,
+                planeNormal);
     }
 
     public double[] computeVelocityOfN(double[] dominantPos,
@@ -1210,7 +1215,8 @@ public class Simulator {
                                        double[] dominantVelocity,
                                        double[] placingPos,
                                        double placingMass,
-                                       double speedFactor) {
+                                       double speedFactor, 
+                                       double[] planeNormal) {
         if (dimension < 2) {
             throw new IllegalArgumentException("In space less than 2d, these velocity does not exist.");
         }
@@ -1237,13 +1243,19 @@ public class Simulator {
         speedFactor = Math.abs(speedFactor);
 
         double speedMag = Math.sqrt(speedFactor * G * totalMass / Math.pow(distance, gravityDtPower - 1));
-        double[] res = Arrays.copyOf(dominantVelocity, dimension);
+        double[] res = new double[dimension];
 
         double vx = dtAtD[1] / distance * speedMag * sign;
         double vy = -dtAtD[0] / distance * speedMag * sign;
+
+        res[0] = vx;
+        res[1] = vy;
         
-        res[0] += vx;
-        res[1] += vy;
+        if (dimension == 3 && planeNormal != null) {
+            res = SystemPresets.rotateToParentEclipticPlane(res, planeNormal);
+        }
+        
+        VectorOperations.addInPlace(res, dominantVelocity);
 
         return res;
     }
@@ -1381,7 +1393,7 @@ public class Simulator {
 
         return new double[][]{L1, L2, L3, L4, L5};
     }
-    
+
     protected void updateTidal(double timeStep) {
         for (CelestialObject object : objects) {
             // for each pair of parent-children, compute them
@@ -1400,7 +1412,7 @@ public class Simulator {
 //                double dt = VectorOperations.magnitude(r);
 //                double[] orbitAngularMomentum = VectorOperations.crossProduct(r, relVel);
 //                double orbitAngularVel = -orbitAngularMomentum[orbitAngularMomentum.length - 1] / (dt * dt);
-                
+
                 // both use a same set of orbit params, 
                 // otherwise the hill master will have too small semi-major
                 tidalBrake(object.hillMaster, object, timeStep);
@@ -1408,11 +1420,11 @@ public class Simulator {
             }
         }
     }
-    
-    private void tidalBrake(CelestialObject primary, 
+
+    private void tidalBrake(CelestialObject primary,
                             CelestialObject secondary,
                             double timeStep) {
-        
+
         double primaryRotKE = primary.rotationalKineticEnergy();
         double secondaryTransKE = secondary.transitionalKineticEnergy();
 
@@ -1424,11 +1436,11 @@ public class Simulator {
         double[] orbitPlaneNormal = VectorOperations.normalize(orbitAngularMomentum);
 //        double orbitAngularVel = Math.sqrt(G * primary.mass / Math.pow(dt, 3));
         double orbitAngularVel = VectorOperations.magnitude(relVel) / dt;
-        
+
         double alignment = VectorOperations.dotProduct(angularV, orbitAngularMomentum);
 
 //        System.out.println(secondary.name + " " + alignment + " " + orbitAngularVel + " " + primary.angularVelocity);
-        
+
         // prograde or retrograde
         double sign = alignment >= 0 ? 1 : -1;
 
@@ -1436,12 +1448,12 @@ public class Simulator {
         double tidalBrakingAngularVel = tidalBrakingVelocity(primary,
                 secondary,
                 dt) * tidalEffectFactor * timeStep;
-        double tidalSpeedChange = tidalSpeedChange(primary, 
-                secondary, 
+        double tidalSpeedChange = tidalSpeedChange(primary,
+                secondary,
                 dt) * tidalEffectFactor * timeStep;
-        
+
         double w = (primary.angularVelocity - orbitAngularVel);
-        
+
 //        System.out.println(secondary.name + " " + dt + 
 //                ", angular: " + 
 //                orbitAngularVel + " " + primary.angularVelocity +
@@ -1451,7 +1463,7 @@ public class Simulator {
 
 //        System.out.println(primary.name + " " + primary.angularVelocity + " " + (orbitAngularVel * sign));
         primary.angularVelocity += tidalBrakingAngularVel * w;
-        
+
         // change of axis
         // Compute the angle of misalignment theta
         double cosTheta = VectorOperations.dotProduct(
@@ -1470,16 +1482,16 @@ public class Simulator {
 //        // Final torque
 //        double[] torque = VectorOperations.scale(axisCross, tau_0 * Math.sin(theta));
 //        System.out.println(primary.name + " " + theta + " " + Arrays.toString(torque) + " " + VectorOperations.magnitude(torque));
-        
+
         // Initial angular momentum
         double[] L0 = primary.angularMomentum();
         // Change in angular momentum due to torque
         double axisChange = tau / VectorOperations.magnitude(L0) * timeStep;
 //        System.out.println(primary.name + " " + axisChange);
-        
+
         double[] newAxis = VectorOperations.rotateVector(primary.rotationAxis, axisCrossUnit, axisChange);
         primary.updateRotationAxis(newAxis);
-        
+
 //        double[] deltaL = VectorOperations.scale(torque, timeStep * 1e3);
         // New angular momentum
 //        double[] Lnew = VectorOperations.add(L0, deltaL);
@@ -1487,7 +1499,7 @@ public class Simulator {
 //        double[] newAxis = VectorOperations.normalize(Lnew);
 //        primary.updateRotationAxis(newAxis);
 //        System.out.println(primary.name + " " + Arrays.toString(primary.rotationAxis) + " " + Arrays.toString(newAxis));
-        
+
         if (secondary.mass < primary.mass) {
             double w2 = (primary.angularVelocity * sign - orbitAngularVel);
             double speedChange = -tidalSpeedChange * w2 * 5e6;
@@ -1500,7 +1512,7 @@ public class Simulator {
 
         double newPrimaryRotKE = primary.rotationalKineticEnergy();
         double newSecondaryTransKE = secondary.transitionalKineticEnergy();
-        
+
         primary.thermalEnergy += (primaryRotKE - newPrimaryRotKE);
         primary.thermalEnergy += (secondaryTransKE - newSecondaryTransKE);
     }
@@ -1508,10 +1520,10 @@ public class Simulator {
     /**
      * The change of angular speed to the primary body
      */
-    public double tidalBrakingVelocity(CelestialObject primary, 
+    public double tidalBrakingVelocity(CelestialObject primary,
                                        CelestialObject secondary,
                                        double distance) {
-        
+
 //        double up = 3 * secondary.tidalLoveNumber * G * Math.pow(primary.mass, 2) *
 //                Math.pow(secondary.getEquatorialRadius(), 3);
 //        double down = primary.dissipationFunction * Math.pow(distance, 6) *
@@ -1533,7 +1545,7 @@ public class Simulator {
         double k = kUp / kDown;
         return -k / Math.pow(distance, 11.0 / 2);
     }
-    
+
     public static double[] barycenterVelocityOf(AbstractObject... celestialObjects) {
         int dimension = celestialObjects[0].getVelocity().length;
         double totalMass = 0.0;

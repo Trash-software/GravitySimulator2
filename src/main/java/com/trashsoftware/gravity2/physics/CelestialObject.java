@@ -679,6 +679,14 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return hillMaster;
     }
 
+    public void setHillMaster(CelestialObject hillMaster) {
+        this.hillMaster = hillMaster;
+    }
+
+    public void setGravityMaster(CelestialObject gravityMaster) {
+        this.gravityMaster = gravityMaster;
+    }
+
     @Override
     public CelestialObject getMaster() {
         return hillMaster;

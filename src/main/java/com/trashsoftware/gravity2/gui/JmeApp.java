@@ -27,9 +27,10 @@ public class JmeApp extends SimpleApplication {
     protected BitmapFont font;
     protected ColorRGBA backgroundColor = ColorRGBA.Black;
 
-    private boolean leftButtonPressed = false;
-    private boolean rightButtonPressed = false;
-    private boolean middleButtonPressed = false;
+    private MouseManagement leftButton = new MouseManagement();
+    private MouseManagement rightButton = new MouseManagement();
+    private MouseManagement midButton = new MouseManagement();
+    
     private boolean keyWPressed, keyUpPressed, keyDownPressed;
 
     private float horizontalSpeed = 50.0f;
@@ -63,6 +64,7 @@ public class JmeApp extends SimpleApplication {
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private Node axisMarkNode;
     private Node globalBarycenterNode;
+    private GridPlane gridPlaneNode;
     private CompassNode compassNode;
     private GuiTextNode lonLatTextNode;
     private boolean showLabel = true;
@@ -75,7 +77,7 @@ public class JmeApp extends SimpleApplication {
     private AmbientLight ambientLight;
     private RefFrame refFrame = RefFrame.STATIC;
     
-    protected ObjectModel spawning;
+    protected SpawningObject spawning;
 
     public static JmeApp getInstance() {
         return instance;
@@ -139,6 +141,11 @@ public class JmeApp extends SimpleApplication {
             moveCameraWithFirstPerson();
             updateCompass();
         }
+        
+        if (spawning != null) {
+            computeSpawningMaster();
+            drawSpawningConnection();
+        }
 
         updateModelPositions();
         updateAxisMarks();
@@ -180,6 +187,9 @@ public class JmeApp extends SimpleApplication {
 
         lonLatTextNode = new GuiTextNode(this);
         lonLatTextNode.setLocalTranslation(20, screenHeight - 200, 0);
+        
+        gridPlaneNode = new GridPlane(this);
+        gridPlaneNode.setLocalTranslation(0, 0, 0);
     }
 
     private void updateAxisMarks() {
@@ -272,8 +282,8 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
-        rocheEffectTest();
-//        solarSystemTest();
+//        rocheEffectTest();
+        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        tidalTest();
 //        ellipseClusterTest();
@@ -326,6 +336,11 @@ public class JmeApp extends SimpleApplication {
             }
             om.notifyObjectChanged();
         }
+        
+        if (spawning != null) {
+            rootNode.attachChild(spawning.model.objectNode);
+            rootNode.attachChild(spawning.model.orbit);
+        }
 
         updateModelPositions();
     }
@@ -364,6 +379,7 @@ public class JmeApp extends SimpleApplication {
                 1e8f);
 
         rootNode.detachChild(axisMarkNode);
+        rootNode.detachChild(gridPlaneNode);
         guiNode.attachChild(compassNode);
         guiNode.attachChild(lonLatTextNode);
     }
@@ -375,6 +391,7 @@ public class JmeApp extends SimpleApplication {
                 1e6f);
 
         rootNode.attachChild(axisMarkNode);
+        rootNode.attachChild(gridPlaneNode);
         guiNode.detachChild(compassNode);
         guiNode.detachChild(lonLatTextNode);
     }
@@ -422,38 +439,53 @@ public class JmeApp extends SimpleApplication {
 
     public void performAction(String name, boolean isPressed, float tpf) {
         if (name.equals("LeftClick")) {
-            leftButtonPressed = isPressed;
-            if (!isPressed) {
-                // Reset results list.
-                CollisionResults results = new CollisionResults();
-                // Convert screen click to 3d position
-                Vector2f click2d = inputManager.getCursorPosition();
-                Vector3f click3d = cam.getWorldCoordinates(click2d, 0f).clone();
+            boolean wasDragging = leftButton.dragging;
+            leftButton.press(isPressed);
+            if (isPressed) {
+                
+            } else {
+                if (spawning != null && !wasDragging) {
+                    spawn();
+                } else {
+                    // Reset results list.
+                    CollisionResults results = new CollisionResults();
+                    // Convert screen click to 3d position
+                    Vector2f click2d = inputManager.getCursorPosition();
+                    Vector3f click3d = cam.getWorldCoordinates(click2d, 0f).clone();
 
-                // Convert screen click to 3D position at far plane
-                Vector3f farPoint = cam.getWorldCoordinates(click2d, 1f);  // Position on far plane
+                    // Convert screen click to 3D position at far plane
+                    Vector3f farPoint = cam.getWorldCoordinates(click2d, 1f);  // Position on far plane
 
-                // Calculate the direction vector from near plane to far plane
-                Vector3f dir = farPoint.subtract(click3d).normalizeLocal();  // Ensure it's a valid direction
+                    // Calculate the direction vector from near plane to far plane
+                    Vector3f dir = farPoint.subtract(click3d).normalizeLocal();  // Ensure it's a valid direction
 
-                // Aim the ray from the clicked spot forwards.
-                Ray ray = new Ray(click3d, dir);
-                rootNode.collideWith(ray, results);
+                    // Aim the ray from the clicked spot forwards.
+                    Ray ray = new Ray(click3d, dir);
+                    rootNode.collideWith(ray, results);
 
-                // Check if there's a hit
-                if (results.size() > 0) {
-                    // Get the closest collision result
-                    Geometry target = results.getClosestCollision().getGeometry();
-                    if (target != null) {
-                        // Handle the click on the geometry
-                        onGeometryClicked(target);
+                    // Check if there's a hit
+                    if (results.size() > 0) {
+                        // Get the closest collision result
+                        Geometry target = results.getClosestCollision().getGeometry();
+                        if (target != null) {
+                            // Handle the click on the geometry
+                            onGeometryClicked(target);
+                        }
                     }
                 }
             }
         } else if (name.equals("RightClick")) {
-            rightButtonPressed = isPressed;
+            boolean wasDragging = rightButton.dragging;
+            rightButton.press(isPressed);
+            if (isPressed) {
+                
+            } else {
+                if (spawning != null && !wasDragging) {
+                    exitSpawningMode();
+                }
+            }
         } else if (name.equals("MiddleClick")) {
-            middleButtonPressed = isPressed;
+            midButton.press(isPressed);
         } else if (name.equals("KeyW")) {
             keyWPressed = isPressed;
         } else if (name.equals("KeyUp")) {
@@ -469,34 +501,32 @@ public class JmeApp extends SimpleApplication {
     private final AnalogListener analogListener = new AnalogListener() {
         @Override
         public void onAnalog(String name, float value, float tpf) {
-            if (leftButtonPressed) {
+            if (name.startsWith("MouseMove")) {
+                if (leftButton.pressed) leftButton.updateDragging();
+                if (rightButton.pressed) rightButton.updateDragging();
+                if (midButton.pressed) midButton.updateDragging();
+            }
+            
+            if (leftButton.pressed) {
                 if (firstPersonStar == null) {
                     if (name.equals("MouseMoveX-")) {
                         // Move the camera horizontally when dragging the left button
                         Vector3f left = cam.getLeft().mult(-horizontalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(left));
-//                    lookAtPoint.addLocal(left);
                         screenCenter.addLocal(left);
                         if (focusing != null) centerRelToFocus.addLocal(left);
                     } else if (name.equals("MouseMoveX+")) {
                         // Move the camera horizontally when dragging the left button
                         Vector3f left = cam.getLeft().mult(horizontalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(left));
-//                    lookAtPoint.addLocal(left);
                         screenCenter.addLocal(left);
                         if (focusing != null) centerRelToFocus.addLocal(left);
                     } else if (name.equals("MouseMoveY-")) {
                         // Move the camera vertically when dragging the left button
                         Vector3f up = cam.getUp().mult(verticalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(up));
-//                    lookAtPoint.addLocal(up);
                         screenCenter.addLocal(up);
                         if (focusing != null) centerRelToFocus.addLocal(up);
                     } else if (name.equals("MouseMoveY+")) {
                         // Move the camera vertically when dragging the left button
                         Vector3f up = cam.getUp().mult(-verticalSpeed * value);
-//                    cam.setLocation(cam.getLocation().add(up));
-//                    lookAtPoint.addLocal(up);
                         screenCenter.addLocal(up);
                         if (focusing != null) centerRelToFocus.addLocal(up);
                     }
@@ -519,7 +549,7 @@ public class JmeApp extends SimpleApplication {
 //                    firstPersonStar.sightPoint.setLocalTranslation(sightPos);
                 }
             }
-            if (rightButtonPressed) {
+            if (rightButton.pressed) {
                 if (firstPersonStar == null) {
                     float rotationAmount = rotationSpeed * value;
 //                System.out.println(cam.getLeft());
@@ -532,7 +562,7 @@ public class JmeApp extends SimpleApplication {
 
                 }
             }
-            if (middleButtonPressed) {
+            if (midButton.pressed) {
                 if (firstPersonStar == null) {
                     // Rotate the camera around the object when dragging the middle button
                     float rotationAmount = rotationSpeed * value;
@@ -554,8 +584,67 @@ public class JmeApp extends SimpleApplication {
                     zoomOutAction();
                 }
             }
+            
+            if (firstPersonStar == null && !leftButton.pressed) {
+                if (spawning != null) {
+                    if (name.startsWith("MouseMove")) {
+                        updateSpawningPosition();
+                    }
+                }
+            }
         }
     };
+    
+    private void updateSpawningPosition() {
+        // Get the 2D mouse coordinates
+        Vector2f mouseCoords = inputManager.getCursorPosition();
+
+        // Convert the 2D mouse position into a 3D ray
+        Vector3f origin = cam.getWorldCoordinates(mouseCoords, 0f);  // Near plane
+        Vector3f direction = cam.getWorldCoordinates(mouseCoords, 1f).subtractLocal(origin).normalizeLocal();  // Far plane
+        Ray ray = new Ray(origin, direction);
+        
+        Plane plane = getSpawningPlane();
+
+        // Intersect the ray with the defined plane
+        Vector3f intersection = new Vector3f();
+        if (ray.intersectsWherePlane(plane, intersection)) {
+            // Move the sphere to the intersection point
+            spawning.object.setPosition(realPosition(intersection));
+            spawning.model.updateModelPosition(scale);
+        }
+    }
+    
+    private Plane getSpawningPlane() {
+        CelestialObject master = spawning.getSpawnRelative();
+        if (master == null) {
+            return new Plane(Vector3f.UNIT_Z, 0);
+        } else {
+            // todo: equatorial plane or ecliptic plane
+            Vector3f planeNormal = GuiUtils.fromDoubleArray(spawning.planeNormal).normalizeLocal();
+            Vector3f point = panePosition(master.getPosition());
+
+            gridPlaneNode.showAt(planeNormal, point, 20, 20, 20.0f);
+            float constant = -planeNormal.dot(point);
+            return new Plane(planeNormal, constant);
+        }
+    }
+    
+    private void spawn() {
+        simulator.addObject(spawning.object);
+        
+        CelestialObject master = spawning.object.getHillMaster();
+        if (master != null) {
+            double speed = spawning.orbitSpeed;
+            double[] velocity = simulator.computeVelocityOfN(master, spawning.object, speed, 
+                    spawning.planeNormal);
+            spawning.object.setVelocity(velocity);
+        }
+
+        exitSpawningMode();
+        reloadObjects();
+        getFxApp().notifyObjectCountChanged(simulator);
+    }
 
     private void rotateAroundPivot(float amount, Vector3f axis) {
         // Create a quaternion for rotation based on the given axis and amount
@@ -699,6 +788,29 @@ public class JmeApp extends SimpleApplication {
         cam.setLocation(newLocation);
         cam.lookAt(newLookAt, worldUp);
     }
+    
+    private void computeSpawningMaster() {
+        HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
+        CelestialObject dominant = hillMaster.master;
+
+        if (dominant != null && dominant.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
+            spawning.object.setHillMaster(dominant);
+            if (focusing != null) {
+                spawning.spawnRelative = focusing;
+                spawning.planeNormal = focusing.getRotationAxis();
+            } else {
+                spawning.spawnRelative = null;
+                spawning.planeNormal = dominant.getRotationAxis();
+            }
+        }
+        
+        CelestialObject gravityMaster = simulator.computeGravityMaster(spawning.object);
+        if (gravityMaster != null) {
+            // this does not consider the mass.
+            // but gravityMaster will be wiped once the spawning is placed
+            spawning.object.setGravityMaster(gravityMaster);
+        }
+    }
 
     public float paneX(double realX) {
         return (float) ((realX - refOffsetX) * scale - screenCenter.x);
@@ -722,6 +834,23 @@ public class JmeApp extends SimpleApplication {
 
     public double realZFromPane(float paneZ) {
         return (paneZ + screenCenter.z) / scale + refOffsetZ;
+    }
+    
+    public Vector3f panePosition(double[] realPos) {
+        if (realPos.length != 3) throw new IndexOutOfBoundsException();
+        return new Vector3f(
+                paneX(realPos[0]),
+                paneY(realPos[1]),
+                paneZ(realPos[2])
+        );
+    }
+    
+    public double[] realPosition(Vector3f panePos) {
+        return new double[]{
+                realXFromPane(panePos.x),
+                realYFromPane(panePos.y),
+                realZFromPane(panePos.z)
+        };
     }
 
     private void updateRefFrame() {
@@ -884,42 +1013,104 @@ public class JmeApp extends SimpleApplication {
 
         return geom;
     }
+    
+    private void drawSpawningConnection() {
+        if (spawning != null) {
+            CelestialObject hillMaster = spawning.object.getHillMaster();
+            CelestialObject gravityMaster = spawning.object.getGravityMaster();
+            
+            Vector3f selfPos = panePosition(spawning.object.getPosition());
+            
+            if (hillMaster != null) {
+                double realDt = VectorOperations.distance(spawning.object.getPosition(),
+                        hillMaster.getPosition());
+                String dtText = getFxApp().getUnitConverter().distance(realDt);
+                
+                Vector3f masterPos = panePosition(hillMaster.getPosition());
+                spawning.primaryLine.show(selfPos, masterPos, dtText);
+            } else {
+                spawning.primaryLine.hide();
+            }
 
-    private void drawOrbits() {
-        for (CelestialObject object : simulator.getObjects()) {
-            CelestialObject parent = object.getHillMaster();
-            if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
-                HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
+            if (gravityMaster != null) {
+                double realDt = VectorOperations.distance(spawning.object.getPosition(),
+                        gravityMaster.getPosition());
+                String dtText = getFxApp().getUnitConverter().distance(realDt);
 
-                AbstractObject child;
-                if (true) {
-                    child = simulator.getHieraticalSystem(object);
-                } else {
-                    child = object;
-                }
-
-                double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
-
-                // velocity relative to parent system's barycenter movement
-                double[] velocity = VectorOperations.subtract(child.getVelocity(),
-                        parentSystem.getVelocity());
-                double[] position = VectorOperations.subtract(child.getPosition(), 
-                        parent.getPosition());
-                OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
-                        velocity,
-                        child.getMass() + parent.getMass(),
-                        simulator.getG());
-
-                if (specs.isElliptical()) {
-                    drawEllipticalOrbit(object, barycenter, specs);
-                }
+                Vector3f masterPos = panePosition(gravityMaster.getPosition());
+                spawning.secondaryLine.show(selfPos, masterPos, dtText);
+            } else {
+                spawning.secondaryLine.hide();
             }
         }
     }
 
-    private void drawEllipticalOrbit(CelestialObject co, double[] barycenter, OrbitalElements oe) {
-        ObjectModel om = modelMap.get(co);
+    private void drawOrbits() {
+        for (CelestialObject object : simulator.getObjects()) {
+            drawOrbitOf(object);
+        }
+        if (spawning != null) {
+            drawSpawningOrbit();
+        }
+    }
+    
+    private void drawSpawningOrbit() {
+        CelestialObject parent = spawning.object.getHillMaster();
+        if (parent != null && parent.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
+//            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
+            AbstractObject child = spawning.object;
 
+            double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
+
+            // velocity relative to parent system's barycenter movement
+            double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed, 
+                    spawning.planeNormal);
+            velocity = VectorOperations.subtract(velocity, parent.getVelocity());
+            
+            double[] position = VectorOperations.subtract(child.getPosition(),
+                    parent.getPosition());
+            OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
+                    velocity,
+                    child.getMass() + parent.getMass(),
+                    simulator.getG());
+
+            if (specs.isElliptical()) {
+                drawEllipticalOrbit(spawning.model, barycenter, specs);
+            }
+        }
+    }
+    
+    private void drawOrbitOf(CelestialObject object) {
+        CelestialObject parent = object.getHillMaster();
+        if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
+            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
+
+            AbstractObject child;
+            if (true) {
+                child = simulator.getHieraticalSystem(object);
+            } else {
+                child = object;
+            }
+
+            double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
+
+            // velocity relative to parent system's barycenter movement
+            double[] velocity = VectorOperations.subtract(child.getVelocity(),
+                    parentSystem.getVelocity());
+            double[] position = VectorOperations.subtract(child.getPosition(),
+                    barycenter);
+            OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
+                    velocity,
+                    child.getMass() + parent.getMass(),
+                    simulator.getG());
+
+            if (specs.isElliptical()) {
+                drawEllipticalOrbit(modelMap.get(object), barycenter, specs);
+            }
+        }
+    }
+
+    private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
         Mesh mesh = om.orbit.getMesh();
         if (mesh == null || mesh == ObjectModel.blank) {
             mesh = new Mesh();
@@ -1179,7 +1370,7 @@ public class JmeApp extends SimpleApplication {
         simulator.addObject(sun);
         CelestialObject planet1 = CelestialObject.create2d("Sun2", 256000, 4, 20, 20, "#ffff00");
         simulator.addObject(planet1);
-        planet1.setVelocity(simulator.computeOrbitVelocity(sun, planet1));
+        planet1.setVelocity(simulator.computeOrbitVelocity(sun, planet1, new double[]{0, 0, 1}));
 
         scale = 0.1f;
 
@@ -1204,7 +1395,7 @@ public class JmeApp extends SimpleApplication {
                 scale
         );
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
         vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
@@ -1256,7 +1447,7 @@ public class JmeApp extends SimpleApplication {
     private void simpleTest4() {
         CelestialObject earth = SystemPresets.createObjectPreset(
                 simulator,
-                SystemPresets.earth,
+                SystemPresets.saturn,
                 new double[]{-5e6, 1e6, -1e6},
                 new double[3],
                 scale
@@ -1265,17 +1456,17 @@ public class JmeApp extends SimpleApplication {
         simulator.addObject(earth);
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
-                SystemPresets.charon,
-                new double[]{1e8, 0, 5e6},
+                SystemPresets.earth,
+                new double[]{5e8, 0, 2e7},
                 new double[3],
                 scale
         );
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
         vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
-        scale = 5e-7f;
+        scale = 1e-7f;
 
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
@@ -1300,7 +1491,7 @@ public class JmeApp extends SimpleApplication {
         );
         moon.forcedSetRotation(moon.getRotationAxis(), 1e-3);
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(jupiter, moon, -0.99);
+        double[] vel = simulator.computeVelocityOfN(jupiter, moon, -0.99, new double[]{0, 0, 1});
 //        vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
@@ -1350,7 +1541,7 @@ public class JmeApp extends SimpleApplication {
                 scale
         );
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.30);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.30, new double[]{0, 0, 1});
         vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
@@ -1498,6 +1689,37 @@ public class JmeApp extends SimpleApplication {
     public boolean isFirstPerson() {
         return firstPersonStar != null;
     }
+    
+    public boolean isInSpawningMode() {
+        return spawning != null;
+    }
+    
+    public void enterSpawningMode(CelestialObject co, double orbitSpeed) {
+        enqueue(() -> {
+            ObjectModel om = new ObjectModel(co, this);
+            spawning = new SpawningObject(this, om, -orbitSpeed);
+            
+            rootNode.attachChild(spawning.primaryLine);
+            rootNode.attachChild(spawning.secondaryLine);
+
+            reloadObjects();
+        });
+    }
+    
+    public void exitSpawningMode() {
+        enqueue(() -> {
+            if (spawning != null) {
+                rootNode.detachChild(spawning.model.objectNode);
+                rootNode.detachChild(spawning.model.orbit);
+                rootNode.detachChild(spawning.primaryLine);
+                rootNode.detachChild(spawning.secondaryLine);
+                
+                gridPlaneNode.hide();
+
+                spawning = null;
+            }
+        });
+    }
 
     public void gcDiedModels() {
         double now = simulator.getTimeStepAccumulator();
@@ -1513,5 +1735,29 @@ public class JmeApp extends SimpleApplication {
         STATIC,
         SYSTEM,
         TARGET
+    }
+    
+    public class MouseManagement {
+        boolean pressed;
+        boolean dragging;
+        Vector2f initClickPos;
+        
+        void press(boolean pressed) {
+            this.pressed = pressed;
+            if (pressed) {
+                initClickPos = inputManager.getCursorPosition().clone();
+            } else {
+                dragging = false;
+            }
+        }
+        
+        void updateDragging() {
+            if (initClickPos == null) return;
+            
+            Vector2f pos = inputManager.getCursorPosition();
+            float dt = pos.distance(initClickPos);
+
+            if (dt > 5f) dragging = true;
+        }
     }
 }

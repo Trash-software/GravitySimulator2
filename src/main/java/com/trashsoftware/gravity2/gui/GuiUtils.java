@@ -2,8 +2,18 @@ package com.trashsoftware.gravity2.gui;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import javafx.scene.paint.Color;
 
 public class GuiUtils {
+
+    public static String fxColorToHex(Color color) {
+        int red = (int) (color.getRed() * 255);
+        int green = (int) (color.getGreen() * 255);
+        int blue = (int) (color.getBlue() * 255);
+
+        // Format the color to a hex string
+        return String.format("#%02X%02X%02X", red, green, blue); // RGB
+    }
     
     public static String colorToHex(ColorRGBA color) {
         int red = (int) (color.getRed() * 255);

@@ -1,16 +1,20 @@
 package com.trashsoftware.gravity2.fxml;
 
+import com.jme3.math.ColorRGBA;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
+import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.SystemPresets;
+import com.trashsoftware.gravity2.physics.Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.*;
@@ -38,6 +42,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     ToggleGroup spawnOrbitGroup;
     @FXML
     RadioButton spawnStillBtn, spawnOrbitBtn, SpawnEllipseBtn, spawnParabolicBtn;
+    private Map<Toggle, Double> orbitSpeedMultipliers;
     @FXML
     TextField createNameInput, createMassInput, createRadiusInput, speedMulInput;
     @FXML
@@ -51,6 +56,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         super.initialize(url, resourceBundle);
         
         setComboBoxes();
+        setCheckBoxes();
     }
 
     @Override
@@ -60,6 +66,22 @@ public class ObjectListPanel extends AbstractObjectPanel {
         
         setTexts(simulator);
         setInfo(simulator);
+    }
+    
+    private void setCheckBoxes() {
+        orbitSpeedMultipliers = Map.of(
+                spawnStillBtn, 0.0,
+                spawnOrbitBtn, 1.0,
+                SpawnEllipseBtn, 0.25,
+                spawnParabolicBtn, 2.0
+        );
+
+        spawnOrbitGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            Double speedMul = orbitSpeedMultipliers.get(newValue);
+            if (speedMul != null) {
+                speedMulInput.setText(String.valueOf(speedMul));
+            }
+        });
     }
 
     private void setComboBoxes() {
@@ -195,8 +217,70 @@ public class ObjectListPanel extends AbstractObjectPanel {
     public void spawnModeAction() {
         JmeApp jmeApp = fxApp.getJmeApp();
         if (jmeApp == null) return;
+        Simulator simulator = jmeApp.getSimulator();
         
-        
-        
+        if (jmeApp.isInSpawningMode()) {
+            jmeApp.exitSpawningMode();
+        } else {
+            String name = createNameInput.getText();
+            String massText = createMassInput.getText();
+            String radiusText = createRadiusInput.getText();
+
+            if (name.isBlank()) {
+                spawnPrompt.setText(strings.getString("spawnPromptInvalidName"));
+                return;
+            }
+            double mass, radius;
+            try {
+                mass = Double.parseDouble(massText);
+                radius = Double.parseDouble(radiusText);
+            } catch (NumberFormatException e) {
+                spawnPrompt.setText(strings.getString("spawnPromptInvalidNumber"));
+                return;
+            }
+
+            String speedMulText = speedMulInput.getText();
+            double speed;
+            try {
+                speed = Double.parseDouble(speedMulText);
+            } catch (NumberFormatException e) {
+                spawnPrompt.setText(strings.getString("spawnPromptInvalidSpeed"));
+                return;
+            }
+
+            SpawnPreset sp = spawnPresetBox.getValue();
+            SystemPresets.ObjectInfo presetInfo = sp == null ? null : sp.value;
+            CelestialObject spawning;
+            if (presetInfo == null) {
+                Color color = colorPicker.getValue();
+                String colorCode = GuiUtils.fxColorToHex(color);
+                
+                spawning = CelestialObject.createNd(name, mass, radius, simulator.getDimension(),
+                        colorCode);
+            } else {
+                spawning = SystemPresets.createObjectPreset(
+                        simulator,
+                        presetInfo,
+                        new double[simulator.getDimension()],
+                        new double[simulator.getDimension()],
+                        1.0
+                );
+            }
+
+            spawnPrompt.setText("");
+            jmeApp.enterSpawningMode(spawning, speed);
+        }
+    }
+    
+    private double getSpawningSpeed() {
+        String speedMulText = speedMulInput.getText();
+        double speed;
+        try {
+            speed = Double.parseDouble(speedMulText);
+        } catch (NumberFormatException e) {
+            spawnPrompt.setText(strings.getString("spawnPromptInvalidSpeed"));
+            return 0;
+        }
+        return speed;
     }
 }

@@ -319,7 +319,8 @@ public class SystemPresets {
 
             double[] vel = simulator.computeVelocityOfN(sun,
                     co,
-                    random.nextDouble(0.01, 0.8));
+                    random.nextDouble(0.01, 0.8),
+                    new double[]{0, 0, 1});
             co.setVelocity(vel);
         }
     }
@@ -362,7 +363,7 @@ public class SystemPresets {
                     color
             );
             simulator.addObject(co);
-            co.setVelocity(simulator.computeVelocityOfN(sun, co, 1.0));
+            co.setVelocity(simulator.computeVelocityOfN(sun, co, 1.0, new double[]{0, 0, 1}));
         }
     }
 
@@ -592,7 +593,8 @@ public class SystemPresets {
                     parent.velocity,
                     pos,
                     info.mass * massMul,
-                    sf);
+                    sf,
+                    null);
         } else {
             initVel = new double[simulator.getDimension()];
         }
@@ -700,7 +702,7 @@ public class SystemPresets {
                 system.colorCode
         );
         simulator.addObject(planet);
-        double[] initVel = simulator.computeVelocityOfN(parent, planet, 1.0 - ecc);
+        double[] initVel = simulator.computeVelocityOfN(parent, planet, 1.0 - ecc, new double[]{0, 0, 1});
         planet.setVelocity(initVel);
 
         return planet;
@@ -811,7 +813,8 @@ public class SystemPresets {
                     star.velocity,
                     pos,
                     mass,
-                    1.0 - ecc
+                    1.0 - ecc,
+                    new double[]{0, 0, 1}
             );
 
             CelestialObject planet = CelestialObject.createNd(
