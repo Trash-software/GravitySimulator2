@@ -921,7 +921,7 @@ public class SystemPresets {
                         )
                 )
         );
-        
+
         CelestialObject centroid = CelestialObject.create3d(
                 "Star",
                 centroidMass,
@@ -954,7 +954,7 @@ public class SystemPresets {
             y = y * b;
             double dtToCenter = Math.sqrt(x * x + y * y);
             double z = rand.nextDouble(-dtToCenter, dtToCenter) * flatRatio;
-            
+
             CelestialObject co;
             if (i < presets.length) {
                 co = createObject(
@@ -1007,6 +1007,71 @@ public class SystemPresets {
         makeSystem(simulator, jupiter, 1, 1e3, 1e3);
 
         return 1e-7;
+    }
+
+    public static double saturnRingTest(Simulator simulator, int n) {
+        CelestialObject saturnObj = createObjectPreset(
+                simulator,
+                saturn,
+                new double[3],
+                new double[3],
+                1.0
+        );
+        saturnObj.forcedSetRotation(new double[]{0, 0, 1}, CelestialObject.angularVelocityOf(saturn.rotationPeriod));
+
+        simulator.addObject(saturnObj);
+
+        addRingTo("B", simulator, saturnObj, 92000, 117580, 10, 90, 6e18);  // B ring
+        addRingTo("A", simulator, saturnObj, 122170, 136775, 20, 90, 1.1e19);  // A ring
+
+        return 1e-7;
+    }
+
+    private static void addRingTo(String baseName, Simulator simulator, CelestialObject parent,
+                                  double near, double far, double thickness, int n,
+                                  double approxTotalMass) {
+        Random random = new Random();
+        double meanMass = approxTotalMass / n;
+        for (int i = 0; i < n; i++) {
+            // Generate a uniformly distributed radius (use sqrt to ensure uniform density)
+            double radius = Math.sqrt(random.nextDouble() * (far * far - near * near) + near * near);
+            radius *= 1e3;  // km to m
+
+            // Generate a random angle from 0 to 2 * pi
+            double theta = random.nextDouble() * (2 * Math.PI);
+
+            // Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
+            double x = radius * Math.cos(theta);
+            double y = radius * Math.sin(theta);
+            double z = random.nextDouble(-thickness / 2, thickness / 2);
+
+            double mass = random.nextDouble(meanMass * 0.5, meanMass * 1.5);
+
+            double[] pos = new double[]{x, y, z};
+//            pos = SystemPresets.rotateToParentEclipticPlane(pos, parent.getRotationAxis());
+
+            CelestialObject small = CelestialObject.create3d(
+                    baseName + " Ring-" + i,
+                    mass,
+//                    1e4,
+                    CelestialObject.radiusOf(mass, random.nextDouble(500, 1000)),
+                    pos,
+                    new double[]{0, 0, 0},
+                    "#ffffff"
+            );
+
+            small.forcedSetRotation(parent.getRotationAxis().clone(), 1e-8);
+
+            double[] velocity = simulator.computeVelocityOfN(parent,
+                    small,
+                    1.0,
+//                    parent.getRotationAxis().clone()
+                    new double[]{0, 0, 1}
+            );
+
+            small.setVelocity(velocity);
+            simulator.addObject(small);
+        }
     }
 
     public static double starDensity(double mass) {

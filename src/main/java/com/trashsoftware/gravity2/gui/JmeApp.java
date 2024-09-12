@@ -8,10 +8,13 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.*;
 import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.*;
+import com.jme3.shadow.*;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
@@ -263,13 +266,14 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
+        saturnRingTest();
 //        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
-        chaosSolarSystemTest();
+//        chaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -428,7 +432,9 @@ public class JmeApp extends SimpleApplication {
             if (isPressed) {
 
             } else {
-                if (spawning != null && !wasDragging) {
+                if (wasDragging) {
+                    
+                } else if (spawning != null) {
                     spawn();
                 } else {
                     // Reset results list.
@@ -674,12 +680,12 @@ public class JmeApp extends SimpleApplication {
             CelestialObject object = objectModel.object;
             if (object.isExist()) {
                 if (object.getName().equals(geom.getName())) {
-                    focusOn(object);
+                    focusOn(object, true);
                     break;
                 }
                 BitmapText bt = (BitmapText) objectModel.labelNode.getChildren().get(0);
                 if (geom == bt.getChildren().get(0)) {
-                    focusOn(object);
+                    focusOn(object, true);
                     break;
                 }
             }
@@ -719,7 +725,7 @@ public class JmeApp extends SimpleApplication {
         });
     }
 
-    public void focusOn(CelestialObject object) {
+    public void focusOn(CelestialObject object, boolean scrollToFocus) {
         System.out.println("Focused on " + object.getName());
 
         focusing = object;
@@ -733,7 +739,7 @@ public class JmeApp extends SimpleApplication {
         screenCenter.setY(focusingLastY * scale);
         screenCenter.setZ(focusingLastZ * scale);
 
-        getFxApp().getControlBar().setFocus(focusing);
+        getFxApp().getControlBar().setFocus(focusing, scrollToFocus);
     }
 
     private void moveScreenWithFocus() {
@@ -1067,6 +1073,8 @@ public class JmeApp extends SimpleApplication {
 
             if (specs.isElliptical()) {
                 drawEllipticalOrbit(spawning.model, barycenter, specs);
+            } else {
+                drawHyperbolicOrbit(spawning.model, barycenter, specs);
             }
         }
     }
@@ -1097,6 +1105,8 @@ public class JmeApp extends SimpleApplication {
 
             if (specs.isElliptical()) {
                 drawEllipticalOrbit(modelMap.get(object), barycenter, specs);
+            } else {
+                drawHyperbolicOrbit(modelMap.get(object), barycenter, specs);
             }
         }
     }
@@ -1109,7 +1119,21 @@ public class JmeApp extends SimpleApplication {
             om.orbit.setMesh(mesh);
         }
 
-        om.makeOrbitMesh(mesh,
+        om.makeEclipticOrbitMesh(mesh,
+                barycenter,
+                oe,
+                360);
+    }
+    
+    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
+        Mesh mesh = om.orbit.getMesh();
+        if (mesh == null || mesh == ObjectModel.blank) {
+            mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.LineStrip);
+            om.orbit.setMesh(mesh);
+        }
+
+        om.makeHyperbolicOrbitMesh(mesh,
                 barycenter,
                 oe,
                 360);
@@ -1481,12 +1505,50 @@ public class JmeApp extends SimpleApplication {
         vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
+        CelestialObject comet = SystemPresets.createObjectPreset(
+                simulator,
+                SystemPresets.charon,
+                new double[]{1e8, 0, 1e7},
+                new double[3],
+                scale
+        );
+        simulator.addObject(comet);
+        double[] vel2 = simulator.computeVelocityOfN(earth, comet, 2.1, new double[]{0, 0, 1});
+        comet.setVelocity(vel2);
+
         scale = 1e-7f;
 
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
     }
 
+    private void saturnRingTest() {
+        scale = (float) SystemPresets.saturnRingTest(simulator, 100);
+
+        reloadObjects();
+        DirectionalLight directionalLight = new DirectionalLight();
+        directionalLight.setColor(ColorRGBA.White);
+        directionalLight.setDirection(new Vector3f(0, 0.5f, -0.2f));
+
+        // Add shadow renderer
+        DirectionalLightShadowRenderer plsr = new DirectionalLightShadowRenderer(getAssetManager(),
+                1024, 4);
+        plsr.setLight(directionalLight);
+        plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+        plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+        getViewPort().addProcessor(plsr);
+
+        // Add shadow filter for softer shadows
+        DirectionalLightShadowFilter plsf = new DirectionalLightShadowFilter(getAssetManager(), 1024, 4);
+        plsf.setLight(directionalLight);
+        plsf.setEnabled(true);
+        FilterPostProcessor fpp = new FilterPostProcessor(getAssetManager());
+        fpp.addFilter(plsf);
+        
+        rootNode.addLight(directionalLight);
+        getViewPort().addProcessor(fpp);
+//        model.setShadowMode(RenderQueue.ShadowMode.Off);
+    }
     private void tidalTest() {
         CelestialObject jupiter = SystemPresets.createObjectPreset(
                 simulator,
@@ -1644,7 +1706,7 @@ public class JmeApp extends SimpleApplication {
 //            double factor = targetScale / scale;
 //            scaleScene((float) factor);
 
-            focusOn(object);
+            focusOn(object, false);
 
             // reset to a top view
             cam.setLocation(lookAtPoint.add(new Vector3f(0, 0, 100)));

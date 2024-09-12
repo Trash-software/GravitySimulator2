@@ -175,11 +175,13 @@ public class ControlBar implements Initializable {
         massPercentileSlider.setValue(100.0);
     }
 
-    public void setFocus(CelestialObject co) {
+    public void setFocus(CelestialObject co, boolean scrollToFocus) {
         clearFocusBtn.setDisable(false);
         
-        if (fxApp.getObjectListPanel() != null) {
-            fxApp.getObjectListPanel().scrollTo(co);
+        if (scrollToFocus) {
+            if (fxApp.getObjectListPanel() != null) {
+                fxApp.getObjectListPanel().scrollTo(co);
+            }
         }
     }
 

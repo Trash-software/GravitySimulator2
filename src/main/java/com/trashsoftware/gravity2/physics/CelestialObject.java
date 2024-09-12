@@ -182,7 +182,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 new double[dim],
                 new double[dim],
                 axis,
-                0.0,
+                1e-8,
                 colorCode,
                 null,
                 273.15

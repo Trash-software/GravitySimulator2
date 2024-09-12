@@ -187,7 +187,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
                             object,
                             simulator,
                             unitsMethodBox.getValue().unitsConverter,
-                            () -> fxApp.getJmeApp().focusOn(object),
+                            () -> fxApp.getJmeApp().focusOn(object, false),
                             this::expandObjectStats,
                             obj -> fxApp.getJmeApp().landOn(obj),
                             this::collapseObjectStats,

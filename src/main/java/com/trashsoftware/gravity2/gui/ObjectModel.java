@@ -443,7 +443,7 @@ public class ObjectModel {
         }
     }
 
-    public void makeOrbitMesh(
+    public void makeEclipticOrbitMesh(
             Mesh mesh,
             double[] barycenter,
             OrbitalElements oe,
@@ -492,6 +492,69 @@ public class ObjectModel {
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indices));
 //        mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
+        mesh.updateBound();
+        mesh.updateCounts();
+    }
+
+    public void makeHyperbolicOrbitMesh(
+            Mesh mesh,
+            double[] barycenter,
+            OrbitalElements oe,
+            int samples) {
+
+        float bcx = jmeApp.paneX(barycenter[0]);
+        float bcy = jmeApp.paneY(barycenter[1]);
+        float bcz = jmeApp.paneZ(barycenter[2]);
+
+        float a = (float) (oe.semiMajorAxis * jmeApp.scale);  // Semi-major axis
+        float e = (float) oe.eccentricity;                   // Eccentricity
+        float b = a * FastMath.sqrt(e * e - 1);
+        float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));   // Argument of periapsis
+        float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));      // Longitude of ascending node
+        float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);                 // Inclination
+
+        Vector3f[] vertices = new Vector3f[samples + 1];
+        float hyperbolicLimit = 5.0f;  // Controls how far the orbit goes outward
+
+        for (int j = 0; j < samples; j++) {
+            float theta = -FastMath.PI + 2 * FastMath.PI * j / (samples - 1);  // Vary theta for hyperbolic orbit
+
+//            // Calculate the radius for a hyperbolic orbit
+//            float r = a * (e * e - 1) / (1 + e * (float) Math.cosh(theta * hyperbolicLimit / FastMath.PI));
+//
+//            float x = (float) (r * Math.cosh(theta));  // Hyperbolic X component
+//            float y = (float) (r * Math.sinh(theta));  // Hyperbolic Y component
+//            float z = 0;  // No initial Z component, orbit is in the X-Y plane
+            float x = a * ((float) Math.cosh(theta) - e);
+            float y = b * (float) Math.sinh(theta);
+            float z = 0;
+
+            // Convert to 3D space using orbital elements
+            Vector3f point = new Vector3f(x, y, z);
+
+            // Rotate to match the orbital elements
+            point = UiVectorUtils.rotateAroundZAxis(point, omega);    // Rotate by argument of periapsis
+            point = UiVectorUtils.rotateAroundXAxis(point, i);        // Rotate by inclination
+            point = UiVectorUtils.rotateAroundZAxis(point, omegaBig); // Rotate by longitude of the ascending node
+
+            // Translate by the barycenter
+            point.setX(point.x + bcx);
+            point.setY(point.y + bcy);
+            point.setZ(point.z + bcz);
+
+            vertices[j] = point;
+        }
+
+        // Set up the index buffer
+        short[] indices = new short[samples];
+        for (int j = 0; j < samples; j++) {
+            indices[j] = (short) j;
+        }
+
+        // Set mesh data
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+        mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indices));
+        mesh.setMode(Mesh.Mode.LineStrip);  // Open curve for hyperbolic orbits
         mesh.updateBound();
         mesh.updateCounts();
     }

@@ -392,6 +392,7 @@ public class Simulator {
 
     public void calculateAllForces(List<CelestialObject> objects) {
         int n = objects.size();
+        if (n == 0) return;
         if (forcesBuffer == null || forcesBuffer.length < n || forcesBuffer[0].length != dimension) {
             forcesBuffer = new double[n][dimension];
         } else {
@@ -1270,7 +1271,7 @@ public class Simulator {
     }
 
     private void updateBarycenter() {
-        this.barycenter = barycenterOf(objects);
+        this.barycenter = barycenterOf(dimension, objects);
     }
 
     public double[] barycenter() {
@@ -1571,8 +1572,7 @@ public class Simulator {
         return velocity;
     }
 
-    public static double[] barycenterOf(AbstractObject... celestialObjects) {
-        int dimension = celestialObjects[0].getPosition().length;
+    public static double[] barycenterOf(int dimension, AbstractObject... celestialObjects) {
         double totalMass = 0.0;
         double[] barycenter = new double[dimension];
         for (AbstractObject co : celestialObjects) {
@@ -1587,8 +1587,7 @@ public class Simulator {
         return barycenter;
     }
 
-    public static double[] barycenterOf(List<? extends AbstractObject> celestialObjects) {
-        int dimension = celestialObjects.get(0).getPosition().length;
+    public static double[] barycenterOf(int dimension, List<? extends AbstractObject> celestialObjects) {
         double totalMass = 0.0;
         double[] barycenter = new double[dimension];
         for (AbstractObject co : celestialObjects) {
