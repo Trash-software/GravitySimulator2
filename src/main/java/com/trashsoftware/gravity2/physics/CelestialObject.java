@@ -6,6 +6,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CelestialObject implements Comparable<CelestialObject>, AbstractObject {
 
@@ -35,6 +37,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     private String colorCode;
     private final Texture texture;
+    
+    public final Map<String, Double> components = new HashMap<>();
 
     protected transient double[] lastAcceleration;
     //    protected transient double[] orbitBasic;  // semi-major, eccentricity
