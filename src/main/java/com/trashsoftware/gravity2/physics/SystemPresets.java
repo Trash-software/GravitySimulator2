@@ -13,6 +13,8 @@ public class SystemPresets {
 
     public static final double SOLAR_MASS = 1.989e30;
     public static final double SOLAR_DENSITY = 1410;
+    public static final double SOLAR_LUMINOSITY = 3.828e26;
+    public static final double JUPITER_MASS = 1.899e27;
     public static final double AU = 149598262000.0;  // 1 AU in meter
 
     public static final Map<String, String> TEXTURES = new HashMap<>();
@@ -199,7 +201,7 @@ public class SystemPresets {
             "#A52A2A", 0.140, 92, phobos, deimos
     );
     public static ObjectInfo jupiter = new ObjectInfo(
-            "Jupiter", 1.899e27, 69911, 71492, 66854, 778340821, 0.0489, 273.867, 1.305, 100.464, 34.5, 3.13, 0.4135,
+            "Jupiter", JUPITER_MASS, 69911, 71492, 66854, 778340821, 0.0489, 273.867, 1.305, 100.464, 34.5, 3.13, 0.4135,
             "#F4A460", 0.589, 10500, io, europa, ganymede, callisto
     );
     public static ObjectInfo saturn = new ObjectInfo(
@@ -245,7 +247,7 @@ public class SystemPresets {
 
     // Sun with all its planets and dwarf planets
     public static ObjectInfo sun = new ObjectInfo(
-            "Sun", 1.989e30, 696340, 696340, 696340, 0, 0, 0, 0, 0, 7.25, 0.0, 25.38,
+            "Sun", SOLAR_MASS, 696340, 696340, 696340, 0, 0, 0, 0, 0, 7.25, 0.0, 25.38,
             "#FFD700", 0.03, 20000,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
             pluto, eris, haumea, makemake,
@@ -906,25 +908,38 @@ public class SystemPresets {
 
         double flatRatio = c / (a + b) * 2;
 
-        double centroidMass = 1e29;
+        double centroidMass = 3e29;
+        double starDensity = starDensity(centroidMass);
+        double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
+        String colorCode = GuiUtils.colorToHex(
+                GuiUtils.fxColorToJmeColor(
+                        GuiUtils.temperatureToColorHSB(
+                                CelestialObject.approxColorTemperatureOfStar(
+                                        CelestialObject.approxLuminosityOfStar(centroidMass),
+                                        starRadius
+                                )
+                        )
+                )
+        );
+        
         CelestialObject centroid = CelestialObject.create3d(
-                "Sun",
+                "Star",
                 centroidMass,
-                CelestialObject.radiusOf(centroidMass, 1.2e3),
+                starRadius,
                 new double[3],
                 new double[3],
-                "#ffff00"
+                colorCode
         );
 
         centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-4);
         simulator.addObject(centroid);
 
+        ObjectInfo[] presets = new ObjectInfo[]{
+                mercury, venus, earth, mars, jupiter, saturn, uranus, neptune
+        };
+
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
-            double mass = rand.nextDouble(1e23, 1e26);
-            double density = rand.nextDouble(500, 6000);
-            double radius = CelestialObject.radiusOf(mass, density);
-
             double x, y;
 
             // Generate random point within a unit sphere using the rejection method
@@ -939,29 +954,47 @@ public class SystemPresets {
             y = y * b;
             double dtToCenter = Math.sqrt(x * x + y * y);
             double z = rand.nextDouble(-dtToCenter, dtToCenter) * flatRatio;
+            
+            CelestialObject co;
+            if (i < presets.length) {
+                co = createObject(
+                        simulator,
+                        presets[i],
+                        new double[]{x, y, z},
+                        new double[3],
+                        new double[]{0, 0, 1},
+                        1,
+                        1e3
+                );
+            } else {
+                double mass = rand.nextDouble(1e22, 1e25);
+                double density = rand.nextDouble(500, 6000);
+                double radius = CelestialObject.radiusOf(mass, density);
 
-            CelestialObject co = CelestialObject.create3d(
-                    "Planet" + i,
-                    mass,
-                    radius,
-                    new double[]{x, y, z},
-                    new double[3],
-                    cc
-            );
+                co = CelestialObject.create3d(
+                        "Planet" + i,
+                        mass,
+                        radius,
+                        new double[]{x, y, z},
+                        new double[3],
+                        cc
+                );
+            }
             double[] velocity = simulator.computeVelocityOfN(centroid,
                     co,
                     rand.nextDouble(0.75, 0.99),
                     new double[]{0, 0, 1});
             co.setVelocity(velocity);
 
-            double[] axis = new double[]{rand.nextDouble(0.0, 0.25), 
-                    rand.nextDouble(0.0, 0.5), 
-                    rand.nextDouble(0.5, 1.0)};
-            axis = VectorOperations.normalize(axis);
+//            double[] axis = new double[]{rand.nextDouble(0.0, 0.25), 
+//                    rand.nextDouble(0.0, 0.5), 
+//                    rand.nextDouble(0.5, 1.0)};
+//            axis = VectorOperations.normalize(axis);
+            double[] axis = new double[]{0, 0, 1};
             double angVel = rand.nextDouble(1e-8, 1e-3);
-            if (rand.nextDouble() < 0.1) {
-                axis = VectorOperations.reverseVector(axis);
-            }
+//            if (rand.nextDouble() < 0.1) {
+//                axis = VectorOperations.reverseVector(axis);
+//            }
             co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
         }

@@ -150,6 +150,29 @@ public class ControlBar implements Initializable {
             jmeApp.setPathLength(pathLength);
         });
         pathLengthSlider.setValue(5000.0);
+
+        massPercentileSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            
+            Simulator simulator = jmeApp.getSimulator();
+            
+            double minimumMassShowing = simulator.findMassOfPercentile(newValue.doubleValue());
+            String massText;
+            if (minimumMassShowing == Double.MAX_VALUE) {
+                massText = "∞";
+            } else {
+                massText = getFxApp().getUnitConverter().mass(minimumMassShowing);
+            }
+            massPercentileText.setText(String.format("%,.0f%% ≥%s",
+                    newValue.doubleValue(),
+                    massText));
+            
+            jmeApp.updateMinimumMassShowing(minimumMassShowing);
+            
+            getFxApp().getObjectListPanel().reloadInfoPane(simulator, simulator.getObjects());
+        });
+        massPercentileSlider.setValue(100.0);
     }
 
     public void setFocus(CelestialObject co) {

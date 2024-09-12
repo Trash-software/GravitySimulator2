@@ -70,6 +70,7 @@ public class JmeApp extends SimpleApplication {
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
+    private double minimumMassShowing;
     private CelestialObject focusing;
     private FirstPersonMoving firstPersonStar;
     private final FxApp fxApp;
@@ -265,10 +266,10 @@ public class JmeApp extends SimpleApplication {
 //        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
-        smallSolarSystemTest();
+//        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
-//        chaosSolarSystemTest();
+        chaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -309,9 +310,9 @@ public class JmeApp extends SimpleApplication {
                 rootNode.attachChild(om.objectNode);
 
                 // Initialize the geometry for the curve (we'll reuse this each frame)
-                rootNode.attachChild(om.path);
-                rootNode.attachChild(om.orbit);
-                rootNode.attachChild(om.trace);
+//                rootNode.attachChild(om.path);
+//                rootNode.attachChild(om.orbit);
+//                rootNode.attachChild(om.trace);
 
                 // Synchronize the global label showing status to the new object
                 om.setShowLabel(showLabel);
@@ -324,6 +325,7 @@ public class JmeApp extends SimpleApplication {
             rootNode.attachChild(spawning.model.orbit);
         }
 
+        updateCurvesShowing();
         updateModelPositions();
     }
 
@@ -653,6 +655,7 @@ public class JmeApp extends SimpleApplication {
         screenCenter.multLocal(scaleFactor);
 
         updateLabelShowing();
+        updateCurvesShowing();
     }
 
     public void zoomInAction() {
@@ -1033,7 +1036,9 @@ public class JmeApp extends SimpleApplication {
 
     private void drawOrbits() {
         for (CelestialObject object : simulator.getObjects()) {
-            drawOrbitOf(object);
+            if (object.getMass() >= minimumMassShowing) {
+                drawOrbitOf(object);
+            }
         }
         if (spawning != null) {
             drawSpawningOrbit();
@@ -1123,7 +1128,7 @@ public class JmeApp extends SimpleApplication {
 
         for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
-//            if (obj.getMass() < minimumMassShowing) continue;
+            if (obj.getMass() < minimumMassShowing) continue;
             ObjectModel om = getObjectModel(obj);
             if (om == null) continue;
 
@@ -1223,9 +1228,10 @@ public class JmeApp extends SimpleApplication {
         double[] offset = new double[3];
         for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
-//            if (obj.getMass() < minimumMassShowing) continue;
+            if (obj.getMass() < minimumMassShowing) continue;
             var path = entry.getValue();
-            if (obj == null) continue;
+            ObjectModel om = getObjectModel(obj);
+            if (om == null) continue;
 
             Iterator<double[]> centerPath = switch (refFrame) {
                 case SYSTEM -> simulator.getBarycenterPath().iterator();
@@ -1260,9 +1266,7 @@ public class JmeApp extends SimpleApplication {
                 vertices[index] = vector3f;
                 index++;
             }
-
-            ObjectModel om = getObjectModel(obj);
-            if (om == null) continue;
+            
             drawPolyLine(vertices, om);
         }
     }
@@ -1312,6 +1316,30 @@ public class JmeApp extends SimpleApplication {
             });
         }
     }
+    
+    private void updateCurvesShowing() {
+        for (ObjectModel om : modelMap.values()) {
+            if (om.object.isExist()) {
+                boolean showMe = om.object.getMass() >= minimumMassShowing;
+                
+                if (showMe && showOrbit) {
+                    rootNode.attachChild(om.orbit);
+                } else {
+                    rootNode.detachChild(om.orbit);
+                }
+                if (showMe && showTrace) {
+                    rootNode.attachChild(om.trace);
+                } else {
+                    rootNode.detachChild(om.trace);
+                }
+                if (showMe && showFullPath) {
+                    rootNode.attachChild(om.path);
+                } else {
+                    rootNode.detachChild(om.path);
+                }
+            }
+        }
+    }
 
     private void updateLabelShowing() {
         List<CelestialObject> objects = simulator.getObjects();  // sorted from big to small
@@ -1322,8 +1350,9 @@ public class JmeApp extends SimpleApplication {
         // Attempt to label each object
         for (CelestialObject obj : objects) {
             ObjectModel om = modelMap.get(obj);
-
-            if (showLabel) {
+            if (om.object.getMass() < minimumMassShowing) {
+                om.setShowLabel(false);
+            } else if (showLabel) {
                 float labelX = paneX(obj.getX());
                 float labelY = paneY(obj.getY());
 
@@ -1518,7 +1547,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void chaosSolarSystemTest() {
-        scale = SystemPresets.randomStarSystem(simulator, 200);
+        scale = SystemPresets.randomStarSystem(simulator, 190);
         simulator.setEnableDisassemble(false);
 
         reloadObjects();
@@ -1645,6 +1674,8 @@ public class JmeApp extends SimpleApplication {
         this.showTrace = showTrace;
         this.showFullPath = showFullPath;
         this.showOrbit = showOrbit;
+        
+        updateCurvesShowing();
     }
 
     public void setPathLength(double pathLength) {
@@ -1717,6 +1748,13 @@ public class JmeApp extends SimpleApplication {
 
                 spawning = null;
             }
+        });
+    }
+    
+    public void updateMinimumMassShowing(double minimumMassShowing) {
+        enqueue(() -> {
+            this.minimumMassShowing = minimumMassShowing;
+            updateCurvesShowing();
         });
     }
 

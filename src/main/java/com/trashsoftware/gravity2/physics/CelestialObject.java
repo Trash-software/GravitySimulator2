@@ -269,6 +269,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //    }
 
 
+    public void setColorCode(String colorCode) {
+        this.colorCode = colorCode;
+    }
+
     public String getColorCode() {
         return colorCode;
     }
@@ -337,11 +341,22 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
 
     public double getLuminosity() {
-        if (name.equals("Sun")) {
-            return 3.828e26;
-        } else {
+        if (getMass() < SystemPresets.JUPITER_MASS * 80) {
             return 0;
+        } else {
+            // todo: assume is main sequence
+            double ratio = Math.pow(getMass() / SystemPresets.SOLAR_MASS, 3.5);
+            return ratio * SystemPresets.SOLAR_LUMINOSITY;
         }
+    }
+    
+    public double getEmissionColorTemperature() {
+        double lumin = getLuminosity();
+        if (lumin == 0) return 0;
+        double stefanBoltzmannConstant = 5.67e-8;
+        double radius = getAverageRadius();
+        double divisor = 4 * Math.PI * radius * radius * stefanBoltzmannConstant;
+        return Math.pow(lumin / divisor, 0.25);
     }
 
     @Override
@@ -752,6 +767,22 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double term2 = Math.pow(d, 2) + 2 * d * (r1 + r2) - 3 * Math.pow(r1 - r2, 2);
 
         return part1 * term1 * term2;
+    }
+    
+    public static double approxLuminosityOfStar(double mass) {
+        if (mass < SystemPresets.JUPITER_MASS * 80) {
+            return 0;
+        } else {
+            // todo: assume is main sequence
+            double ratio = Math.pow(mass / SystemPresets.SOLAR_MASS, 3.5);
+            return ratio * SystemPresets.SOLAR_LUMINOSITY;
+        }
+    }
+
+    public static double approxColorTemperatureOfStar(double luminosity, double radius) {
+        double stefanBoltzmannConstant = 5.67e-8;
+        double divisor = 4 * Math.PI * radius * radius * stefanBoltzmannConstant;
+        return Math.pow(luminosity / divisor, 0.25);
     }
 
     @Override

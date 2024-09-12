@@ -43,6 +43,15 @@
         
         <Hyperlink text="%showDetails" fx:id="showOrbitPaneBtn" onAction="#showOrbitPane"/>
 
+        <GridPane vgap="2.0" hgap="8.0" fx:id="starPane" visible="false" managed="false">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="95.0"/>
+                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="95.0"/>
+            </columnConstraints>
+        </GridPane>
+
         <GridPane vgap="2.0" hgap="8.0" fx:id="detailPane" visible="false" managed="false">
             <columnConstraints>
                 <ColumnConstraints prefWidth="60.0"/>
@@ -50,54 +59,6 @@
                 <ColumnConstraints prefWidth="60.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
             </columnConstraints>
-
-<!--            <Label text="%volume" GridPane.rowIndex="0"/>-->
-<!--            <Label fx:id="volumeLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%rocheLimit" GridPane.rowIndex="0" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="rocheLimitLabel" GridPane.rowIndex="0" GridPane.columnIndex="3"/>-->
-
-<!--            <Label text="%acceleration" GridPane.rowIndex="1" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="accelerationLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>-->
-<!--            -->
-<!--            -->
-<!--            <Label text="%kinetic" GridPane.rowIndex="1" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="transKineticLabel" GridPane.rowIndex="1" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Label text="%parent" GridPane.rowIndex="2"/>-->
-<!--            <Label fx:id="parentLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%numChildren" GridPane.rowIndex="2" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="childrenCountLabel" GridPane.rowIndex="2" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Label text="%distance" GridPane.rowIndex="3" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="distanceLabel" GridPane.rowIndex="3" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%avgDt" GridPane.rowIndex="3" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="avgDistanceLabel" GridPane.rowIndex="3" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Label text="%aphelion" GridPane.rowIndex="4" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="aphelionLabel" GridPane.rowIndex="4" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%perihelion" GridPane.rowIndex="4" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="perihelionLabel" GridPane.rowIndex="4" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Label text="%semiMajorAxis" GridPane.rowIndex="5" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="semiMajorLabel" GridPane.rowIndex="5" GridPane.columnIndex="1"/>-->
-<!--            -->
-<!--            <Label text="%eccentricity" GridPane.rowIndex="6" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="eccLabel" GridPane.rowIndex="6" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%period" GridPane.rowIndex="6" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="periodLabel" GridPane.rowIndex="6" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Label text="%hillRadius" GridPane.rowIndex="7" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="hillRadiusLabel" GridPane.rowIndex="7" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%hieraticalLevel" GridPane.rowIndex="7" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="hieraticalLabel" GridPane.rowIndex="7" GridPane.columnIndex="3"/>-->
-
-<!--            <Label text="%rotationPeriod" GridPane.rowIndex="8" GridPane.columnIndex="0"/>-->
-<!--            <Label fx:id="rotationPeriodLabel" GridPane.rowIndex="8" GridPane.columnIndex="1"/>-->
-<!--            <Label text="%rotationAxisTilt" GridPane.rowIndex="8" GridPane.columnIndex="2"/>-->
-<!--            <Label fx:id="rotationAxisTiltLabel" GridPane.rowIndex="8" GridPane.columnIndex="3"/>-->
-<!--            -->
-<!--            <Hyperlink text="%hideOrbitSpecs" onAction="#hideOrbitPane" GridPane.rowIndex="9"/>-->
-            
         </GridPane>
 
     </VBox>

@@ -14,7 +14,7 @@ public class GuiUtils {
         // Format the color to a hex string
         return String.format("#%02X%02X%02X", red, green, blue); // RGB
     }
-    
+
     public static String colorToHex(ColorRGBA color) {
         int red = (int) (color.getRed() * 255);
         int green = (int) (color.getGreen() * 255);
@@ -150,7 +150,7 @@ public class GuiUtils {
             r = g = b = brightness;
         } else {
             double h = (hue - Math.floor(hue)) * 6.0;
-            double f = h - java.lang.Math.floor(h);
+            double f = h - Math.floor(h);
             double p = brightness * (1.0 - saturation);
             double q = brightness * (1.0 - saturation * f);
             double t = brightness * (1.0 - (saturation * (1.0 - f)));
@@ -187,19 +187,71 @@ public class GuiUtils {
                     break;
             }
         }
-        double[] f = new double[3];
-        f[0] = r;
-        f[1] = g;
-        f[2] = b;
-        return f;
+        return new double[]{r, g, b};
     }
-    
+
     public static Vector3f fromDoubleArray(double[] doubles) {
         if (doubles.length != 3) throw new IllegalArgumentException();
         return new Vector3f((float) doubles[0], (float) doubles[1], (float) doubles[2]);
     }
-    
+
     public static double[] toDoubleArray(Vector3f vector3f) {
         return new double[]{vector3f.x, vector3f.y, vector3f.z};
     }
+
+    public static Color temperatureToColorHSB(double temperature) {
+        // Normalize temperature to a reasonable stellar range (1000K to 40000K)
+        temperature = Math.max(1000, Math.min(40000, temperature));
+
+        // Calculate the hue based on temperature
+        float hue;
+        if (temperature <= 4000) {
+            // Cool stars (reddish): 0° to 30° on the hue scale
+            hue = 0f + (float) ((temperature - 1000) / 3000.0) * 30f;
+        } else if (temperature <= 7000) {
+            // Mid-range stars (yellow-white): 30° to 60° on the hue scale
+            hue = 30f + (float) ((temperature - 4000) / 3000.0) * 30f;
+        } else {
+            // Hot stars (white to blue): 60° to 240° on the hue scale
+            hue = 60f + (float) ((temperature - 7000) / 33000.0) * 180f;
+        }
+
+        // Adjusted saturation for Sun-like stars
+        float saturation = getSaturation(temperature);
+
+        // Brightness is kept at max for simplicity
+        float brightness = 1.0f;
+
+        return Color.hsb(hue, saturation, brightness);
+    }
+
+    // Function for smooth saturation based on temperature
+    public static float getSaturation(double temperature) {
+        // Adjusted saturation for Sun-like stars
+        float saturation;
+        if (temperature <= 3000) {
+            saturation = 1.0f;
+        } else if (temperature <= 4000) {
+            // Cool stars are highly saturated
+            saturation = 0.4f + (float) (4000 - temperature) / 1000.0f * 0.6f;
+        } else if (temperature <= 7000) {
+            // Lower saturation for stars like the Sun (5770K)
+            saturation = 0.2f + (float) (7000 - temperature) / 3000.0f * 0.2f;  // range 0.2 to 0.4
+        } else {
+            // Hot stars (white to blue) are less saturated
+            saturation = 0.2f + (float) (40000 - temperature) / 33000.0f * 0.2f;  // range 0.2 to 0.3
+        }
+        return saturation;
+    }
+
+    public static ColorRGBA fxColorToJmeColor(Color fxColor) {
+        return new ColorRGBA(
+                (float) fxColor.getRed(),
+                (float) fxColor.getGreen(),
+                (float) fxColor.getBlue(),
+                (float) fxColor.getOpacity()
+        );
+    }
+
 }
+

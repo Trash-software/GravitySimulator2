@@ -41,7 +41,7 @@
 
             <Button fx:id="clearFocusBtn" text="%clearFocus" onAction="#clearFocusAction"
                     disable="true"/>
-            <Button fx:id="clearLandBtn" text="takeoff" onAction="#clearLandAction"
+            <Button fx:id="clearLandBtn" text="%takeoff" onAction="#clearLandAction"
                     disable="true"/>
 
             <MenuButton text="%displayOptions">

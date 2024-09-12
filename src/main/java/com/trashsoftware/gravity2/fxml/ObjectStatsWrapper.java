@@ -1,6 +1,7 @@
 package com.trashsoftware.gravity2.fxml;
 
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
+import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,6 +23,8 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     Label nameLabel, massLabel, diameterLabel, speedLabel, densityLabel;
     @FXML
+    GridPane starPane;
+    @FXML
     GridPane detailPane;
 
     Label parentLabel, childrenCountLabel, distanceLabel, avgDistanceLabel, periodLabel, eccLabel,
@@ -32,6 +35,9 @@ public class ObjectStatsWrapper extends HBox {
             bindingEnergyLabel, thermalEnergyLabel, avgTempLabel,
             volumeLabel, accelerationLabel, eqRadiusLabel, polarRadiusLabel,
             rocheLimitSolidLabel, rocheLimitLiquidLabel;
+    
+    Label colorTempLabel, luminosityLabel;
+    
     @FXML
     Hyperlink showOrbitPaneBtn;
 
@@ -42,6 +48,7 @@ public class ObjectStatsWrapper extends HBox {
 
     private ResourceBundle strings;
     boolean hasExpanded = false;
+    boolean hasStarPaneExpanded = false;
 
     public ObjectStatsWrapper(CelestialObject celestialObject,
                               Simulator simulator,
@@ -112,6 +119,20 @@ public class ObjectStatsWrapper extends HBox {
 //        modelPane.getChildren().add(modelCopy);
 
         update(simulator, defaultUnit);
+    }
+    
+    private void initStarPane() {
+        int rowIndex = 0;
+
+        starPane.add(new Label(strings.getString("colorTemp")), 0, rowIndex);
+        colorTempLabel = new Label();
+        starPane.add(colorTempLabel, 1, rowIndex);
+
+        starPane.add(new Label(strings.getString("luminosity")), 2, rowIndex);
+        luminosityLabel = new Label();
+        starPane.add(luminosityLabel, 3, rowIndex);
+
+        rowIndex++;
     }
 
     private void initDetailPane() {
@@ -277,6 +298,28 @@ public class ObjectStatsWrapper extends HBox {
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
+        
+        if (object.isEmittingLight()) {
+            if (!hasStarPaneExpanded) {
+                initStarPane();
+                hasStarPaneExpanded = true;
+            }
+            
+            starPane.setVisible(true);
+            starPane.setManaged(true);
+            starRelated(simulator, uc);
+        } else {
+            starPane.setVisible(false);
+            starPane.setManaged(false);
+        }
+    }
+    
+    private void starRelated(Simulator simulator, UnitsConverter uc) {
+        double luminosity = object.getLuminosity();
+        double colorTemp = object.getEmissionColorTemperature();
+        
+        luminosityLabel.setText(UnitsUtil.sciFmt.format(luminosity));
+        colorTempLabel.setText(String.format("%.0fK", colorTemp));
     }
 
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
@@ -391,6 +434,9 @@ public class ObjectStatsWrapper extends HBox {
     public void hideOrbitPane() {
         detailPane.setManaged(false);
         detailPane.setVisible(false);
+
+        starPane.setVisible(false);
+        starPane.setManaged(false);
 
         showOrbitPaneBtn.setManaged(true);
         showOrbitPaneBtn.setVisible(true);

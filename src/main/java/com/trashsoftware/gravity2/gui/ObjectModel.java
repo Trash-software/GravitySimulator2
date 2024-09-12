@@ -97,7 +97,15 @@ public class ObjectModel {
         }
         if (object.isEmittingLight()) {
             mat.setFloat("Shininess", 128);
-            mat.setColor("GlowColor", ColorRGBA.Yellow); // Glow effect color
+
+            double colorTemp = object.getEmissionColorTemperature();
+            System.out.println(object.getName() + " color temp: " + colorTemp);
+            ColorRGBA lightColor = GuiUtils.fxColorToJmeColor(
+                    GuiUtils.temperatureToColorHSB(colorTemp)
+            );
+            System.out.println("Emission color: " + lightColor);
+            
+            mat.setColor("GlowColor", lightColor); // Glow effect color
 
             emissionLight = new PointLight();
             adjustPointLight();
@@ -208,11 +216,16 @@ public class ObjectModel {
 
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
+        double colorTemp = object.getEmissionColorTemperature();
+        ColorRGBA lightColor = GuiUtils.fxColorToJmeColor(
+                GuiUtils.temperatureToColorHSB(colorTemp)
+        );
+        
         double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
 //        System.out.println(radius);
         double scaledLuminosity = 1;
 //        System.out.println(scaledLuminosity);
-        emissionLight.setColor(ColorRGBA.White.mult((float) scaledLuminosity));
+        emissionLight.setColor(lightColor.mult((float) scaledLuminosity));
         emissionLight.setRadius((float) radius);
 
 //        System.out.println(scaledLuminosity);
