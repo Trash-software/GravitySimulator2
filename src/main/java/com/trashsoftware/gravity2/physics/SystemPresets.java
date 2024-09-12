@@ -312,7 +312,7 @@ public class SystemPresets {
             double mass = random.nextDouble(1e12, 1e20);
             double density = random.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
-            String color = Util.randomColorCode();
+            String color = Util.randomCelestialColorCode();
 
             CelestialObject co = CelestialObject.createNd(
                     "Comet" + i,
@@ -360,7 +360,7 @@ public class SystemPresets {
             double mass = random.nextDouble(1e12, 1e20);
             double density = random.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
-            String color = Util.randomColorCode();
+            String color = Util.randomCelestialColorCode();
 
             CelestialObject co = CelestialObject.create2d(
                     "Trojan-" + planet.name + i,
@@ -875,7 +875,7 @@ public class SystemPresets {
             } while (x * x + y * y + z * z > 1);
 
             // Scale the point to the ellipsoid
-            String cc = Util.randomColorCode();
+            String cc = Util.randomCelestialColorCode();
             x = x * a;
             y = y * b;
             z = z * c;
@@ -900,25 +900,33 @@ public class SystemPresets {
 
         return 10 / c;
     }
+    
+    public static double twoRandomStarSystems(Simulator simulator) {
+        double scale = randomStarSystem(simulator, 90, 0.75);
+        simulator.rotateWholeSystem(new double[]{0, 0.33, 0.33});
+        simulator.accelerateWholeSystem(new double[]{-1e4, 5e3, -5e3});
+        simulator.shiftWholeSystem(new double[]{1e11, 0, 1e10});
+        
+        randomStarSystem(simulator, 90, 1);
+        
+        return scale;
+    }
 
-    public static double randomStarSystem(Simulator simulator, int n) {
-        double a = 2e10;
-        double b = 2e10;
-        double c = 1e9;
+    public static double randomStarSystem(Simulator simulator, int n, double scale) {
+        double a = 2e10 * scale;
+        double b = 2e10 * scale;
+        double c = 1e9 * scale;
 
         double flatRatio = c / (a + b) * 2;
 
-        double centroidMass = 3e29;
+        double centroidMass = 5e29 * scale;
         double starDensity = starDensity(centroidMass);
         double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
-        String colorCode = GuiUtils.colorToHex(
-                GuiUtils.fxColorToJmeColor(
-                        GuiUtils.temperatureToColorHSB(
-                                CelestialObject.approxColorTemperatureOfStar(
-                                        CelestialObject.approxLuminosityOfStar(centroidMass),
-                                        starRadius
-                                )
-                        )
+
+        String colorCode = GuiUtils.temperatureToRGBString(
+                CelestialObject.approxColorTemperatureOfStar(
+                        CelestialObject.approxLuminosityOfStar(centroidMass),
+                        starRadius
                 )
         );
 
@@ -949,7 +957,7 @@ public class SystemPresets {
             } while (x * x + y * y > 1);
 
             // Scale the point to the ellipsoid
-            String cc = Util.randomColorCode();
+            String cc = Util.randomCelestialColorCode();
             x = x * a;
             y = y * b;
             double dtToCenter = Math.sqrt(x * x + y * y);
@@ -967,7 +975,7 @@ public class SystemPresets {
                         1e3
                 );
             } else {
-                double mass = rand.nextDouble(1e22, 1e25);
+                double mass = rand.nextDouble(1e21, 1e24);
                 double density = rand.nextDouble(500, 6000);
                 double radius = CelestialObject.radiusOf(mass, density);
 

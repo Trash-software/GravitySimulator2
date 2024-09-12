@@ -1,6 +1,8 @@
 package com.trashsoftware.gravity2.physics;
 
 import com.jme3.math.ColorRGBA;
+import com.trashsoftware.gravity2.gui.GuiUtils;
+import javafx.scene.paint.Color;
 import org.json.JSONArray;
 
 import java.util.Arrays;
@@ -108,5 +110,14 @@ public class Util {
                 random.nextInt(256),
                 random.nextInt(256),
                 random.nextInt(256)); // RGB
+    }
+
+    public static String randomCelestialColorCode() {
+        Random random = new Random();
+        double h = random.nextDouble(360);
+        double s = random.nextDouble(0, 0.7);
+        double b = random.nextDouble(0.01, 0.99);
+        Color hsb = Color.hsb(h, s, b);
+        return GuiUtils.colorToHex(GuiUtils.fxColorToJmeColor(hsb));
     }
 }

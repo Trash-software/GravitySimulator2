@@ -266,7 +266,7 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
-        saturnRingTest();
+//        saturnRingTest();
 //        rocheEffectTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
@@ -274,6 +274,7 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
+        twoChaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -870,7 +871,7 @@ public class JmeApp extends SimpleApplication {
     private void updateBarycentersNodes() {
         List<HieraticalSystem> roots = simulator.getRootSystems();
         for (HieraticalSystem hs : roots) {
-            updateBarycenterNode(hs);
+            updateBarycenterNode(hs, 2);
         }
         if (globalBarycenterNode != null) {
             double[] barycenter = simulator.barycenter();
@@ -879,19 +880,28 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void updateBarycenterNode(HieraticalSystem hs) {
+    private void updateBarycenterNode(HieraticalSystem hs, float markSize) {
         if (!hs.isObject()) {
             double[] barycenter = hs.getPosition();
             Vector3f scenePos = panePosition(barycenter);
 
             ObjectModel om = modelMap.get(hs.master);
             if (om.barycenterMark == null) {
-                System.err.println("System " + hs.master.getName() + " does not have valid barycenter mark");
-            } else {
-                om.barycenterMark.setLocalTranslation(scenePos);
-                for (HieraticalSystem child : hs.getChildrenSorted()) {
-                    updateBarycenterNode(child);
-                }
+                om.barycenterMark = createFullCrossAt(
+                        "#Barycenter" + om.object.getName(),
+                        Vector3f.ZERO, markSize,
+                        ColorRGBA.White);
+                rootNode.attachChild(om.barycenterMark);
+//                System.err.println("System " + hs.master.getName() + " does not have valid barycenter mark");
+            } 
+            om.barycenterMark.setLocalTranslation(scenePos);
+            for (HieraticalSystem child : hs.getChildrenSorted()) {
+                updateBarycenterNode(child, markSize - 0.5f);
+            }
+        } else {
+            ObjectModel om = modelMap.get(hs.master);
+            if (om.barycenterMark != null) {
+                rootNode.detachChild(om.barycenterMark);
             }
         }
     }
@@ -1609,7 +1619,16 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void chaosSolarSystemTest() {
-        scale = SystemPresets.randomStarSystem(simulator, 190);
+        scale = SystemPresets.randomStarSystem(simulator, 190, 1.0);
+        simulator.setEnableDisassemble(false);
+
+        reloadObjects();
+
+//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+    }
+
+    private void twoChaosSolarSystemTest() {
+        scale = SystemPresets.twoRandomStarSystems(simulator);
         simulator.setEnableDisassemble(false);
 
         reloadObjects();
@@ -1733,11 +1752,13 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void setTracePathOrbit(boolean showTrace, boolean showFullPath, boolean showOrbit) {
-        this.showTrace = showTrace;
-        this.showFullPath = showFullPath;
-        this.showOrbit = showOrbit;
-        
-        updateCurvesShowing();
+        enqueue(() -> {
+            this.showTrace = showTrace;
+            this.showFullPath = showFullPath;
+            this.showOrbit = showOrbit;
+
+            updateCurvesShowing();
+        });
     }
 
     public void setPathLength(double pathLength) {

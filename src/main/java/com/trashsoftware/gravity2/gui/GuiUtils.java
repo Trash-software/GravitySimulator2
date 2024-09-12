@@ -198,6 +198,66 @@ public class GuiUtils {
     public static double[] toDoubleArray(Vector3f vector3f) {
         return new double[]{vector3f.x, vector3f.y, vector3f.z};
     }
+    
+    public static String temperatureToRGBString(double temperature) {
+        int[] rgb = temperatureToRGB((int) temperature);
+        return String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2]); // RGB
+    }
+
+    /**
+     * Converts a given temperature (in Kelvin) to RGB values.
+     * @param temperature Temperature in Kelvin
+     * @return An array of integers representing the RGB values [R, G, B]
+     */
+    public static int[] temperatureToRGB(int temperature) {
+        // Clamp the temperature between 1000K and 40000K
+        temperature = Math.max(1000, Math.min(temperature, 40000));
+
+        // Convert temperature to RGB values
+        double t = temperature / 100.0;
+        int r, g, b;
+
+        // Calculate red
+        if (t <= 66) {
+            r = 255;
+        } else {
+            r = (int) (329.698727446 * Math.pow(t - 60, -0.1332047592));
+            r = clamp(r, 0, 255);
+        }
+
+        // Calculate green with constraints to avoid unrealistic green colors
+        if (t <= 66) {
+            g = (int) (99.4708025861 * Math.log(t) - 161.1195681661);
+            g = clamp(g, 0, 255);
+        } else {
+            // Ensure green component smoothly reduces at higher temperatures, mimicking the transition
+            g = (int) (288.1221695283 * Math.pow(t - 60, -0.0755148492) * 0.7);
+            g = clamp(g, 0, 255);
+        }
+
+        // Calculate blue
+        if (t >= 66) {
+            b = 255;
+        } else if (t <= 19) {
+            b = 0;
+        } else {
+            b = (int) (138.5177312231 * Math.log(t - 10) - 305.0447927307);
+            b = clamp(b, 0, 255);
+        }
+
+        return new int[]{r, g, b};
+    }
+
+    /**
+     * Clamps a value between a minimum and maximum.
+     * @param value The value to clamp
+     * @param min The minimum value
+     * @param max The maximum value
+     * @return The clamped value
+     */
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
     public static Color temperatureToColorHSB(double temperature) {
         // Normalize temperature to a reasonable stellar range (1000K to 40000K)

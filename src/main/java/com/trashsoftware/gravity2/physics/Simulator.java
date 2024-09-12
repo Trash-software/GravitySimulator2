@@ -590,6 +590,21 @@ public class Simulator {
 
         updateBarycenter();
     }
+    
+    public void rotateWholeSystem(double[] newZAxis) {
+        newZAxis = VectorOperations.normalize(newZAxis);
+        
+        for (CelestialObject co : objects) {
+            double[] newPos = SystemPresets.rotateToXYPlane(co.getPosition(), newZAxis);
+            double[] newVel = SystemPresets.rotateToXYPlane(co.getVelocity(), newZAxis);
+            double[] newAxis = VectorOperations.normalize(
+                    SystemPresets.rotateToXYPlane(co.getRotationAxis(), newZAxis));
+            
+            co.setPosition(newPos);
+            co.setVelocity(newVel);
+            co.forcedSetRotation(newAxis, co.angularVelocity);
+        }
+    }
 
     public double findMassOfPercentile(double percentile) {
         int index = (int) (objects.size() * (1 - percentile / 100));
