@@ -413,11 +413,13 @@ public class ObjectStatsWrapper extends HBox {
             if (orbitalElements.isElliptical()) {
                 avgDistanceLabel.setText(uc.distance(mean));
                 periodLabel.setText(uc.time(orbitalElements.period));
+                aphelionLabel.setText(uc.distance(aph));
             } else {
                 avgDistanceLabel.setText("--");
                 periodLabel.setText("--");
+                aphelionLabel.setText("--");
             }
-            aphelionLabel.setText(uc.distance(aph));
+            
             perihelionLabel.setText(uc.distance(per));
             inclinationLabel.setText(uc.angleDegreeDecimal(orbitalElements.inclination));
             ascendingNodeLabel.setText(uc.angleDegreeDecimal(orbitalElements.ascendingNode));

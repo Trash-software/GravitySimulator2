@@ -48,13 +48,25 @@ public class UnitsUtil {
     }
 
     public static String adaptiveDistance(double m) {
+        int sign = 1;
+        if (m < 0) {
+            sign = -1;
+            m = -m;
+        }
+        
+        String s = adaptiveDistancePositive(m);
+        if (sign == -1) s = "-" + s;
+        return s;
+    }
+    
+    private static String adaptiveDistancePositive(double m) {
         if (m < 1) {
             return stdFmt.format(m * 1e3) + " mm";
         } else if (m < 1e3) {
             return shortFmt.format(m) + " m";
         } else if (m < 1e9) {
             return shortFmt.format(m / 1e3) + " km";
-        } 
+        }
 //        else if (m < 1e12) {
 //            return shortFmt.format(m / 1e6) + "k km";
 //        } 
