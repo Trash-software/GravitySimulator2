@@ -133,6 +133,10 @@ public class Simulator {
         return G;
     }
 
+    public double getGravityDtPower() {
+        return gravityDtPower;
+    }
+
     public int getDimension() {
         return dimension;
     }
@@ -666,8 +670,14 @@ public class Simulator {
 
     protected double potentialEnergyBetween(CelestialObject co1, CelestialObject co2) {
         double distance = VectorOperations.distance(co1.position, co2.position);
-        double upper = -G * co1.mass * co2.mass * Math.pow(distance, 1 - gravityDtPower);
-        double lower = gravityDtPower - 1;
+        return potentialEnergyBetween(co1.mass, co2.mass, distance,
+                G, gravityDtPower);
+    }
+    
+    public static double potentialEnergyBetween(double mass1, double mass2, double r, 
+                                                double G, double dtPower) {
+        double upper = -G * mass1 * mass2 * Math.pow(r, 1 - dtPower);
+        double lower = dtPower - 1;
         return upper / lower;
     }
 

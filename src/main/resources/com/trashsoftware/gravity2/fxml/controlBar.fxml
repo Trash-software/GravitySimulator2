@@ -75,7 +75,7 @@
                     </CustomMenuItem>
                 </items>
             </MenuButton>
-            <Button text="show" onAction="#showObjectPaneAction"/>
+            <Button text="%showInfoPanel" onAction="#showObjectPaneAction"/>
         </HBox>
         <HBox spacing="5.0" alignment="CENTER_LEFT">
             <fx:define>

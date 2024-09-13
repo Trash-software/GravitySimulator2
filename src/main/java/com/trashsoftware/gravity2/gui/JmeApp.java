@@ -152,6 +152,7 @@ public class JmeApp extends SimpleApplication {
         }
 
         if (spawning != null) {
+            updateSpawningPosition();
             computeSpawningMaster();
             drawSpawningConnection();
         }
@@ -272,7 +273,7 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        saturnRingTest();
@@ -283,7 +284,7 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
-//        twoChaosSolarSystemTest();
+        twoChaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -601,13 +602,13 @@ public class JmeApp extends SimpleApplication {
                 }
             }
 
-            if (firstPersonStar == null && !leftButton.pressed) {
-                if (spawning != null) {
-                    if (name.startsWith("MouseMove")) {
-                        updateSpawningPosition();
-                    }
-                }
-            }
+//            if (firstPersonStar == null && !leftButton.pressed) {
+//                if (spawning != null) {
+//                    if (name.startsWith("MouseMove")) {
+//                        updateSpawningPosition();
+//                    }
+//                }
+//            }
         }
     };
 
@@ -1479,10 +1480,10 @@ public class JmeApp extends SimpleApplication {
                 new double[3],
                 scale
         );
-//        simulator.addObject(moon);
-//        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
-//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-//        moon.setVelocity(vel);
+        simulator.addObject(moon);
+        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
+        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+        moon.setVelocity(vel);
 
         scale = 5e-7f;
 
@@ -1655,7 +1656,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void chaosSolarSystemTest() {
-        scale = SystemPresets.randomStarSystem(simulator, 190, 1.0);
+        scale = SystemPresets.randomStarSystem(simulator, 100, 1.0);
         simulator.setEnableDisassemble(false);
 
         reloadObjects();

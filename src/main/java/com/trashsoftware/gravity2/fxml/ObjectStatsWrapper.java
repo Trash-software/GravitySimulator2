@@ -13,7 +13,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
@@ -28,7 +27,7 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     GridPane detailPane;
 
-    Label parentLabel, childrenCountLabel, distanceLabel, avgDistanceLabel, periodLabel, eccLabel,
+    Label parentLabel, orbitStatusLabel, distanceLabel, avgDistanceLabel, periodLabel, eccLabel,
             hillRadiusLabel, aphelionLabel, perihelionLabel,
             inclinationLabel, ascendingNodeLabel,
             semiMajorLabel, hieraticalLabel,
@@ -36,6 +35,7 @@ public class ObjectStatsWrapper extends HBox {
             bindingEnergyLabel, thermalEnergyLabel, avgTempLabel,
             volumeLabel, accelerationLabel, eqRadiusLabel, polarRadiusLabel,
             rocheLimitSolidLabel, rocheLimitLiquidLabel;
+    Label childrenCountLabel, circlingChildrenCountLabel, subsystemMassLabel;
     
     Label colorTempLabel, luminosityLabel;
     
@@ -46,6 +46,7 @@ public class ObjectStatsWrapper extends HBox {
     private Consumer<ObjectStatsWrapper> onExpand;
     private Consumer<CelestialObject> onLand;
     CelestialObject object;
+    OrbitalElements orbitalElements;
 
     private ResourceBundle strings;
     boolean hasExpanded = false;
@@ -207,9 +208,18 @@ public class ObjectStatsWrapper extends HBox {
         parentLabel = new Label();
         detailPane.add(parentLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("numChildren")), 2, rowIndex);
-        childrenCountLabel = new Label();
-        detailPane.add(childrenCountLabel, 3, rowIndex);
+        detailPane.add(new Label(strings.getString("status")), 2, rowIndex);
+        orbitStatusLabel = new Label();
+        detailPane.add(orbitStatusLabel, 3, rowIndex);
+        rowIndex++;
+
+        detailPane.add(new Label(strings.getString("numChildrenStrict")), 0, rowIndex);
+        circlingChildrenCountLabel = new Label();
+        detailPane.add(circlingChildrenCountLabel, 1, rowIndex);
+
+        detailPane.add(new Label(strings.getString("subsystemMass")), 2, rowIndex);
+        subsystemMassLabel = new Label();
+        detailPane.add(subsystemMassLabel, 3, rowIndex);
         rowIndex++;
 
         detailPane.add(new Label(strings.getString("distance")), 0, rowIndex);
@@ -300,12 +310,6 @@ public class ObjectStatsWrapper extends HBox {
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
         
-        if (object.getName().equals("Saturn")) {
-            var a = simulator.getHieraticalSystem(object);
-            System.out.println(Arrays.toString(a.getPosition()) + ", axis: " + 
-                    Arrays.toString(object.getRotationAxis()));
-        }
-        
         if (object.isEmittingLight()) {
             if (!hasStarPaneExpanded) {
                 initStarPane();
@@ -332,15 +336,32 @@ public class ObjectStatsWrapper extends HBox {
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
         CelestialObject parent = object.getHillMaster();
         HieraticalSystem system = simulator.getHieraticalSystem(object);
-        childrenCountLabel.setText(String.valueOf(system.nChildren()));
+//        childrenCountLabel.setText(String.valueOf(system.nChildren()));
         int level = system.getLevel();
         hieraticalLabel.setText(levelName(level));
+
+        if (!system.isObject()) {
+            HieraticalSystem.SystemStats systemStats = system.getCurStats(simulator);
+            circlingChildrenCountLabel.setText(String.valueOf(systemStats.getNClosedObject() - 1));
+            subsystemMassLabel.setText(uc.mass(systemStats.getCirclingMass()));
+        } else {
+            circlingChildrenCountLabel.setText("--");
+            subsystemMassLabel.setText("--");
+        }
+        
         if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
             HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
             parentLabel.setText(parent.getName());
-
-//            double[] relPos = VectorOperations.subtract(object.getPosition(), parent.getPosition());
-//            double[] relVel = VectorOperations.subtract(object.getVelocity(), parent.getVelocity());
+            
+            double orbitBinding = parentSystem.bindingEnergyOf(system, simulator);
+//            System.out.println(object.getName() + " " + orbitBinding);
+            boolean isOrbiting = orbitBinding < 0;
+            if (isOrbiting) {
+                orbitStatusLabel.setText(strings.getString("statusOrbiting"));
+            } else {
+                orbitStatusLabel.setText(strings.getString("statusEscape"));
+            }
+            
             double[] orbitPlaneNormal = system.getEclipticPlaneNormal();
             
             double axisTiltToOrbit = Math.acos(VectorOperations.dotProduct(
@@ -348,16 +369,10 @@ public class ObjectStatsWrapper extends HBox {
                     orbitPlaneNormal
             ));
             rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
-//            double axisTiltToParentEquator = Math.acos(VectorOperations.dotProduct(
-//                    object.getRotationAxis(),
-//                    parent.getRotationAxis()
-//            ));
             
             double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
             double[] velocity = VectorOperations.subtract(system.getVelocity(), parentSystem.getVelocity());
-            
             double[] position = VectorOperations.subtract(system.getPosition(), barycenter);
-            OrbitalElements oe;
             
             if (level >= 2) {
                 // moons
@@ -372,16 +387,22 @@ public class ObjectStatsWrapper extends HBox {
                 position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
                 velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
             }
-            oe = OrbitCalculator.computeOrbitSpecs3d(position,
+            orbitalElements = OrbitCalculator.computeOrbitSpecs3d(position,
                     velocity,
                     system.getMass() + parent.getMass(),
                     simulator.getG());
+            
+            if (isOrbiting != orbitalElements.isElliptical()) {
+                System.out.println(object.getName() + " has marginal orbit with ecc: " + 
+                        orbitalElements.eccentricity + ", energy: " + 
+                        orbitBinding);
+            }
 
             double dt = Math.hypot(object.getX() - parent.getX(), object.getY() - parent.getY());
             distanceLabel.setText(uc.distance(dt));
 
-            double a = oe.semiMajorAxis;
-            double e = oe.eccentricity;
+            double a = orbitalElements.semiMajorAxis;
+            double e = orbitalElements.eccentricity;
             double aph = a * (1 + e);
             double per = a * (1 - e);
 
@@ -389,12 +410,17 @@ public class ObjectStatsWrapper extends HBox {
 
             semiMajorLabel.setText(uc.distance(a));
             eccLabel.setText(String.format("%.4f", e));
-            avgDistanceLabel.setText(uc.distance(mean));
-            periodLabel.setText(uc.time(oe.period));
+            if (orbitalElements.isElliptical()) {
+                avgDistanceLabel.setText(uc.distance(mean));
+                periodLabel.setText(uc.time(orbitalElements.period));
+            } else {
+                avgDistanceLabel.setText("--");
+                periodLabel.setText("--");
+            }
             aphelionLabel.setText(uc.distance(aph));
             perihelionLabel.setText(uc.distance(per));
-            inclinationLabel.setText(uc.angleDegreeDecimal(oe.inclination));
-            ascendingNodeLabel.setText(uc.angleDegreeDecimal(oe.ascendingNode));
+            inclinationLabel.setText(uc.angleDegreeDecimal(orbitalElements.inclination));
+            ascendingNodeLabel.setText(uc.angleDegreeDecimal(orbitalElements.ascendingNode));
             hillRadiusLabel.setText(uc.distance(object.getHillRadius()));
         } else {
             parentLabel.setText("free");
