@@ -13,6 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
@@ -298,6 +299,12 @@ public class ObjectStatsWrapper extends HBox {
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
+        
+        if (object.getName().equals("Saturn")) {
+            var a = simulator.getHieraticalSystem(object);
+            System.out.println(Arrays.toString(a.getPosition()) + ", axis: " + 
+                    Arrays.toString(object.getRotationAxis()));
+        }
         
         if (object.isEmittingLight()) {
             if (!hasStarPaneExpanded) {

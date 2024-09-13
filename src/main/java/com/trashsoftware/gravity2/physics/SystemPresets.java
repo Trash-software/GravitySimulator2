@@ -1025,7 +1025,7 @@ public class SystemPresets {
                 new double[3],
                 1.0
         );
-        saturnObj.forcedSetRotation(new double[]{0, 0, 1}, CelestialObject.angularVelocityOf(saturn.rotationPeriod));
+//        saturnObj.forcedSetRotation(new double[]{0, 0, 1}, CelestialObject.angularVelocityOf(saturn.rotationPeriod));
 
         simulator.addObject(saturnObj);
 
@@ -1056,7 +1056,7 @@ public class SystemPresets {
             double mass = random.nextDouble(meanMass * 0.5, meanMass * 1.5);
 
             double[] pos = new double[]{x, y, z};
-//            pos = SystemPresets.rotateToParentEclipticPlane(pos, parent.getRotationAxis());
+            pos = SystemPresets.rotateToParentEclipticPlane(pos, parent.getRotationAxis().clone());
 
             CelestialObject small = CelestialObject.create3d(
                     baseName + " Ring-" + i,
@@ -1073,8 +1073,8 @@ public class SystemPresets {
             double[] velocity = simulator.computeVelocityOfN(parent,
                     small,
                     1.0,
-//                    parent.getRotationAxis().clone()
-                    new double[]{0, 0, 1}
+                    parent.getRotationAxis().clone()
+//                    new double[]{0, 0, 1}
             );
 
             small.setVelocity(velocity);

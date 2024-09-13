@@ -812,8 +812,10 @@ public class Simulator {
                 probableHillMasters.add(hm);
             }
         }
-        if (probableHillMasters.isEmpty()) throw new RuntimeException("Cannot find a hill master");
-        else if (probableHillMasters.size() == 1) return probableHillMasters.get(0);
+        if (probableHillMasters.isEmpty()) {
+//            throw new RuntimeException("Cannot find a hill master");
+            return null;
+        } else if (probableHillMasters.size() == 1) return probableHillMasters.get(0);
 
         // compare the position is getting more force from which root object
         double maxF = 0.0;
@@ -1252,37 +1254,38 @@ public class Simulator {
             barycenter[dim] = dominantPos[dim] * dominantMass + placingPos[dim] * placingMass;
         }
 
+        double[] connection = new double[dimension];
+        double sqrSum = 0;
         for (int dim = 0; dim < dimension; dim++) {
             barycenter[dim] /= totalMass;
-        }
-
-        double sqrSum = 0;
-        double[] dtAtD = new double[dimension];
-        for (int d = 0; d < dimension; d++) {
-            dtAtD[d] = placingPos[d] - barycenter[d];
-            sqrSum += dtAtD[d] * dtAtD[d];
+            double dtAtD = placingPos[dim] - barycenter[dim];
+            connection[dim] = dtAtD;
+            sqrSum += dtAtD * dtAtD;
         }
         double distance = Math.sqrt(sqrSum);
+        
+        double[] direction;
+        if (planeNormal != null) {
+            direction = VectorOperations.crossProduct(planeNormal, connection);
+            direction = VectorOperations.normalize(direction);
+        } else {
+            direction = new double[dimension];
+            direction[direction.length - 1] = 1;
+        }
 
         int sign = speedFactor < 0 ? -1 : 1;
         speedFactor = Math.abs(speedFactor);
 
-        double speedMag = Math.sqrt(speedFactor * G * totalMass / Math.pow(distance, gravityDtPower - 1));
-        double[] res = new double[dimension];
-
-        double vx = -dtAtD[1] / distance * speedMag * sign;
-        double vy = dtAtD[0] / distance * speedMag * sign;
-
-        res[0] = vx;
-        res[1] = vy;
+        double speedMag = sign * Math.sqrt(speedFactor * G * totalMass / Math.pow(distance, gravityDtPower - 1));
         
-        if (dimension == 3 && planeNormal != null) {
-            res = SystemPresets.rotateToParentEclipticPlane(res, planeNormal);
+        double[] velocity = new double[dimension];
+        for (int dim = 0; dim < dimension; dim++) {
+            velocity[dim] = direction[dim] * speedMag;
         }
         
-        VectorOperations.addInPlace(res, dominantVelocity);
+        VectorOperations.addInPlace(velocity, dominantVelocity);
 
-        return res;
+        return velocity;
     }
 
     private void updateBarycenter() {
@@ -1423,21 +1426,6 @@ public class Simulator {
         for (CelestialObject object : objects) {
             // for each pair of parent-children, compute them
             if (object.hillMaster != null) {
-//                double[] bc = barycenterOf(object, object.hillMaster);
-//                double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
-//                double[] ae = OrbitCalculator.computeBasic(
-//                        object,
-//                        bc,
-//                        object.mass + object.hillMaster.mass,
-//                        relVel,
-//                        G
-//                );
-//                double[] bcVel = barycenterVelocityOf(object, object.hillMaster);
-//                double[] r = VectorOperations.subtract(object.position, object.hillMaster.position);
-//                double dt = VectorOperations.magnitude(r);
-//                double[] orbitAngularMomentum = VectorOperations.crossProduct(r, relVel);
-//                double orbitAngularVel = -orbitAngularMomentum[orbitAngularMomentum.length - 1] / (dt * dt);
-
                 // both use a same set of orbit params, 
                 // otherwise the hill master will have too small semi-major
                 tidalBrake(object.hillMaster, object, timeStep);
@@ -1494,28 +1482,30 @@ public class Simulator {
         double cosTheta = VectorOperations.dotProduct(
                 primary.rotationAxis, orbitPlaneNormal);
         double theta = Math.acos(cosTheta);
-        // Compute the cross product of the rotation axis and orbital normal vector
-        double[] axisCross = VectorOperations.crossProduct(primary.rotationAxis, orbitPlaneNormal);
-        double[] axisCrossUnit = VectorOperations.normalize(axisCross);
+        if (theta >= 1e-5) {
+            // Compute the cross product of the rotation axis and orbital normal vector
+            double[] axisCross = VectorOperations.crossProduct(primary.rotationAxis, orbitPlaneNormal);
+            double[] axisCrossUnit = VectorOperations.normalize(axisCross);
 
-        double cMinusA = 0.4 * primary.mass * Math.pow(primary.getEquatorialRadius(), 2) *
-                primary.tidalLoveNumber / 3;
-        // Compute the torque constant tau_0
-        double tau_0 = (3 * G * secondary.mass * cMinusA) / Math.pow(dt, 3);
-        double tau = tau_0 * Math.sin(theta) * (tidalEffectFactor * 3e-26);
+            double cMinusA = 0.4 * primary.mass * Math.pow(primary.getEquatorialRadius(), 2) *
+                    primary.tidalLoveNumber / 3;
+            // Compute the torque constant tau_0
+            double tau_0 = (3 * G * secondary.mass * cMinusA) / Math.pow(dt, 3);
+            double tau = tau_0 * Math.sin(theta) * (tidalEffectFactor * 3e-26);
 
 //        // Final torque
 //        double[] torque = VectorOperations.scale(axisCross, tau_0 * Math.sin(theta));
 //        System.out.println(primary.name + " " + theta + " " + Arrays.toString(torque) + " " + VectorOperations.magnitude(torque));
 
-        // Initial angular momentum
-        double[] L0 = primary.angularMomentum();
-        // Change in angular momentum due to torque
-        double axisChange = tau / VectorOperations.magnitude(L0) * timeStep;
+            // Initial angular momentum
+            double[] L0 = primary.angularMomentum();
+            // Change in angular momentum due to torque
+            double axisChange = tau / VectorOperations.magnitude(L0) * timeStep;
 //        System.out.println(primary.name + " " + axisChange);
 
-        double[] newAxis = VectorOperations.rotateVector(primary.rotationAxis, axisCrossUnit, axisChange);
-        primary.updateRotationAxis(newAxis);
+            double[] newAxis = VectorOperations.rotateVector(primary.rotationAxis, axisCrossUnit, axisChange);
+            primary.updateRotationAxis(newAxis);
+        }
 
 //        double[] deltaL = VectorOperations.scale(torque, timeStep * 1e3);
         // New angular momentum

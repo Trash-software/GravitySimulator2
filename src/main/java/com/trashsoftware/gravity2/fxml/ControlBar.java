@@ -135,6 +135,12 @@ public class ControlBar implements Initializable {
             if (jmeApp == null) return;
             jmeApp.setShowRocheLimit(newValue);
         });
+        
+        ellipticalOnlyCheck.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.setEclipticOrbitOnly(newValue);
+        }));
     }
 
     private void setSliders() {

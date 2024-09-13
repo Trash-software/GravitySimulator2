@@ -44,8 +44,8 @@ public class FirstPersonMoving {
 
     public void lookingAltitudeChange(double changeAlgDeg) {
         this.lookAltitudeDeg += changeAlgDeg;
-        lookAltitudeDeg = Math.min(85, Math.max(-85, lookAltitudeDeg));
-//        System.out.println("Alt change: " + changeAlgDeg + ", alt: " + lookAltitudeDeg);
+        lookAltitudeDeg = Math.min(89, Math.max(-89, lookAltitudeDeg));
+//        System.out.println("Alt: " + lookAltitudeDeg);
     }
     
     public void moveUp(double moveDistance) {
@@ -140,9 +140,10 @@ public class FirstPersonMoving {
     }
 
     public void updateCamera(Camera cam) {
-        float azimuthAngle = (float) compassAzimuthToGame(compassAzimuth + 90);  // node is north
-        float altitudeAngle = (float) lookAltitudeDeg;
+        float azimuthRad = (float) compassAzimuthToGame(compassAzimuth + 90) * FastMath.DEG_TO_RAD;  // node is north
+        float altitudeRad = (float) lookAltitudeDeg * FastMath.DEG_TO_RAD;
 
+        // The unit vector pointing to the sky
         Vector3f upVector = getUpVector();
         // The camera will always look at the targetNode's position
         Vector3f targetPosition = northNode.getWorldTranslation();
@@ -150,13 +151,17 @@ public class FirstPersonMoving {
         // Create a local forward direction vector towards the target point
         Vector3f forwardDir = targetPosition.subtract(cameraNode.getWorldTranslation()).normalize();
 
-        // Apply the azimuth rotation (rotate around the up vector)
-        Quaternion azimuthRotation = new Quaternion().fromAngleAxis(azimuthAngle * FastMath.DEG_TO_RAD, upVector);
-        forwardDir = azimuthRotation.mult(forwardDir); // Apply azimuth rotation
+        // Apply azimuth rotation (rotate around the up vector)
+        Quaternion azimuthRotation = new Quaternion().fromAngleAxis(azimuthRad, upVector);
+        forwardDir = azimuthRotation.mult(forwardDir);
 
-        // Apply the altitude (vertical) rotation (rotate around the camera's left vector)
-        Quaternion altitudeRotation = new Quaternion().fromAngleAxis(altitudeAngle * FastMath.DEG_TO_RAD, cam.getLeft());
-        forwardDir = altitudeRotation.mult(forwardDir); // Apply altitude rotation
+        // Instead of rotating around the camera's left vector, use a safe method:
+        // Calculate a right vector from the forward direction and up vector
+        Vector3f rightVector = forwardDir.cross(upVector).normalizeLocal();
+
+        // Apply altitude rotation (rotate around the right vector to avoid gimbal lock)
+        Quaternion altitudeRotation = new Quaternion().fromAngleAxis(altitudeRad, rightVector);
+        forwardDir = altitudeRotation.mult(forwardDir);
 
         // Position the camera at the CameraNode and look in the adjusted forward direction
         cam.setLocation(cameraNode.getWorldTranslation());

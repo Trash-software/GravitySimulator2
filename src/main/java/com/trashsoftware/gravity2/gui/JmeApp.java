@@ -73,6 +73,7 @@ public class JmeApp extends SimpleApplication {
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
+    private boolean eclipticOrbitOnly;
     private double minimumMassShowing;
     private CelestialObject focusing;
     private FirstPersonMoving firstPersonStar;
@@ -106,10 +107,13 @@ public class JmeApp extends SimpleApplication {
         initMarks();
 
 //        putTestBox();
-        initializeSimulator();
+        playing = false;
 
+        initializeSimulator();
+        
         setCamera3rdPerson();
         updateLabelShowing();
+        playing = true;
     }
 
     @Override
@@ -226,8 +230,13 @@ public class JmeApp extends SimpleApplication {
             String lon = uc.longitude(firstPersonStar.getGeologicalLongitude());
             String lat = uc.latitude(firstPersonStar.getLatitude());
 
-            lonLatTextNode.setText(String.format("%s\n%s\n%s",
-                    lon, lat, uc.distance(firstPersonStar.getAltitude())));
+            lonLatTextNode.setText(String.format("""
+                            Longitude: %s
+                            Latitude: %s
+                            Altitude: %s
+                            FOV: %s""",
+                    lon, lat, uc.distance(firstPersonStar.getAltitude()), 
+                    uc.angleDegreeDecimal(cam.getFov())));
         }
     }
 
@@ -263,7 +272,7 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        saturnRingTest();
@@ -274,7 +283,7 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
-        twoChaosSolarSystemTest();
+//        twoChaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -359,6 +368,16 @@ public class JmeApp extends SimpleApplication {
     private double get3rdPersonObjectViewScale(CelestialObject object) {
         double radius = object.getEquatorialRadius();
         return 30.0 / radius;
+    }
+    
+    private void adjustFov(float delta) {
+        float fov = cam.getFov();
+        float newFov = FastMath.clamp(fov + delta, 5, 175f);
+        
+        cam.setFrustumPerspective(newFov,
+                (float) cam.getWidth() / cam.getHeight(),
+                cam.getFrustumNear(),
+                cam.getFrustumFar());
     }
 
     private void setCamera1stPerson() {
@@ -531,10 +550,10 @@ public class JmeApp extends SimpleApplication {
                         firstPersonStar.azimuthChange(value * azimuthSensitivity);
                     } else if (name.equals("MouseMoveY-")) {
                         // Move the camera vertically when dragging the left button
-                        firstPersonStar.lookingAltitudeChange(-value * altitudeAngleSensitivity);
+                        firstPersonStar.lookingAltitudeChange(value * altitudeAngleSensitivity);
                     } else if (name.equals("MouseMoveY+")) {
                         // Move the camera vertically when dragging the left button
-                        firstPersonStar.lookingAltitudeChange(value * altitudeAngleSensitivity);
+                        firstPersonStar.lookingAltitudeChange(-value * altitudeAngleSensitivity);
                     }
 //                    Vector3f sightPos = firstPersonStar.getSightLocalPos();
 //                    firstPersonStar.sightPoint.setLocalTranslation(sightPos);
@@ -573,6 +592,12 @@ public class JmeApp extends SimpleApplication {
                     zoomInAction();
                 } else if (name.equals("ZoomOut")) {
                     zoomOutAction();
+                }
+            } else {
+                if (name.equals("ZoomIn")) {
+                    adjustFov(-5f);
+                } else if (name.equals("ZoomOut")) {
+                    adjustFov(5f);
                 }
             }
 
@@ -782,16 +807,18 @@ public class JmeApp extends SimpleApplication {
 
     private void computeSpawningMaster() {
         HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
-        CelestialObject dominant = hillMaster.master;
+        if (hillMaster != null) {
+            CelestialObject dominant = hillMaster.master;
 
-        if (dominant != null && dominant.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
-            spawning.object.setHillMaster(dominant);
-            if (focusing != null) {
-                spawning.spawnRelative = focusing;
-                spawning.planeNormal = focusing.getRotationAxis();
-            } else {
-                spawning.spawnRelative = null;
-                spawning.planeNormal = dominant.getRotationAxis();
+            if (dominant != null && dominant.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
+                spawning.object.setHillMaster(dominant);
+                if (focusing != null) {
+                    spawning.spawnRelative = focusing;
+                    spawning.planeNormal = focusing.getRotationAxis();
+                } else {
+                    spawning.spawnRelative = null;
+                    spawning.planeNormal = dominant.getRotationAxis();
+                }
             }
         }
 
@@ -1084,7 +1111,11 @@ public class JmeApp extends SimpleApplication {
             if (specs.isElliptical()) {
                 drawEllipticalOrbit(spawning.model, barycenter, specs);
             } else {
-                drawHyperbolicOrbit(spawning.model, barycenter, specs);
+                if (eclipticOrbitOnly) {
+                    spawning.model.orbit.setMesh(ObjectModel.blank);
+                } else {
+                    drawHyperbolicOrbit(spawning.model, barycenter, specs);
+                }
             }
         }
     }
@@ -1113,10 +1144,15 @@ public class JmeApp extends SimpleApplication {
                     child.getMass() + parent.getMass(),
                     simulator.getG());
 
+            ObjectModel om = modelMap.get(object);
             if (specs.isElliptical()) {
-                drawEllipticalOrbit(modelMap.get(object), barycenter, specs);
+                drawEllipticalOrbit(om, barycenter, specs);
             } else {
-                drawHyperbolicOrbit(modelMap.get(object), barycenter, specs);
+                if (eclipticOrbitOnly) {
+                    om.orbit.setMesh(ObjectModel.blank);
+                } else {
+                    drawHyperbolicOrbit(om, barycenter, specs);
+                }
             }
         }
     }
@@ -1430,7 +1466,7 @@ public class JmeApp extends SimpleApplication {
         CelestialObject earth = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.earth,
-                new double[]{-5e6, 1e6, -1e6},
+                new double[]{0, 0, 0},
                 new double[3],
                 scale
         );
@@ -1443,10 +1479,10 @@ public class JmeApp extends SimpleApplication {
                 new double[3],
                 scale
         );
-        simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
-        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-        moon.setVelocity(vel);
+//        simulator.addObject(moon);
+//        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+//        moon.setVelocity(vel);
 
         scale = 5e-7f;
 
@@ -1538,7 +1574,7 @@ public class JmeApp extends SimpleApplication {
         reloadObjects();
         DirectionalLight directionalLight = new DirectionalLight();
         directionalLight.setColor(ColorRGBA.White);
-        directionalLight.setDirection(new Vector3f(0, 0.5f, -0.2f));
+//        directionalLight.setDirection(new Vector3f(0, 0.5f, -0.2f));
 
         // Add shadow renderer
         DirectionalLightShadowRenderer plsr = new DirectionalLightShadowRenderer(getAssetManager(),
@@ -1709,7 +1745,9 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void clearFocus() {
-        focusing = null;
+        enqueue(() -> {
+            focusing = null;
+        });
     }
 
     public void clearLand() {
@@ -1738,13 +1776,17 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void speedUpAction() {
-        speed *= 2;
-        setSpeed();
+        enqueue(() -> {
+            speed *= 2;
+            setSpeed();
+        });
     }
 
     public void speedDownAction() {
-        speed /= 2;
-        setSpeed();
+        enqueue(() -> {
+            speed /= 2;
+            setSpeed();
+        });
     }
 
     public void setPlaying(boolean playing) {
@@ -1759,6 +1801,10 @@ public class JmeApp extends SimpleApplication {
 
             updateCurvesShowing();
         });
+    }
+
+    public void setEclipticOrbitOnly(boolean eclipticOrbitOnly) {
+        this.eclipticOrbitOnly = eclipticOrbitOnly;
     }
 
     public void setPathLength(double pathLength) {
