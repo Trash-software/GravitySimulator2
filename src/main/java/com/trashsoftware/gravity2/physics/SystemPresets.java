@@ -902,12 +902,12 @@ public class SystemPresets {
     }
     
     public static double twoRandomStarSystems(Simulator simulator) {
-        double scale = randomStarSystem(simulator, 90, 0.75);
-        simulator.rotateWholeSystem(new double[]{0, 0.33, 0.33});
-        simulator.accelerateWholeSystem(new double[]{-1e4, 5e3, -5e3});
-        simulator.shiftWholeSystem(new double[]{1e11, 0, 1e10});
+        double scale = randomStarSystem(simulator, 90, 0.9);
+        simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
+        simulator.accelerateWholeSystem(new double[]{0, 2e4, 0});
+        simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
         
-        randomStarSystem(simulator, 90, 1);
+        randomStarSystem(simulator, 90, 1.2);
         
         return scale;
     }
@@ -919,7 +919,7 @@ public class SystemPresets {
 
         double flatRatio = c / (a + b) * 2;
 
-        double centroidMass = 5e29 * scale;
+        double centroidMass = 5e29 * Math.pow(scale, 3);
         double starDensity = starDensity(centroidMass);
         double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
 
@@ -975,7 +975,7 @@ public class SystemPresets {
                         1e3
                 );
             } else {
-                double mass = rand.nextDouble(1e21, 1e24);
+                double mass = rand.nextDouble(1e25, 1e27) * Math.pow(scale, 3);
                 double density = rand.nextDouble(500, 6000);
                 double radius = CelestialObject.radiusOf(mass, density);
 

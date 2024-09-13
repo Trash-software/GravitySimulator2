@@ -273,7 +273,7 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        saturnRingTest();
@@ -284,7 +284,7 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
-//        twoChaosSolarSystemTest();
+        twoChaosSolarSystemTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
