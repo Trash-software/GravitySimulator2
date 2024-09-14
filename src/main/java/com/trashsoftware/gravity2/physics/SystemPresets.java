@@ -15,6 +15,8 @@ public class SystemPresets {
     public static final double SOLAR_DENSITY = 1410;
     public static final double SOLAR_LUMINOSITY = 3.828e26;
     public static final double JUPITER_MASS = 1.899e27;
+    public static final double EARTH_MASS = 5.972e24;
+    public static final double MOON_MASS = 7.342e22;
     public static final double AU = 149598262000.0;  // 1 AU in meter
 
     public static final Map<String, String> TEXTURES = new HashMap<>();
@@ -59,165 +61,165 @@ public class SystemPresets {
 
     // Moon
     public static ObjectInfo moon = new ObjectInfo(
-            "Moon", 7.342e22, 1737.1, 1738.1, 1735.6, 384400, 0.0549, 318.15, 5.145, 125.08, 135.27, 6.68, 27.322,
+            "Moon", BodyType.TERRESTRIAL, MOON_MASS, 1737.1, 1738.1, 1735.6, 384400, 0.0549, 318.15, 5.145, 125.08, 135.27, 6.68, 27.322,
             "#C0C0C0", 0.024, 30
     );
 
     // Moons of Mars
     public static ObjectInfo phobos = new ObjectInfo(
-            "Phobos", 1.0659e16, 11.1, 13, 11, 9376, 0.0151, 150.057, 1.093, 49.247, 23.51, 0.0, 0.319,
+            "Phobos", BodyType.ICE, 1.0659e16, 11.1, 13, 11, 9376, 0.0151, 150.057, 1.093, 49.247, 23.51, 0.0, 0.319,
             "#704241", 0.005, 100
     );
     public static ObjectInfo deimos = new ObjectInfo(
-            "Deimos", 1.4762e15, 6.2, 7.5, 6.1, 23460, 0.00033, 260.73, 0.93, 49.29, 176.12, 0.0, 1.263,
+            "Deimos", BodyType.ICE, 1.4762e15, 6.2, 7.5, 6.1, 23460, 0.00033, 260.73, 0.93, 49.29, 176.12, 0.0, 1.263,
             "#A0522D", 0.005, 100
     );
 
     // Moons of Jupiter
     public static ObjectInfo io = new ObjectInfo(
-            "Io", 8.93e22, 1821.6, 1821.6, 1821.6, 421700, 0.0041, 84.129, 0.036, 43.977, 99.5, 0.05, 1.769,
+            "Io", BodyType.ICE, 8.93e22, 1821.6, 1821.6, 1821.6, 421700, 0.0041, 84.129, 0.036, 43.977, 99.5, 0.05, 1.769,
             "#FFD700", 0.015, 50
     );
     public static ObjectInfo europa = new ObjectInfo(
-            "Europa", 4.8e22, 1560.8, 1560.8, 1560.8, 670900, 0.009, 88.970, 0.47, 219.106, 74.5, 0.1, 3.551,
+            "Europa", BodyType.ICE, 4.8e22, 1560.8, 1560.8, 1560.8, 670900, 0.009, 88.970, 0.47, 219.106, 74.5, 0.1, 3.551,
             "#87CEEB", 0.010, 100
     );
     public static ObjectInfo ganymede = new ObjectInfo(
-            "Ganymede", 1.48e23, 2634.1, 2634.1, 2634.1, 1070400, 0.0013, 192.417, 0.177, 63.552, 125.3, 0.33, 7.155,
+            "Ganymede", BodyType.ICE, 1.48e23, 2634.1, 2634.1, 2634.1, 1070400, 0.0013, 192.417, 0.177, 63.552, 125.3, 0.33, 7.155,
             "#DCDCDC", 0.020, 200
     );
     public static ObjectInfo callisto = new ObjectInfo(
-            "Callisto", 1.08e23, 2410.3, 2410.3, 2410.3, 1882700, 0.0074, 298.848, 0.192, 298.848, 42.9, 0.0, 16.689,
+            "Callisto", BodyType.ICE, 1.08e23, 2410.3, 2410.3, 2410.3, 1882700, 0.0074, 298.848, 0.192, 298.848, 42.9, 0.0, 16.689,
             "#708090", 0.010, 300
     );
 
     // Moons of Saturn
     public static ObjectInfo titan = new ObjectInfo(
-            "Titan", 1.345e23, 2576, 2575.5, 2573.4, 1222000, 0.0288, 186.585, 0.348, 168.199, 132.8, 0.3, 15.945,
+            "Titan", BodyType.ICE, 1.345e23, 2576, 2575.5, 2573.4, 1222000, 0.0288, 186.585, 0.348, 168.199, 132.8, 0.3, 15.945,
             "#D2B48C", 0.105, 1500
     );
     public static ObjectInfo rhea = new ObjectInfo(
-            "Rhea", 2.31e21, 763.8, 764, 762, 527040, 0.001, 252.13, 0.345, 34.333, 75.9, 0.0, 4.518,
+            "Rhea", BodyType.ICE, 2.31e21, 763.8, 764, 762, 527040, 0.001, 252.13, 0.345, 34.333, 75.9, 0.0, 4.518,
             "#F5F5F5", 0.020, 1000
     );
     public static ObjectInfo iapetus = new ObjectInfo(
-            "Iapetus", 1.8e21, 734.5, 734.5, 734.5, 3561300, 0.0286, 83.01, 15.47, 79.321, 310.2, 0.0, 79.321,
+            "Iapetus", BodyType.ICE, 1.8e21, 734.5, 734.5, 734.5, 3561300, 0.0286, 83.01, 15.47, 79.321, 310.2, 0.0, 79.321,
             "#2F4F4F", 0.015, 1200
     );
     public static ObjectInfo dione = new ObjectInfo(
-            "Dione", 1.095e21, 561.4, 561.4, 561.4, 377400, 0.0022, 292.429, 0.028, 168.766, 183.2, 0.0, 2.737,
+            "Dione", BodyType.ICE, 1.095e21, 561.4, 561.4, 561.4, 377400, 0.0022, 292.429, 0.028, 168.766, 183.2, 0.0, 2.737,
             "#D3D3D3", 0.025, 1000
     );
     public static ObjectInfo tethys = new ObjectInfo(
-            "Tethys", 6.18e20, 531.1, 531.1, 531.1, 294619, 0.0001, 243.458, 1.09, 72.366, 23.4, 0.0, 1.887,
+            "Tethys", BodyType.ICE, 6.18e20, 531.1, 531.1, 531.1, 294619, 0.0001, 243.458, 1.09, 72.366, 23.4, 0.0, 1.887,
             "#AFEEEE", 0.030, 900
     );
     public static ObjectInfo enceladus = new ObjectInfo(
-            "Enceladus", 1.08e20, 252.1, 252.1, 252.1, 238041, 0.0047, 270.876, 0.009, 167.583, 102.9, 0.0, 1.370,
+            "Enceladus", BodyType.ICE, 1.08e20, 252.1, 252.1, 252.1, 238041, 0.0047, 270.876, 0.009, 167.583, 102.9, 0.0, 1.370,
             "#FFFFFF", 0.020, 700
     );
 
     // Moons of Uranus
     public static ObjectInfo titania = new ObjectInfo(
-            "Titania", 3.42e21, 788.4, 788.4, 788.4, 436300, 0.0011, 77.874, 0.34, 99.771, 259.8, 0.0, 8.706,
+            "Titania", BodyType.ICE, 3.42e21, 788.4, 788.4, 788.4, 436300, 0.0011, 77.874, 0.34, 99.771, 259.8, 0.0, 8.706,
             "#98FB98", 0.025, 1100
     );
     public static ObjectInfo oberon = new ObjectInfo(
-            "Oberon", 3.01e21, 761.4, 761.4, 761.4, 583500, 0.0014, 77.742, 0.07, 103.537, 172.1, 0.0, 13.463,
+            "Oberon", BodyType.ICE, 3.01e21, 761.4, 761.4, 761.4, 583500, 0.0014, 77.742, 0.07, 103.537, 172.1, 0.0, 13.463,
             "#556B2F", 0.022, 1050
     );
     public static ObjectInfo umbriel = new ObjectInfo(
-            "Umbriel", 1.27e21, 584.7, 584.7, 584.7, 266000, 0.0039, 84.709, 0.128, 118.364, 10.3, 0.0, 4.144,
+            "Umbriel", BodyType.ICE, 1.27e21, 584.7, 584.7, 584.7, 266000, 0.0039, 84.709, 0.128, 118.364, 10.3, 0.0, 4.144,
             "#008080", 0.020, 1000
     );
     public static ObjectInfo ariel = new ObjectInfo(
-            "Ariel", 1.29e21, 578.9, 578.9, 578.9, 191020, 0.0012, 84.334, 0.041, 171.344, 216.7, 0.0, 2.520,
+            "Ariel", BodyType.ICE, 1.29e21, 578.9, 578.9, 578.9, 191020, 0.0012, 84.334, 0.041, 171.344, 216.7, 0.0, 2.520,
             "#F0FFF0", 0.023, 980
     );
     public static ObjectInfo miranda = new ObjectInfo(
-            "Miranda", 6.6e19, 235.8, 235.8, 235.8, 129390, 0.0013, 84.548, 4.338, 65.963, 354.2, 0.0, 1.413,
+            "Miranda", BodyType.ICE, 6.6e19, 235.8, 235.8, 235.8, 129390, 0.0013, 84.548, 4.338, 65.963, 354.2, 0.0, 1.413,
             "#00FA9A", 0.018, 960
     );
 
     // Moons of Neptune
     public static ObjectInfo triton = new ObjectInfo(
-            "Triton", 2.14e22, 1353.4, 1353.4, 1353.4, 354760, 0.000016, 254.168, 156.865, 298.848, 139.5, 0.0, 5.877,
+            "Triton", BodyType.ICE, 2.14e22, 1353.4, 1353.4, 1353.4, 354760, 0.000016, 254.168, 156.865, 298.848, 139.5, 0.0, 5.877,
             "#FFB6C1", 0.030, 750
     );
 
     // Moons of Pluto
     public static ObjectInfo charon = new ObjectInfo(
-            "Charon", 1.52e21, 606, 606, 606, 19591, 0.0002, 96.108, 0.001, 209.07, 92.5, 0.0, 6.387,
+            "Charon", BodyType.ICE, 1.52e21, 606, 606, 606, 19591, 0.0002, 96.108, 0.001, 209.07, 92.5, 0.0, 6.387,
             "#EEDC82", 0.020, 100
     );
 
     // Dwarf Planets
     public static ObjectInfo eris = new ObjectInfo(
-            "Eris", 1.66e22, 1163, 1163, 1163, 10125000000L, 0.44, 151.47, 44.187, 35.95, 78.6, 0.0, 25.9,
+            "Eris", BodyType.ICE, 1.66e22, 1163, 1163, 1163, 10125000000L, 0.44, 151.47, 44.187, 35.95, 78.6, 0.0, 25.9,
             "#8B4513", 0.040, 500
     );
     public static ObjectInfo haumea = new ObjectInfo(
-            "Haumea", 4.01e21, 816, 870, 498, 6453150000L, 0.1912, 240.11, 28.19, 121.91, 63.4, 0.0, 3.9,
+            "Haumea", BodyType.ICE, 4.01e21, 816, 870, 498, 6453150000L, 0.1912, 240.11, 28.19, 121.91, 63.4, 0.0, 3.9,
             "#FF69B4", 0.035, 600
     );
     public static ObjectInfo makemake = new ObjectInfo(
-            "Makemake", 3.1e21, 715, 715, 715, 6850000000L, 0.159, 298.52, 29.0, 79.35, 119.2, 0.0, 22.5,
+            "Makemake", BodyType.ICE, 3.1e21, 715, 715, 715, 6850000000L, 0.159, 298.52, 29.0, 79.35, 119.2, 0.0, 22.5,
             "#B22222", 0.030, 550
     );
     public static ObjectInfo ceres = new ObjectInfo(
-            "Ceres", 9.39e20, 473, 473, 473, 413700000, 0.075, 73.597, 10.593, 80.39, 5.8, 0.0, 9.07,
+            "Ceres", BodyType.ICE, 9.39e20, 473, 473, 473, 413700000, 0.075, 73.597, 10.593, 80.39, 5.8, 0.0, 9.07,
             "#FF7F50", 0.045, 450
     );
 
     // Asteroids
     public static ObjectInfo pallas = new ObjectInfo(
-            "Pallas", 2.04e20, 273, 275, 263, 414500000, 0.231, 310.07, 34.837, 173.085, 83.6, 3.0, 7.813,
+            "Pallas", BodyType.ICE, 2.04e20, 273, 275, 263, 414500000, 0.231, 310.07, 34.837, 173.085, 83.6, 3.0, 7.813,
             "#4169E1", 0.040, 400
     );
     public static ObjectInfo vesta = new ObjectInfo(
-            "Vesta", 2.59e20, 262.7, 285, 229, 353400000, 0.089, 151.198, 7.140, 103.851, 42.3, 4.0, 5.342,
+            "Vesta", BodyType.ICE, 2.59e20, 262.7, 285, 229, 353400000, 0.089, 151.198, 7.140, 103.851, 42.3, 4.0, 5.342,
             "#FFD700", 0.038, 420
     );
     public static ObjectInfo hygiea = new ObjectInfo(
-            "Hygiea", 8.67e19, 216, 222, 207, 470300000, 0.117, 312.5, 3.841, 283.2, 147.2, 3.0, 13.825,
+            "Hygiea", BodyType.ICE, 8.67e19, 216, 222, 207, 470300000, 0.117, 312.5, 3.841, 283.2, 147.2, 3.0, 13.825,
             "#A9A9A9", 0.036, 380
     );
 
     // Planets and the Sun
     public static ObjectInfo mercury = new ObjectInfo(
-            "Mercury", 3.301e23, 2439.7, 2439.7, 2439.7, 57909227, 0.2056, 29.124, 7.004, 48.331, 174.8, 0.034, 58.646,
+            "Mercury", BodyType.TERRESTRIAL, 3.301e23, 2439.7, 2439.7, 2439.7, 57909227, 0.2056, 29.124, 7.004, 48.331, 174.8, 0.034, 58.646,
             "#8B8B83", 0.025, 100
     );
     public static ObjectInfo venus = new ObjectInfo(
-            "Venus", 4.867e24, 6051.8, 6051.8, 6051.8, 108209475, 0.0067, 54.852, 3.394, 76.68, 131.1, 177.36, -243.025,
+            "Venus", BodyType.TERRESTRIAL, 4.867e24, 6051.8, 6051.8, 6051.8, 108209475, 0.0067, 54.852, 3.394, 76.68, 131.1, 177.36, -243.025,
             "#EED2B3", 0.295, 150
     );
     public static ObjectInfo earth = new ObjectInfo(
-            "Earth", 5.972e24, 6371.0, 6378.1, 6356.8, 149598262, 0.0167, 114.207, 0.00005, -11.26064, 120.2, 23.44, 0.997,
+            "Earth", BodyType.TERRESTRIAL, EARTH_MASS, 6371.0, 6378.1, 6356.8, 149598262, 0.0167, 114.207, 0.00005, -11.26064, 120.2, 23.44, 0.997,
             "#4682B4", 0.299, 12, moon
     );
     public static ObjectInfo mars = new ObjectInfo(
-            "Mars", 6.417e23, 3389.5, 3396.2, 3376.2, 227943824, 0.0934, 286.502, 1.850, 49.558, 250.1, 25.19, 1.026,
+            "Mars", BodyType.TERRESTRIAL, 6.417e23, 3389.5, 3396.2, 3376.2, 227943824, 0.0934, 286.502, 1.850, 49.558, 250.1, 25.19, 1.026,
             "#A52A2A", 0.140, 92, phobos, deimos
     );
     public static ObjectInfo jupiter = new ObjectInfo(
-            "Jupiter", JUPITER_MASS, 69911, 71492, 66854, 778340821, 0.0489, 273.867, 1.305, 100.464, 34.5, 3.13, 0.4135,
+            "Jupiter", BodyType.GAS_GIANT, JUPITER_MASS, 69911, 71492, 66854, 778340821, 0.0489, 273.867, 1.305, 100.464, 34.5, 3.13, 0.4135,
             "#F4A460", 0.589, 10500, io, europa, ganymede, callisto
     );
     public static ObjectInfo saturn = new ObjectInfo(
-            "Saturn", 5.685e26, 58232, 60268, 54364, 1426666422, 0.0565, 336.013, 2.484, 113.665, 205.4, 26.73, 0.444,
+            "Saturn", BodyType.GAS_GIANT, 5.685e26, 58232, 60268, 54364, 1426666422, 0.0565, 336.013, 2.484, 113.665, 205.4, 26.73, 0.444,
             "#DAA520", 0.341, 18000, titan, rhea, iapetus, dione, tethys, enceladus
     );
     public static ObjectInfo uranus = new ObjectInfo(
-            "Uranus", 8.682e25, 25362, 25559, 24973, 2870658186L, 0.0457, 96.998857, 0.769, 74.006, 88.7, 97.77, -0.718,
+            "Uranus", BodyType.ICE_GIANT, 8.682e25, 25362, 25559, 24973, 2870658186L, 0.0457, 96.998857, 0.769, 74.006, 88.7, 97.77, -0.718,
             "#40E0D0", 0.104, 3000, titania, oberon, umbriel, ariel, miranda
     );
     public static ObjectInfo neptune = new ObjectInfo(
-            "Neptune", 1.024e26, 24622, 24764, 24341, 4498396441L, 0.0113, 276.336, 1.769, 131.784, 342.1, 28.32, 0.671,
+            "Neptune", BodyType.ICE_GIANT, 1.024e26, 24622, 24764, 24341, 4498396441L, 0.0113, 276.336, 1.769, 131.784, 342.1, 28.32, 0.671,
             "#4169E1", 0.122, 4000, triton
     );
     public static ObjectInfo pluto = new ObjectInfo(
-            "Pluto", 1.309e22, 1188.3, 1188.3, 1188.3, 5906376272L, 0.2488, 113.834, 17.16, 110.299, 54.3, 122.53, 6.387,
+            "Pluto", BodyType.ICE, 1.309e22, 1188.3, 1188.3, 1188.3, 5906376272L, 0.2488, 113.834, 17.16, 110.299, 54.3, 122.53, 6.387,
             "#708090", 0.058, 150, charon
     );
 
@@ -247,7 +249,7 @@ public class SystemPresets {
 
     // Sun with all its planets and dwarf planets
     public static ObjectInfo sun = new ObjectInfo(
-            "Sun", SOLAR_MASS, 696340, 696340, 696340, 0, 0, 0, 0, 0, 7.25, 0.0, 25.38,
+            "Sun", BodyType.STAR, SOLAR_MASS, 696340, 696340, 696340, 0, 0, 0, 0, 0, 7.25, 0.0, 25.38,
             "#FFD700", 0.03, 20000,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
             pluto, eris, haumea, makemake,
@@ -262,6 +264,7 @@ public class SystemPresets {
     public static double solarSystem(Simulator simulator) {
         makeSystem(simulator, sun, 1, 1e3, 1e3);
 
+        setTemperatureToSystem(simulator);
         return 0.005 * 1e-7;
     }
 
@@ -420,6 +423,18 @@ public class SystemPresets {
             addObject3d(simulator, root, null, massMul, radiusMul, distanceMul, null);
         } else {
             addObject2d(simulator, root, null, massMul, radiusMul, distanceMul);
+        }
+    }
+    
+    private static void setTemperatureToSystem(Simulator simulator) {
+        List<CelestialObject> sources = new ArrayList<>();
+        for (CelestialObject co : simulator.getObjects()) {
+            if (co.isEmittingLight()) sources.add(co);
+        }
+        if (sources.isEmpty()) return;
+        for (CelestialObject co : simulator.getObjects()) {
+            double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
+            co.forceSetSurfaceTemperature(temp);
         }
     }
 
@@ -655,6 +670,7 @@ public class SystemPresets {
 
         CelestialObject co = CelestialObject.createReal(
                 info.name,
+                info.bodyType,
                 info.mass * massMul,
                 info.equatorialRadius * radiusMul,
                 info.polarRadius * radiusMul,
@@ -665,7 +681,7 @@ public class SystemPresets {
                 av,
                 info.colorCode,
                 diffuseMap,
-                273.15
+                5000
         );
         co.setTidalConstants(info.loveNumber, info.dissipationFunction);
         return co;
@@ -747,20 +763,6 @@ public class SystemPresets {
         return scale1 * 0.2;
     }
 
-    public static double randomStarSystem(Simulator simulator,
-                                          String starName,
-                                          int n,
-                                          double scaleOfSolarSystem,
-                                          double denseFactor) {
-        return randomStarSystem(simulator,
-                starName,
-                n,
-                scaleOfSolarSystem,
-                denseFactor,
-                new double[simulator.getDimension()],
-                new double[simulator.getDimension()]);
-    }
-
     private static double randomStarSystem(Simulator simulator,
                                            String starName,
                                            int n,
@@ -837,6 +839,8 @@ public class SystemPresets {
             simulator.addObject(planet);
         }
 
+        setTemperatureToSystem(simulator);
+        
         return 20 / stdDt;
     }
 
@@ -900,15 +904,15 @@ public class SystemPresets {
 
         return 10 / c;
     }
-    
+
     public static double twoRandomStarSystems(Simulator simulator) {
         double scale = randomStarSystem(simulator, 90, 0.9);
         simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
         simulator.accelerateWholeSystem(new double[]{0, 2e4, 0});
         simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
-        
+
         randomStarSystem(simulator, 90, 1.2);
-        
+
         return scale;
     }
 
@@ -975,7 +979,7 @@ public class SystemPresets {
                         1e3
                 );
             } else {
-                double mass = rand.nextDouble(1e25, 1e27) * Math.pow(scale, 3);
+                double mass = rand.nextDouble(1e25, 1e27);
                 double density = rand.nextDouble(500, 6000);
                 double radius = CelestialObject.radiusOf(mass, density);
 
@@ -990,7 +994,7 @@ public class SystemPresets {
             }
             double[] velocity = simulator.computeVelocityOfN(centroid,
                     co,
-                    rand.nextDouble(0.75, 0.99),
+                    rand.nextDouble(0.75, 1.25),
                     new double[]{0, 0, 1});
             co.setVelocity(velocity);
 
@@ -1006,6 +1010,8 @@ public class SystemPresets {
             co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
         }
+        
+        setTemperatureToSystem(simulator);
 
         return 30 / (a + b + c);
     }
@@ -1015,6 +1021,133 @@ public class SystemPresets {
         makeSystem(simulator, jupiter, 1, 1e3, 1e3);
 
         return 1e-7;
+    }
+
+    public static double threeBodyTest(Simulator simulator) {
+        // Star 1
+        double star1Mass = 1.989e30;               // Mass in kg (1 Solar mass)
+        double star1Radius = 6.957e8;              // Radius in meters (Sun's radius)
+        double[] star1Position = new double[]{     // Position in meters
+                0, // x-coordinate
+                0,         // y-coordinate
+                0          // z-coordinate
+        };
+        double[] star1Velocity = new double[]{     // Velocity in meters per second
+                0,          // x-component
+                0,    // y-component
+                0           // z-component
+        };
+        String star1Color = GuiUtils.temperatureToRGBString(
+                CelestialObject.approxColorTemperatureOfStar(
+                        CelestialObject.approxLuminosityOfStar(star1Mass),
+                        star1Radius
+                )
+        );
+        CelestialObject star1 = CelestialObject.create3d(
+                "Star1",
+                star1Mass,
+                star1Radius,
+                star1Position,
+                star1Velocity,
+                star1Color
+        );
+        simulator.addObject(star1);
+
+        // Star 2
+        double star2Mass = 9.945e29;               // Mass in kg (0.5 Solar masses)
+        double star2Radius = 3.4785e8;             // Radius in meters (approx. 0.5 Sun's radius)
+        double[] star2Position = new double[]{     // Position in meters
+                1e11,  // x-coordinate
+                1e2,         // y-coordinate
+                1e2          // z-coordinate
+        };
+        double[] star2Velocity = new double[]{     // Velocity in meters per second
+                1e2,           // x-component
+                3e4,           // y-component
+                1e2            // z-component
+        };
+        String star2Color = GuiUtils.temperatureToRGBString(
+                CelestialObject.approxColorTemperatureOfStar(
+                        CelestialObject.approxLuminosityOfStar(star2Mass),
+                        star2Radius
+                )
+        );
+        CelestialObject star2 = CelestialObject.create3d(
+                "Star2",
+                star2Mass,
+                star2Radius,
+                star2Position,
+                star2Velocity,
+                star2Color
+        );
+        simulator.addObject(star2);
+
+        // Planet
+        double[] planetPosition = new double[]{    // Position in meters
+                1e2,            // x-coordinate
+                -5e10,          // y-coordinate (5 AU from the center of mass)
+                1e2             // z-coordinate
+        };
+        double[] planetVelocity = new double[]{    // Velocity in meters per second
+                5e4,    // x-component
+                1e2,          // y-component
+                1e2           // z-component
+        };
+        CelestialObject earthObj = createObjectPreset(
+                simulator,
+                earth,
+                planetPosition,
+                planetVelocity,
+                1
+        );
+        simulator.addObject(earthObj);
+
+        // Moon
+        double moonOrbitalRadius = 1e8;        // Orbital radius in meters (distance from Earth to Moon)
+
+        // Calculate the moon's orbital velocity around the planet
+        double moonOrbitalVelocity = Math.sqrt(simulator.getG() * earthObj.getMass() / moonOrbitalRadius); // In m/s
+
+        // Moon's position relative to the planet
+        double[] moonPositionRelative = new double[]{
+                moonOrbitalRadius,  // x-coordinate
+                1e2,                  // y-coordinate
+                1e2                   // z-coordinate
+        };
+
+        // Moon's absolute position
+        double[] moonPosition = new double[]{
+                planetPosition[0] + moonPositionRelative[0],
+                planetPosition[1] + moonPositionRelative[1],
+                planetPosition[2] + moonPositionRelative[2]
+        };
+
+        // Moon's velocity relative to the planet
+        double[] moonVelocityRelative = new double[]{
+                1e1,                       // x-component
+                moonOrbitalVelocity,     // y-component
+                1e1                        // z-component
+        };
+
+        // Moon's absolute velocity
+        double[] moonVelocity = new double[]{
+                planetVelocity[0] + moonVelocityRelative[0],
+                planetVelocity[1] + moonVelocityRelative[1],
+                planetVelocity[2] + moonVelocityRelative[2]
+        };
+
+        CelestialObject moonObj = createObjectPreset(
+                simulator,
+                moon,
+                moonPosition,
+                moonVelocity,
+                1
+        );
+        simulator.addObject(moonObj);
+        
+        setTemperatureToSystem(simulator);
+
+        return 1e-8;
     }
 
     public static double saturnRingTest(Simulator simulator, int n) {
@@ -1356,6 +1489,7 @@ public class SystemPresets {
 
     public static class ObjectInfo {
         public final String name;
+        public final BodyType bodyType;
         public final double mass;
         public final double radius;
         public final double equatorialRadius;
@@ -1380,11 +1514,12 @@ public class SystemPresets {
          */
         private boolean relativeToParentEquator = true;
 
-        public ObjectInfo(String name, double mass, double radius, double equatorialRadius, double polarRadius,
+        public ObjectInfo(String name, BodyType bodyType, double mass, double radius, double equatorialRadius, double polarRadius,
                           double semiMajorAxis, double eccentricity, double argumentOfPeriapsis, double inclination,
                           double ascendingNode, double trueAnomaly, double tilt, double rotationPeriod,
                           String colorCode, double loveNumber, double dissipationFunction, ObjectInfo... children) {
             this.name = name;
+            this.bodyType = bodyType;
             this.mass = mass;
             this.radius = radius;
             this.equatorialRadius = equatorialRadius;

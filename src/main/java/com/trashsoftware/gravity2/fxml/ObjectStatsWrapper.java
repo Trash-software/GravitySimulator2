@@ -23,7 +23,7 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     Label nameLabel, massLabel, diameterLabel, speedLabel, densityLabel;
     @FXML
-    GridPane starPane;
+    GridPane starPane, planetPane;
     @FXML
     GridPane detailPane;
 
@@ -36,9 +36,11 @@ public class ObjectStatsWrapper extends HBox {
             volumeLabel, accelerationLabel, eqRadiusLabel, polarRadiusLabel,
             rocheLimitSolidLabel, rocheLimitLiquidLabel;
     Label childrenCountLabel, circlingChildrenCountLabel, subsystemMassLabel;
-    
+
     Label colorTempLabel, luminosityLabel;
-    
+    Label surfaceTempDayLabel, surfaceTempNightLabel, surfaceTempAvgLabel,
+            powerReceivedLabel, powerEmittedLabel, albedoLabel;
+
     @FXML
     Hyperlink showOrbitPaneBtn;
 
@@ -51,6 +53,7 @@ public class ObjectStatsWrapper extends HBox {
     private ResourceBundle strings;
     boolean hasExpanded = false;
     boolean hasStarPaneExpanded = false;
+    boolean hasPlanetPaneExpanded = false;
 
     public ObjectStatsWrapper(CelestialObject celestialObject,
                               Simulator simulator,
@@ -76,22 +79,22 @@ public class ObjectStatsWrapper extends HBox {
             throw new RuntimeException(exception);
         }
 
-        setObject(celestialObject, simulator, defaultUnit, onFocus,  onExpand, onLand, onCollapse);
+        setObject(celestialObject, simulator, defaultUnit, onFocus, onExpand, onLand, onCollapse);
     }
 
     @FXML
     public void focusAction() {
         onFocus.run();
     }
-    
+
     @FXML
     public void landAction() {
         onLand.accept(object);
     }
-    
+
     @FXML
     public void expandAction() {
-        
+
     }
 
     private void setObject(CelestialObject celestialObject,
@@ -122,7 +125,7 @@ public class ObjectStatsWrapper extends HBox {
 
         update(simulator, defaultUnit);
     }
-    
+
     private void initStarPane() {
         int rowIndex = 0;
 
@@ -135,6 +138,37 @@ public class ObjectStatsWrapper extends HBox {
         starPane.add(luminosityLabel, 3, rowIndex);
 
         rowIndex++;
+    }
+
+    private void initPlanetPane() {
+        int rowIndex = 0;
+
+//        planetPane.add(new Label(strings.getString("surfaceTempDay")), 0, rowIndex);
+//        surfaceTempDayLabel = new Label();
+//        planetPane.add(surfaceTempDayLabel, 1, rowIndex);
+//
+//        planetPane.add(new Label(strings.getString("surfaceTempNight")), 2, rowIndex);
+//        surfaceTempNightLabel = new Label();
+//        planetPane.add(surfaceTempNightLabel, 3, rowIndex);
+        planetPane.add(new Label(strings.getString("albedo")), 0, rowIndex);
+        albedoLabel = new Label();
+        planetPane.add(albedoLabel, 1, rowIndex);
+
+        rowIndex++;
+
+        planetPane.add(new Label(strings.getString("surfaceTempAvg")), 0, rowIndex);
+        surfaceTempAvgLabel = new Label();
+        planetPane.add(surfaceTempAvgLabel, 1, rowIndex);
+
+        rowIndex++;
+
+        planetPane.add(new Label(strings.getString("powerReceived")), 0, rowIndex);
+        powerReceivedLabel = new Label();
+        planetPane.add(powerReceivedLabel, 1, rowIndex);
+
+        planetPane.add(new Label(strings.getString("powerEmitted")), 2, rowIndex);
+        powerEmittedLabel = new Label();
+        planetPane.add(powerEmittedLabel, 3, rowIndex);
     }
 
     private void initDetailPane() {
@@ -299,9 +333,9 @@ public class ObjectStatsWrapper extends HBox {
         transKineticLabel.setText(uc.energy(object.transitionalKineticEnergy()));
         rotKineticLabel.setText(uc.energy(object.rotationalKineticEnergy()));
         bindingEnergyLabel.setText(uc.energy(simulator.gravitationalBindingEnergyOf(object)));
-        thermalEnergyLabel.setText(uc.energy(object.getThermalEnergy()));
+        thermalEnergyLabel.setText(uc.energy(object.getInternalThermalEnergy()));
         avgTempLabel.setText(uc.temperature(object.getBodyAverageTemperature()));
-        
+
         rocheLimitSolidLabel.setText(uc.distance(Simulator.computeRocheLimitSolid(object)));
         rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
@@ -309,28 +343,58 @@ public class ObjectStatsWrapper extends HBox {
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
-        
+
         if (object.isEmittingLight()) {
             if (!hasStarPaneExpanded) {
                 initStarPane();
                 hasStarPaneExpanded = true;
             }
-            
+
             starPane.setVisible(true);
             starPane.setManaged(true);
+            planetPane.setVisible(false);
+            planetPane.setManaged(false);
             starRelated(simulator, uc);
         } else {
+            if (!hasPlanetPaneExpanded) {
+                initPlanetPane();
+                hasPlanetPaneExpanded = true;
+            }
+
             starPane.setVisible(false);
             starPane.setManaged(false);
+            planetPane.setVisible(true);
+            planetPane.setManaged(true);
+            planetRelated(simulator, uc);
         }
     }
-    
+
     private void starRelated(Simulator simulator, UnitsConverter uc) {
         double luminosity = object.getLuminosity();
         double colorTemp = object.getEmissionColorTemperature();
-        
-        luminosityLabel.setText(UnitsUtil.sciFmt.format(luminosity));
+
+        luminosityLabel.setText(UnitsUtil.sciFmt.format(luminosity) + "W");
         colorTempLabel.setText(String.format("%.0fK", colorTemp));
+    }
+
+    private void planetRelated(Simulator simulator, UnitsConverter uc) {
+        double albedo = object.estimateAlbedo();
+        double received = 0.0;
+        for (CelestialObject co : simulator.getObjects()) {
+            double luminosity = co.getLuminosity();
+            if (luminosity > 0 && co != object) {  // shouldn't be this, but just for safety
+                // is a light source
+                double distance = VectorOperations.distance(co.getPosition(), object.getPosition());
+                received += object.calculateLightReceived(luminosity, distance);
+            }
+        }
+        
+        double emitted = object.getThermalEmission();
+        
+        albedoLabel.setText(uc.generalNumber(albedo * 100) + "%");
+        powerReceivedLabel.setText(UnitsUtil.sciFmt.format(received) + "W");
+        powerEmittedLabel.setText(UnitsUtil.sciFmt.format(emitted) + "W");
+        surfaceTempAvgLabel.setText(uc.temperature(object.getSurfaceTemperature()));
     }
 
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
@@ -348,11 +412,11 @@ public class ObjectStatsWrapper extends HBox {
             circlingChildrenCountLabel.setText("--");
             subsystemMassLabel.setText("--");
         }
-        
+
         if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
             HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
             parentLabel.setText(parent.getName());
-            
+
             double orbitBinding = parentSystem.bindingEnergyOf(system, simulator);
 //            System.out.println(object.getName() + " " + orbitBinding);
             boolean isOrbiting = orbitBinding < 0;
@@ -361,19 +425,19 @@ public class ObjectStatsWrapper extends HBox {
             } else {
                 orbitStatusLabel.setText(strings.getString("statusEscape"));
             }
-            
+
             double[] orbitPlaneNormal = system.getEclipticPlaneNormal();
-            
+
             double axisTiltToOrbit = Math.acos(VectorOperations.dotProduct(
                     object.getRotationAxis(),
                     orbitPlaneNormal
             ));
             rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
-            
+
             double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
             double[] velocity = VectorOperations.subtract(system.getVelocity(), parentSystem.getVelocity());
             double[] position = VectorOperations.subtract(system.getPosition(), barycenter);
-            
+
             if (level >= 2) {
                 // moons
                 double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
@@ -391,10 +455,10 @@ public class ObjectStatsWrapper extends HBox {
                     velocity,
                     system.getMass() + parent.getMass(),
                     simulator.getG());
-            
+
             if (isOrbiting != orbitalElements.isElliptical()) {
-                System.out.println(object.getName() + " has marginal orbit with ecc: " + 
-                        orbitalElements.eccentricity + ", energy: " + 
+                System.out.println(object.getName() + " has marginal orbit with ecc: " +
+                        orbitalElements.eccentricity + ", energy: " +
                         orbitBinding);
             }
 
@@ -419,7 +483,7 @@ public class ObjectStatsWrapper extends HBox {
                 periodLabel.setText("--");
                 aphelionLabel.setText("--");
             }
-            
+
             perihelionLabel.setText(uc.distance(per));
             inclinationLabel.setText(uc.angleDegreeDecimal(orbitalElements.inclination));
             ascendingNodeLabel.setText(uc.angleDegreeDecimal(orbitalElements.ascendingNode));
@@ -472,6 +536,9 @@ public class ObjectStatsWrapper extends HBox {
 
         starPane.setVisible(false);
         starPane.setManaged(false);
+
+        planetPane.setVisible(false);
+        planetPane.setManaged(false);
 
         showOrbitPaneBtn.setManaged(true);
         showOrbitPaneBtn.setVisible(true);

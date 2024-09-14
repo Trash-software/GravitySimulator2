@@ -285,6 +285,7 @@ public class JmeApp extends SimpleApplication {
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
         twoChaosSolarSystemTest();
+//        threeBodyTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
     }
@@ -1568,6 +1569,12 @@ public class JmeApp extends SimpleApplication {
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
     }
+    
+    private void threeBodyTest() {
+        scale = SystemPresets.threeBodyTest(simulator);
+        
+        reloadObjects();
+    }
 
     private void saturnRingTest() {
         scale = (float) SystemPresets.saturnRingTest(simulator, 100);
@@ -1596,6 +1603,7 @@ public class JmeApp extends SimpleApplication {
         getViewPort().addProcessor(fpp);
 //        model.setShadowMode(RenderQueue.ShadowMode.Off);
     }
+    
     private void tidalTest() {
         CelestialObject jupiter = SystemPresets.createObjectPreset(
                 simulator,
@@ -1699,6 +1707,8 @@ public class JmeApp extends SimpleApplication {
 
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
+        
+        simulator.setEnableDisassemble(true);
     }
 
     private RefFrame getRefFrame() {

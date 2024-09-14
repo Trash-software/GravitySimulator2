@@ -1,15 +1,18 @@
 package com.trashsoftware.gravity2.physics;
 
 import com.jme3.texture.Texture;
+import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class CelestialObject implements Comparable<CelestialObject>, AbstractObject {
 
     public static final double REF_HEAT_CAPACITY = 14300.0;
+    public static final double STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
 
     protected double[] position;
     protected double[] velocity;
@@ -18,8 +21,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected double mass;
     protected double tidalLoveNumber = 0.15;
     protected double dissipationFunction = 100;
+    protected double emissivity = 0.95;
+    protected BodyType bodyType;
     protected double equatorialRadius, polarRadius;
-    protected double thermalEnergy;
+    protected double internalThermalEnergy;
+    protected double surfaceThermalEnergy;
     protected String name;
 
     private boolean exist = true;
@@ -45,6 +51,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected transient double approxRocheLimit;
 
     CelestialObject(String name,
+                    BodyType bodyType,
                     double mass,
                     double equatorialRadius,
                     double polarRadius,
@@ -54,7 +61,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                     double angularVelocity,
                     String colorCode,
                     Texture diffuseMap,
-                    double avgTemp) {
+                    double internalAvgTemp) {
 
         if (position.length != velocity.length) {
             throw new IllegalArgumentException("You are in what dimensional world?");
@@ -62,6 +69,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         lastAcceleration = new double[position.length];
 
         this.name = name;
+        this.bodyType = bodyType;
         this.mass = mass;
         this.equatorialRadius = equatorialRadius;
         this.polarRadius = polarRadius;
@@ -70,7 +78,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.colorCode = colorCode;
         this.rotationAxis = VectorOperations.normalize(rotationAxis);
         this.angularVelocity = angularVelocity;
-        this.thermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, avgTemp);
+        this.internalThermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, internalAvgTemp);
 
         this.texture = diffuseMap;
 
@@ -127,6 +135,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
 
     public static CelestialObject createReal(String name,
+                                             BodyType bodyType,
                                              double mass,
                                              double equatorialRadius,
                                              double polarRadius,
@@ -137,9 +146,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                                              double angularVelocity,
                                              String colorCode,
                                              Texture diffuseMap,
-                                             double avgTemp) {
+                                             double internalAvgTemp) {
         CelestialObject co = new CelestialObject(
                 name,
+                bodyType,
                 mass,
                 equatorialRadius,
                 polarRadius,
@@ -149,14 +159,14 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 angularVelocity,
                 colorCode,
                 diffuseMap,
-                avgTemp
+                internalAvgTemp
         );
         // argument pos/vel can be shorter than dim
         System.arraycopy(position, 0, co.position, 0, position.length);
         System.arraycopy(velocity, 0, co.velocity, 0, velocity.length);
         return co;
     }
-    
+
     public static CelestialObject create3d(String name,
                                            double mass,
                                            double radius,
@@ -176,6 +186,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double[] axis = new double[]{0, 0, 1};
         CelestialObject co = new CelestialObject(
                 name,
+                BodyType.TERRESTRIAL,
                 mass,
                 radius,
                 radius,
@@ -185,7 +196,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 1e-8,
                 colorCode,
                 null,
-                273.15
+                5000
         );
         // argument pos/vel can be shorter than dim
         System.arraycopy(position, 0, co.position, 0, position.length);
@@ -214,6 +225,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
         CelestialObject co = new CelestialObject(
                 json.getString("name"),
+                BodyType.valueOf(json.getString("bodyType")),
                 json.getDouble("mass"),
                 json.getDouble("equatorialRadius"),
                 json.getDouble("polarRadius"),
@@ -230,7 +242,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         co.exist = json.getBoolean("exist");
 //        co.shownScale = json.getDouble("shownScale");
         co.rotationAngle = json.getDouble("rotationAngle");
-        co.thermalEnergy = json.getDouble("thermalEnergy");
+        co.internalThermalEnergy = json.getDouble("thermalEnergy");
 
         return co;
     }
@@ -251,7 +263,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         json.put("rotationAxis", new JSONArray(rotationAxis));
         json.put("angularVelocity", angularVelocity);
         json.put("rotationAngle", rotationAngle);
-        json.put("thermalEnergy", thermalEnergy);
+        json.put("thermalEnergy", internalThermalEnergy);
 
         return json;
     }
@@ -284,7 +296,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     protected void updateRotation(double timeSteps) {
         double deg = Math.toDegrees(angularVelocity) * timeSteps;
-        
+
         rotationAngle += deg;
         if (rotationAngle >= 360) rotationAngle -= 360;
         else if (rotationAngle < 0) rotationAngle += 360;
@@ -336,6 +348,73 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return position[2];
     }
 
+    public double estimateAlbedo() {
+        int[] colorRGB = GuiUtils.stringToColorIntRGBA255(colorCode);
+
+        double rgbAvg = (colorRGB[0] + colorRGB[1] + colorRGB[2]) / 3.0 / 256;
+//        System.out.println("Albedo of " + colorCode + ": " + rgbAvg);
+        return rgbAvg * 0.6;
+    }
+
+    private double thermalSkinMass(double surfaceArea) {
+        double thickness = bodyType.thermalSkinDepth;
+        return thickness * surfaceArea * bodyType.thermalSkinDensity;
+    }
+
+    private double getSurfaceTemperature(double surfaceArea) {
+        double skinMass = thermalSkinMass(surfaceArea);
+        return surfaceThermalEnergy / (skinMass * bodyType.thermalSkinHeatCapacity);
+    }
+
+    public double getSurfaceTemperature() {
+        return getSurfaceTemperature(getSurfaceArea());
+    }
+
+    public void forceSetSurfaceTemperature(double kelvin) {
+        double surfaceArea = getSurfaceArea();
+        double skinMass = thermalSkinMass(surfaceArea);
+        surfaceThermalEnergy = kelvin * skinMass * bodyType.thermalSkinHeatCapacity;
+    }
+
+    private static double fIncident(double luminosity, double distance) {
+        return luminosity / (4 * Math.PI * Math.pow(distance, 2));
+    }
+
+    public double calculateLightReceived(double luminosity, double distance) {
+        double approxLightArea = Math.pow(getAverageRadius(), 2) * Math.PI;
+        return fIncident(luminosity, distance) * approxLightArea;
+    }
+
+    public void receiveLight(double[] sourcePos, double luminosity, double timeStep) {
+        double albedo = estimateAlbedo();
+        double distance = VectorOperations.distance(sourcePos, position);
+        double received = calculateLightReceived(luminosity, distance);
+        double absorbed = (1 - albedo) * received;
+        // the above are all in 1 unit time
+
+        surfaceThermalEnergy += absorbed * timeStep;
+    }
+
+    public void emitThermalPower(double timeStep) {
+        double curTemp = getSurfaceTemperature();
+        double surfaceArea = getSurfaceArea();
+        double emission = thermalEmission(curTemp, surfaceArea);
+        surfaceThermalEnergy -= emission * timeStep;
+        surfaceThermalEnergy = Math.max(0, surfaceThermalEnergy);
+    }
+
+    /**
+     * The following two emission does not relate to nuclear reaction
+     */
+    private double thermalEmission(double currentSurfaceTemp, double surfaceArea) {
+        return emissivity * STEFAN_BOLTZMANN_CONSTANT * Math.pow(currentSurfaceTemp, 4) * surfaceArea;
+    }
+
+    public double getThermalEmission() {
+        double surfaceArea = getSurfaceArea();
+        return thermalEmission(getSurfaceTemperature(surfaceArea), surfaceArea);
+    }
+
     public boolean isEmittingLight() {
         return getLuminosity() > 0;
     }
@@ -349,13 +428,12 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             return ratio * SystemPresets.SOLAR_LUMINOSITY;
         }
     }
-    
+
     public double getEmissionColorTemperature() {
         double lumin = getLuminosity();
         if (lumin == 0) return 0;
-        double stefanBoltzmannConstant = 5.67e-8;
         double radius = getAverageRadius();
-        double divisor = 4 * Math.PI * radius * radius * stefanBoltzmannConstant;
+        double divisor = 4 * Math.PI * radius * radius * STEFAN_BOLTZMANN_CONSTANT;
         return Math.pow(lumin / divisor, 0.25);
     }
 
@@ -458,10 +536,15 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         setRadius(Req, Rpol);
     }
 
+    protected void updateRadiusByMassDensity(double density) {
+        double volume = this.mass / density;
+        setRadiusByVolume(volume);
+    }
+
     public double[] getRotationAxis() {
         return rotationAxis;
     }
-    
+
     public void updateRotationAxis(double[] newRotationAxis) {
         this.rotationAxis = newRotationAxis;
     }
@@ -483,8 +566,54 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.mass = mass;
     }
 
-    public void gainMattersFrom(Simulator simulator, CelestialObject object) {
+    public void gainMattersFrom(Simulator simulator, CelestialObject object, double timeStep) {
+        if (object.equatorialRadius < 50) return;  // too small
+        if (object.getMass() < 1e6) return;  // too light
+        double maxGain = getMass() * 3e-7 * timeStep;
+        maxGain = Math.min(maxGain, object.getMass() - 5e5);  // half of 1e6
+        double gain = Math.random() * maxGain;
+        double transformedRatio = gain / object.getMass();
 
+        double energyBefore = transitionalKineticEnergy() +
+                rotationalKineticEnergy() +
+                simulator.gravitationalBindingEnergyOf(this) +
+                internalThermalEnergy +
+                object.transitionalKineticEnergy() +
+                object.rotationalKineticEnergy() +
+                simulator.gravitationalBindingEnergyOf(object) +
+                object.internalThermalEnergy +
+                simulator.potentialEnergyBetween(this, object);
+
+        double[] transferredMomentum = VectorOperations.scale(object.velocity, gain);
+
+        double objDensity = object.getDensity();
+        object.mass -= gain;
+        object.internalThermalEnergy *= (1 - transformedRatio);
+        double rad = object.getAverageRadius();
+        object.updateRadiusByMassDensity(objDensity);
+//        System.out.println(object.name + " Radius: " + rad + " " + object.getAverageRadius());
+
+        object.bodyType = object.bodyType.disassemble(object.getMass());
+
+        // momentum conservation
+        VectorOperations.addInPlace(velocity, VectorOperations.scale(transferredMomentum, 1 / getMass()));
+
+        double thisVolume = getVolume();
+        thisVolume += gain / objDensity;
+        this.mass += gain;
+        setRadiusByVolume(thisVolume);
+
+        double energyAfter = transitionalKineticEnergy() +
+                rotationalKineticEnergy() +
+                simulator.gravitationalBindingEnergyOf(this) +
+                internalThermalEnergy +
+                object.transitionalKineticEnergy() +
+                object.rotationalKineticEnergy() +
+                simulator.gravitationalBindingEnergyOf(object) +
+                object.internalThermalEnergy +
+                simulator.potentialEnergyBetween(this, object);
+        double energyLoss = energyBefore - energyAfter;
+        this.internalThermalEnergy += energyLoss;
     }
 
     public CelestialObject disassemble(Simulator simulator,
@@ -521,7 +650,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double energyBefore = transitionalKineticEnergy() +
                     rotationalKineticEnergy() +
                     simulator.gravitationalBindingEnergyOf(this) +
-                    thermalEnergy +
+                    internalThermalEnergy +
                     simulator.potentialEnergyBetween(this, forceSource);
 
             double debrisRadius = calculateRadiusByVolume(debrisVol);
@@ -539,9 +668,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double[] debrisVel = VectorOperations.add(forceSource.velocity, debrisRelVel);
 
             double temperature = getBodyAverageTemperature();
+            BodyType debrisType = bodyType.disassemble(debrisMass);
 
             CelestialObject debris = new CelestialObject(
                     name + "-debris",
+                    debrisType,
                     debrisMass,
                     debrisRadius,
                     debrisRadius,
@@ -559,7 +690,9 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double remVolume = getVolume() - debrisVol;
 
             this.mass -= debrisMass;
-            this.thermalEnergy -= debris.thermalEnergy;
+            this.internalThermalEnergy -= debris.internalThermalEnergy;
+
+            this.bodyType = bodyType.disassemble(this.mass);
 
             setRadiusByVolume(remVolume);
 
@@ -567,11 +700,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double thisEnergyAfter = transitionalKineticEnergy() +
                     rotationalKineticEnergy() +
                     simulator.gravitationalBindingEnergyOf(this) +
-                    thermalEnergy;
+                    internalThermalEnergy;
             double debrisEnergy = debris.transitionalKineticEnergy() +
                     debris.rotationalKineticEnergy() +
                     simulator.gravitationalBindingEnergyOf(debris) +
-                    debris.thermalEnergy;
+                    debris.internalThermalEnergy;
             double gPotEnergy = simulator.potentialEnergyBetween(this, debris) +
                     simulator.potentialEnergyBetween(this, forceSource) +
                     simulator.potentialEnergyBetween(debris, forceSource);
@@ -581,8 +714,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double energyChange = energyBefore - energyAfter;
 
             // distribute the remaining energy
-            debris.thermalEnergy += energyChange / 2;
-            thermalEnergy += energyChange / 2;
+            debris.internalThermalEnergy += energyChange / 2;
+            internalThermalEnergy += energyChange / 2;
 
             return debris;
         } else {
@@ -603,8 +736,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 this.transitionalKineticEnergy() +
                 other.rotationalKineticEnergy() +
                 other.transitionalKineticEnergy() +
-                this.thermalEnergy +
-                other.thermalEnergy +
+                this.internalThermalEnergy +
+                other.internalThermalEnergy +
                 simulator.potentialEnergyBetween(this, other) +
                 simulator.gravitationalBindingEnergyOf(this) +
                 simulator.gravitationalBindingEnergyOf(other);
@@ -648,10 +781,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double newEnergySum = this.rotationalKineticEnergy() +
                 this.transitionalKineticEnergy() +
                 simulator.gravitationalBindingEnergyOf(this) +
-                this.thermalEnergy;
+                this.internalThermalEnergy;
         double difference = initialEnergy - newEnergySum;
 //        System.out.println("Energy difference: " + difference);
-        this.thermalEnergy += difference;
+        this.internalThermalEnergy += difference;
     }
 
     public boolean isExist() {
@@ -662,16 +795,29 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return 4.0 / 3.0 * Math.PI * equatorialRadius * equatorialRadius * polarRadius;
     }
 
+    public double getSurfaceArea() {
+        // approximation
+        double p = 1.6075;
+        double a = equatorialRadius;
+        double b = equatorialRadius;
+        double c = polarRadius;
+        double ap = Math.pow(a, p);
+        double bp = Math.pow(b, p);
+        double cp = Math.pow(c, p);
+        double inside = (ap * bp + ap * cp + bp * cp) / 3;
+        return 4 * Math.PI * Math.pow(inside, 1 / p);
+    }
+
     public double getDensity() {
         return mass / getVolume();
     }
 
-    public double getThermalEnergy() {
-        return thermalEnergy;
+    public double getInternalThermalEnergy() {
+        return internalThermalEnergy;
     }
 
     public double getBodyAverageTemperature() {
-        return thermalEnergy / mass / REF_HEAT_CAPACITY;
+        return internalThermalEnergy / mass / REF_HEAT_CAPACITY;
     }
 
     public static double calculateThermalEnergyByTemperature(double c, double mass, double k) {
@@ -768,7 +914,22 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
         return part1 * term1 * term2;
     }
-    
+
+    public static double approxSurfaceTemperatureOf(CelestialObject co,
+                                                    List<CelestialObject> sources) {
+        double albedo = co.estimateAlbedo();
+        double totalFi = 0;
+        for (CelestialObject source : sources) {
+            double distance = VectorOperations.distance(source.getPosition(), co.getPosition());
+            double fIncident = fIncident(source.getLuminosity(), distance);
+            totalFi += fIncident;
+        }
+
+        double absorbed = (1 - albedo) * totalFi;
+        double low = 4 * co.emissivity * STEFAN_BOLTZMANN_CONSTANT;
+        return Math.pow(absorbed / low, 0.25);
+    }
+
     public static double approxLuminosityOfStar(double mass) {
         if (mass < SystemPresets.JUPITER_MASS * 80) {
             return 0;

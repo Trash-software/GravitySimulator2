@@ -52,6 +52,7 @@ public class ObjectModel {
     private boolean showLabel = true;
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
+    final int samples;
     
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
@@ -66,6 +67,7 @@ public class ObjectModel {
     protected FilterPostProcessor fpp;
 
     protected Quaternion tiltRotation;
+    protected double lastUsedObjectRadius;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
@@ -74,8 +76,7 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
-
-        int samples;
+        
         if (object.getTexture() == null) {
             samples = 32;
         } else {
@@ -84,6 +85,7 @@ public class ObjectModel {
 
         Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
+        lastUsedObjectRadius = object.getEquatorialRadius();
         model = new Geometry(object.getName(), sphere);
         // Create a material for the box
         Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
@@ -119,7 +121,7 @@ public class ObjectModel {
             plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
                     1024);
             plsr.setLight(emissionLight);
-            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
             plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
             jmeApp.getViewPort().addProcessor(plsr);
 
@@ -213,6 +215,14 @@ public class ObjectModel {
         
         axis.setMesh(mesh);
     }
+    
+    private void updateSphereMesh() {
+        // todo: test memory leak
+        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
+        sphere.setTextureMode(Sphere.TextureMode.Projected);
+        model.setMesh(sphere);
+        lastUsedObjectRadius = object.getEquatorialRadius();
+    }
 
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
@@ -271,6 +281,10 @@ public class ObjectModel {
     }
 
     public void updateModelPosition(double scale) {
+        if (object.getEquatorialRadius() != lastUsedObjectRadius) {
+            updateSphereMesh();
+        }
+        
         double radiusScale = scale;
         if (object.getEquatorialRadius() * scale < 0.1) {
             radiusScale = 0.1 / object.getEquatorialRadius();

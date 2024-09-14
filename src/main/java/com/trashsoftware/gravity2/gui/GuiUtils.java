@@ -28,8 +28,8 @@ public class GuiUtils {
             return String.format("#%02X%02X%02X", red, green, blue); // RGB
         }
     }
-
-    public static ColorRGBA stringToColor(String colorHex) {
+    
+    public static int[] stringToColorIntRGBA255(String colorHex) {
         if (colorHex.length() > 1 && colorHex.charAt(0) == '#') {
             String code = colorHex.substring(1);
             int red = 0, green = 0, blue = 0;
@@ -47,9 +47,14 @@ public class GuiUtils {
             if (code.length() == 8) {
                 alpha = Integer.parseInt(code.substring(6, 8), 16);
             }
-            return ColorRGBA.fromRGBA255(red, green, blue, alpha);
+            return new int[]{red, green, blue, alpha};
         }
         throw new RuntimeException("Cannot convert '" + colorHex + "' to color");
+    }
+
+    public static ColorRGBA stringToColor(String colorHex) {
+        int[] rgba255 = stringToColorIntRGBA255(colorHex);
+        return ColorRGBA.fromRGBA255(rgba255[0], rgba255[1], rgba255[2],rgba255[3]);
     }
 
     public static ColorRGBA opaqueOf(ColorRGBA color, float opaque) {

@@ -25,9 +25,9 @@
         </Label>
         <GridPane vgap="2.0" hgap="8.0">
             <columnConstraints>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
             </columnConstraints>
             
@@ -45,22 +45,30 @@
 
         <GridPane vgap="2.0" hgap="8.0" fx:id="starPane" visible="false" managed="false">
             <columnConstraints>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
             </columnConstraints>
         </GridPane>
 
         <GridPane vgap="2.0" hgap="8.0" fx:id="detailPane" visible="false" managed="false">
             <columnConstraints>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
-                <ColumnConstraints prefWidth="60.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
                 <ColumnConstraints prefWidth="95.0"/>
             </columnConstraints>
         </GridPane>
 
+        <GridPane vgap="2.0" hgap="8.0" fx:id="planetPane" visible="false" managed="false">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="75.0"/>
+                <ColumnConstraints prefWidth="95.0"/>
+                <ColumnConstraints prefWidth="75.0"/>
+                <ColumnConstraints prefWidth="95.0"/>
+            </columnConstraints>
+        </GridPane>
     </VBox>
 
 </fx:root>

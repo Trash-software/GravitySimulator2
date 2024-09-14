@@ -14,7 +14,7 @@ public class Simulator {
     public static final double MIN_DISASSEMBLE_TIME = 500.0;
     public static final double MIN_DEBRIS_RADIUS = 1e4;
     public static final double MIN_DEBRIS_VOLUME = 4.0 / 3 * Math.PI * Math.pow(MIN_DEBRIS_RADIUS, 3);
-    public static final double DISASSEMBLE_LAMBDA = 3e-5;
+    public static final double DISASSEMBLE_LAMBDA = 5e-5;
     public static final double MAX_TIME_AFTER_DIE = 3e5;
 
     public static final double PLANET_MAX_MASS = 0.8;
@@ -26,8 +26,8 @@ public class Simulator {
     protected double tidalEffectFactor = 1;
 //    protected double tidalEffectFactor = 1e25;
 
-    private final double G;
-    private final double gravityDtPower;
+    public final double G;
+    public final double gravityDtPower;
     private double epsilon = 0.0;
     private double cutOffForce;
     private boolean enableDisassemble = true;
@@ -180,7 +180,7 @@ public class Simulator {
             }
 
             // Check for collisions and handle them
-            if (handleCollisions(objects)) {
+            if (handleCollisions(objects, timeStep)) {
                 changeHappen = true;
             }
 
@@ -253,12 +253,13 @@ public class Simulator {
                 co.updateRotation(performedTimeSteps);
             }
             updateTidal(performedTimeSteps);
+            performTemperatureChange(performedTimeSteps);
         }
 
         return result;
     }
 
-    private boolean handleCollisions(List<CelestialObject> objects) {
+    private boolean handleCollisions(List<CelestialObject> objects, double timeStep) {
         boolean happen = false;
         int n = objects.size();
         for (int i = n - 1; i >= 0; i--) {
@@ -293,17 +294,21 @@ public class Simulator {
                     n--;
                     happen = true;
                     break; // Restart checking for collisions with updated list
-                } else if (enableDisassemble) {
+                } else {
                     // not collide, check roche
                     if (distance < lighter.possibleRocheLimit) {
                         // heavier one is also inside lighter's roche limit
                         // unlikely to happen, but put it here
                         double actualRoche = computeRocheLimitSolid(lighter, heavier.getDensity());
                         if (distance - heavier.getAverageRadius() < actualRoche) {
-//                            lighter.gainMattersFrom(this, heavier);
-                            CelestialObject debris = heavier.disassemble(this, lighter, actualRoche);
-                            if (debris != null) {
-                                debrisBuffer.add(debris);
+//                            lighter.gainMattersFrom(this, heavier, timeStep);
+                            if (enableDisassemble) {
+                                CelestialObject debris = heavier.disassemble(this, lighter, actualRoche);
+                                if (debris != null) {
+                                    debrisBuffer.add(debris);
+                                }
+                            } else {
+                                lighter.gainMattersFrom(this, heavier, timeStep);
                             }
                         }
                     }
@@ -313,10 +318,14 @@ public class Simulator {
                         // if the above happen, this will also likely to happen
                         double actualRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
                         if (distance - lighter.getAverageRadius() < actualRoche) {
-//                            heavier.gainMattersFrom(this, lighter);
-                            CelestialObject debris = lighter.disassemble(this, heavier, actualRoche);
-                            if (debris != null) {
-                                debrisBuffer.add(debris);
+//                            heavier.gainMattersFrom(this, lighter, timeStep);
+                            if (enableDisassemble) {
+                                CelestialObject debris = lighter.disassemble(this, heavier, actualRoche);
+                                if (debris != null) {
+                                    debrisBuffer.add(debris);
+                                }
+                            } else {
+                                heavier.gainMattersFrom(this, lighter, timeStep);
                             }
                         }
                     }
@@ -698,7 +707,7 @@ public class Simulator {
         double totalIE = 0.0;
         int n = objects.size();
         for (CelestialObject co : objects) {
-            totalIE += gravitationalBindingEnergyOf(co) + co.getThermalEnergy();
+            totalIE += gravitationalBindingEnergyOf(co) + co.getInternalThermalEnergy();
         }
         return totalIE;
     }
@@ -1431,6 +1440,22 @@ public class Simulator {
 
         return new double[][]{L1, L2, L3, L4, L5};
     }
+    
+    protected void performTemperatureChange(double timeStep) {
+        for (CelestialObject co : objects) {
+            double luminosity = co.getLuminosity();
+            if (luminosity > 0) {
+                // is a light source
+                double[] sourcePos = co.getPosition().clone();
+                for (CelestialObject receiver : objects) {
+                    if (co != receiver) {
+                        receiver.receiveLight(sourcePos, luminosity, timeStep);
+                    }
+                }
+            }
+            co.emitThermalPower(timeStep);
+        }
+    }
 
     protected void updateTidal(double timeStep) {
         for (CelestialObject object : objects) {
@@ -1538,8 +1563,8 @@ public class Simulator {
         double newPrimaryRotKE = primary.rotationalKineticEnergy();
         double newSecondaryTransKE = secondary.transitionalKineticEnergy();
 
-        primary.thermalEnergy += (primaryRotKE - newPrimaryRotKE);
-        primary.thermalEnergy += (secondaryTransKE - newSecondaryTransKE);
+        primary.internalThermalEnergy += (primaryRotKE - newPrimaryRotKE);
+        primary.internalThermalEnergy += (secondaryTransKE - newSecondaryTransKE);
     }
 
     /**

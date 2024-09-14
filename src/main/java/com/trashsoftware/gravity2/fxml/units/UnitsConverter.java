@@ -3,6 +3,8 @@ package com.trashsoftware.gravity2.fxml.units;
 import java.util.ResourceBundle;
 
 public interface UnitsConverter {
+    String generalNumber(double x);
+    
     String time(double seconds);
     
     String dateTime(double seconds, ResourceBundle strings);

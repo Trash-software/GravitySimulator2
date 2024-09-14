@@ -4,6 +4,11 @@ import java.util.ResourceBundle;
 
 public class OriginalUnitsConverter implements UnitsConverter {
     @Override
+    public String generalNumber(double x) {
+        return String.format("%5.2e", x);
+    }
+
+    @Override
     public String time(double seconds) {
         return String.format("%6.3e s", seconds);
     }

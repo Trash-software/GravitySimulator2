@@ -5,6 +5,11 @@ import java.util.ResourceBundle;
 
 public class AdaptiveUnitsConverter implements UnitsConverter {
     @Override
+    public String generalNumber(double x) {
+        return UnitsUtil.stdFmt.format(x);
+    }
+
+    @Override
     public String time(double seconds) {
         return UnitsUtil.adaptiveTime(seconds);
     }
