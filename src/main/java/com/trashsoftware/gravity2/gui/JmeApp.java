@@ -14,7 +14,9 @@ import com.jme3.math.*;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.*;
-import com.jme3.shadow.*;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
@@ -101,6 +103,7 @@ public class JmeApp extends SimpleApplication {
         instance = this;
 
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
+//        font = assetManager.loadFont("com/trashsoftware/gravity2/fonts/calibri12.fnt");
 
         setupMouses();
         initLights();
@@ -110,7 +113,7 @@ public class JmeApp extends SimpleApplication {
         playing = false;
 
         initializeSimulator();
-        
+
         setCamera3rdPerson();
         updateLabelShowing();
         playing = true;
@@ -236,7 +239,7 @@ public class JmeApp extends SimpleApplication {
                             Latitude: %s
                             Altitude: %s
                             FOV: %s""",
-                    lon, lat, uc.distance(firstPersonStar.getAltitude()), 
+                    lon, lat, uc.distance(firstPersonStar.getAltitude()),
                     uc.angleDegreeDecimal(cam.getFov())));
         }
     }
@@ -273,7 +276,7 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-//        simpleTest2();
+        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        saturnRingTest();
@@ -284,7 +287,7 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        chaosSolarSystemTest();
-        twoChaosSolarSystemTest();
+//        twoChaosSolarSystemTest();
 //        threeBodyTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -306,7 +309,7 @@ public class JmeApp extends SimpleApplication {
 
                 // died object
                 rootNode.detachChild(om.objectNode);
-                rootNode.detachChild(om.orbit);
+                rootNode.detachChild(om.orbitNode);
 
                 // left its paths continues alive
                 if (om.emissionLight != null) {
@@ -338,7 +341,7 @@ public class JmeApp extends SimpleApplication {
 
         if (spawning != null) {
             rootNode.attachChild(spawning.model.objectNode);
-            rootNode.attachChild(spawning.model.orbit);
+            rootNode.attachChild(spawning.model.orbitNode);
         }
 
         updateCurvesShowing();
@@ -371,11 +374,11 @@ public class JmeApp extends SimpleApplication {
         double radius = object.getEquatorialRadius();
         return 30.0 / radius;
     }
-    
+
     private void adjustFov(float delta) {
         float fov = cam.getFov();
         float newFov = FastMath.clamp(fov + delta, 5, 175f);
-        
+
         cam.setFrustumPerspective(newFov,
                 (float) cam.getWidth() / cam.getHeight(),
                 cam.getFrustumNear(),
@@ -455,7 +458,7 @@ public class JmeApp extends SimpleApplication {
 
             } else {
                 if (wasDragging) {
-                    
+
                 } else if (spawning != null) {
                     spawn();
                 } else {
@@ -754,20 +757,25 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void focusOn(CelestialObject object, boolean scrollToFocus) {
-        System.out.println("Focused on " + object.getName());
+        enqueue(() -> {
+            System.out.println("Focused on " + object.getName());
 
-        focusing = object;
-        double focusingLastX = focusing.getX() - refOffsetX;
-        double focusingLastY = focusing.getY() - refOffsetY;
-        double focusingLastZ = focusing.getZ() - refOffsetZ;
+            focusing = object;
+            double focusingLastX = focusing.getX() - refOffsetX;
+            double focusingLastY = focusing.getY() - refOffsetY;
+            double focusingLastZ = focusing.getZ() - refOffsetZ;
 
-        centerRelToFocus.set(0, 0, 0);
+            centerRelToFocus.set(0, 0, 0);
 
-        screenCenter.setX(focusingLastX * scale);
-        screenCenter.setY(focusingLastY * scale);
-        screenCenter.setZ(focusingLastZ * scale);
+            screenCenter.setX(focusingLastX * scale);
+            screenCenter.setY(focusingLastY * scale);
+            screenCenter.setZ(focusingLastZ * scale);
 
-        getFxApp().getControlBar().setFocus(focusing, scrollToFocus);
+            updateCurvesShowing();
+
+            getFxApp().getControlBar().setFocus(focusing, scrollToFocus);
+        });
+
     }
 
     private void moveScreenWithFocus() {
@@ -922,7 +930,7 @@ public class JmeApp extends SimpleApplication {
                         ColorRGBA.White);
                 rootNode.attachChild(om.barycenterMark);
 //                System.err.println("System " + hs.master.getName() + " does not have valid barycenter mark");
-            } 
+            }
             om.barycenterMark.setLocalTranslation(scenePos);
             for (HieraticalSystem child : hs.getChildrenSorted()) {
                 updateBarycenterNode(child, markSize - 0.5f);
@@ -1160,29 +1168,11 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
-        Mesh mesh = om.orbit.getMesh();
-        if (mesh == null || mesh == ObjectModel.blank) {
-            mesh = new Mesh();
-            mesh.setMode(Mesh.Mode.LineStrip);
-            om.orbit.setMesh(mesh);
-        }
-
-        om.makeEclipticOrbitMesh(mesh,
-                barycenter,
-                oe,
-                360);
+        om.showEllipticOrbit(barycenter, oe, 360);
     }
-    
-    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
-        Mesh mesh = om.orbit.getMesh();
-        if (mesh == null || mesh == ObjectModel.blank) {
-            mesh = new Mesh();
-            mesh.setMode(Mesh.Mode.LineStrip);
-            om.orbit.setMesh(mesh);
-        }
 
-        om.makeHyperbolicOrbitMesh(mesh,
-                barycenter,
+    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
+        om.showHyperbolicOrbit(barycenter,
                 oe,
                 360);
     }
@@ -1338,7 +1328,7 @@ public class JmeApp extends SimpleApplication {
                 vertices[index] = vector3f;
                 index++;
             }
-            
+
             drawPolyLine(vertices, om);
         }
     }
@@ -1388,16 +1378,16 @@ public class JmeApp extends SimpleApplication {
             });
         }
     }
-    
+
     private void updateCurvesShowing() {
         for (ObjectModel om : modelMap.values()) {
             if (om.object.isExist()) {
                 boolean showMe = om.object.getMass() >= minimumMassShowing;
-                
+
                 if (showMe && showOrbit) {
-                    rootNode.attachChild(om.orbit);
+                    rootNode.attachChild(om.orbitNode);
                 } else {
-                    rootNode.detachChild(om.orbit);
+                    rootNode.detachChild(om.orbitNode);
                 }
                 if (showMe && showTrace) {
                     rootNode.attachChild(om.trace);
@@ -1409,6 +1399,8 @@ public class JmeApp extends SimpleApplication {
                 } else {
                     rootNode.detachChild(om.path);
                 }
+
+                om.setShowApPe(showOrbit && focusing == om.object);
             }
         }
     }
@@ -1468,22 +1460,25 @@ public class JmeApp extends SimpleApplication {
         CelestialObject earth = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.earth,
-                new double[]{0, 0, 0},
+                new double[]{-2e6, 1e6, -1e6},
                 new double[3],
                 scale
         );
 //        earth.forceSetMass(earth.getMass() * 10);
+        earth.forcedSetRotation(new double[]{0, 0, 1}, earth.getAngularVelocity());
         simulator.addObject(earth);
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.moon,
-                new double[]{1e8, 0, 5e6},
+                new double[]{1e8, 1e8, 1e7},
                 new double[3],
                 scale
         );
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
-        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+        double[] vel = simulator.computeVelocityOfN(earth, moon,
+                0.7,
+                VectorOperations.normalize(new double[]{2, 3, 1}));
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 
         scale = 5e-7f;
@@ -1569,10 +1564,10 @@ public class JmeApp extends SimpleApplication {
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
     }
-    
+
     private void threeBodyTest() {
         scale = SystemPresets.threeBodyTest(simulator);
-        
+
         reloadObjects();
     }
 
@@ -1598,12 +1593,12 @@ public class JmeApp extends SimpleApplication {
         plsf.setEnabled(true);
         FilterPostProcessor fpp = new FilterPostProcessor(getAssetManager());
         fpp.addFilter(plsf);
-        
+
         rootNode.addLight(directionalLight);
         getViewPort().addProcessor(fpp);
 //        model.setShadowMode(RenderQueue.ShadowMode.Off);
     }
-    
+
     private void tidalTest() {
         CelestialObject jupiter = SystemPresets.createObjectPreset(
                 simulator,
@@ -1707,7 +1702,7 @@ public class JmeApp extends SimpleApplication {
 
         reloadObjects();
         ambientLight.setColor(ColorRGBA.White);
-        
+
         simulator.setEnableDisassemble(true);
     }
 
@@ -1758,6 +1753,7 @@ public class JmeApp extends SimpleApplication {
     public void clearFocus() {
         enqueue(() -> {
             focusing = null;
+            updateCurvesShowing();
         });
     }
 
@@ -1880,7 +1876,7 @@ public class JmeApp extends SimpleApplication {
         enqueue(() -> {
             if (spawning != null) {
                 rootNode.detachChild(spawning.model.objectNode);
-                rootNode.detachChild(spawning.model.orbit);
+                rootNode.detachChild(spawning.model.orbitNode);
                 rootNode.detachChild(spawning.primaryLine);
                 rootNode.detachChild(spawning.secondaryLine);
 
@@ -1890,7 +1886,7 @@ public class JmeApp extends SimpleApplication {
             }
         });
     }
-    
+
     public void updateMinimumMassShowing(double minimumMassShowing) {
         enqueue(() -> {
             this.minimumMassShowing = minimumMassShowing;

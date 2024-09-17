@@ -908,10 +908,10 @@ public class SystemPresets {
     public static double twoRandomStarSystems(Simulator simulator) {
         double scale = randomStarSystem(simulator, 90, 0.9);
         simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
-        simulator.accelerateWholeSystem(new double[]{0, 2e4, 0});
+        simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
         simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-        randomStarSystem(simulator, 90, 1.2);
+        randomStarSystem(simulator, 90, 1.5);
 
         return scale;
     }

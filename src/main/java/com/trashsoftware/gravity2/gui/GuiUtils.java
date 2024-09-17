@@ -249,6 +249,16 @@ public class GuiUtils {
             b = (int) (138.5177312231 * Math.log(t - 10) - 305.0447927307);
             b = clamp(b, 0, 255);
         }
+        
+        double brightness;
+        if (t < 40) {
+            brightness = t / 40;
+        } else {
+            brightness = 1.0;
+        }
+        r = (int) (r * brightness);
+        g = (int) (g * brightness);
+        b = (int) (b * brightness);
 
         return new int[]{r, g, b};
     }

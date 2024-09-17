@@ -5,6 +5,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -182,13 +183,15 @@ public class ControlBar implements Initializable {
     }
 
     public void setFocus(CelestialObject co, boolean scrollToFocus) {
-        clearFocusBtn.setDisable(false);
-        
-        if (scrollToFocus) {
-            if (fxApp.getObjectListPanel() != null) {
-                fxApp.getObjectListPanel().scrollTo(co);
+        Platform.runLater(() -> {
+            clearFocusBtn.setDisable(false);
+
+            if (scrollToFocus) {
+                if (fxApp.getObjectListPanel() != null) {
+                    fxApp.getObjectListPanel().scrollTo(co);
+                }
             }
-        }
+        });
     }
 
     public void setLand() {

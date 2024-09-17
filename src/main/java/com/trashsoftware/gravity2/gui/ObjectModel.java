@@ -22,8 +22,13 @@ import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.PointLightShadowFilter;
 import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.util.BufferUtils;
+import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
+import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ObjectModel {
     public static final int COLOR_GRADIENTS = 16;
@@ -45,11 +50,18 @@ public class ObjectModel {
     protected Geometry rocheLimitModel;
     protected BitmapText labelText;
     protected Node labelNode;
+    
     protected Geometry path;
+    
     protected Geometry orbit;
+    protected final Map<String, Node> orbitInfoNodes = new HashMap<>();
+    protected final Map<String, BitmapText> orbitInfoTexts = new HashMap<>();
+    protected Node orbitNode;
+    
     protected Geometry trace;
     protected Geometry axis;
     private boolean showLabel = true;
+    private boolean showApPe = false;
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
     final int samples;
@@ -102,9 +114,7 @@ public class ObjectModel {
 
             double colorTemp = object.getEmissionColorTemperature();
             System.out.println(object.getName() + " color temp: " + colorTemp);
-            ColorRGBA lightColor = GuiUtils.fxColorToJmeColor(
-                    GuiUtils.temperatureToColorHSB(colorTemp)
-            );
+            ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
             System.out.println("Emission color: " + lightColor);
             
             mat.setColor("GlowColor", lightColor); // Glow effect color
@@ -181,6 +191,10 @@ public class ObjectModel {
         Material matLine2 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         matLine2.setColor("Color", darkerColor);
         orbit.setMaterial(matLine2);
+        orbitNode = new Node("OrbitNode");
+        orbitNode.attachChild(orbit);
+        
+        createApPeText();
         
         axis = new Geometry("Axis", blank);
         Material matLine4 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -196,6 +210,24 @@ public class ObjectModel {
 //        matLine3.setColor("Color", darkerColor);
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
         trace.setMaterial(matLine3);
+    }
+    
+    private void createApPeText() {
+        for (String s : new String[]{"AP", "PE", "AN", "DN"}) {
+            BitmapText text = new BitmapText(jmeApp.font);
+            text.setColor(color);
+
+            Node node = new Node(s + "_Label");
+            node.attachChild(text);
+//        labelText.setLocalTranslation(0, 2.5f, 0); // Center the text above the object
+
+            BillboardControl bc = new BillboardControl();
+            node.addControl(bc);
+            node.setLocalScale(0.06f);
+            
+            orbitInfoTexts.put(s, text);
+            orbitInfoNodes.put(s, node);
+        }
     }
     
     private void createAxisMesh() {
@@ -227,9 +259,7 @@ public class ObjectModel {
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
         double colorTemp = object.getEmissionColorTemperature();
-        ColorRGBA lightColor = GuiUtils.fxColorToJmeColor(
-                GuiUtils.temperatureToColorHSB(colorTemp)
-        );
+        ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
         
         double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
 //        System.out.println(radius);
@@ -393,6 +423,23 @@ public class ObjectModel {
         // Apply the combined rotation to the sphere geometry
         rotatingNode.setLocalRotation(combinedRotation);
     }
+    
+    public void setShowApPe(boolean showApPe) {
+        // todo
+        boolean wasShow = this.showApPe;
+        this.showApPe = showApPe;
+        if (wasShow != showApPe) {
+            if (showApPe) {
+                for (String s : orbitInfoNodes.keySet()) {
+                    jmeApp.getRootNode().attachChild(orbitInfoNodes.get(s));
+                }
+            } else {
+                for (String s : orbitInfoNodes.keySet()) {
+                    jmeApp.getRootNode().detachChild(orbitInfoNodes.get(s));
+                }
+            }
+        }
+    }
 
     public void setShowLabel(boolean showLabel) {
         boolean wasShowLabel = this.showLabel;
@@ -456,8 +503,108 @@ public class ObjectModel {
             rocheLimitModel.setLocalScale(ratio * baseScale);
         }
     }
+    
+    public void showEllipticOrbit(
+            double[] barycenter,
+            OrbitalElements oe,
+            int samples
+    ) {
+        Mesh mesh = orbit.getMesh();
+        if (mesh == null || mesh == ObjectModel.blank) {
+            mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.LineStrip);
+            orbit.setMesh(mesh);
+        }
 
-    public void makeEclipticOrbitMesh(
+        Vector3f bc = jmeApp.panePosition(barycenter);
+
+        float a = (float) (oe.semiMajorAxis * jmeApp.scale);
+        float e = (float) oe.eccentricity;
+        float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
+        float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
+        float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);
+
+        Vector3f[] vertices = new Vector3f[samples + 1];
+        for (int j = 0; j < samples; j++) {
+            float theta = j * 2 * FastMath.PI / samples;
+            float r = a * (1 - e * e) / (1 + e * FastMath.cos(theta));
+            float x = r * FastMath.cos(theta);
+            float y = r * FastMath.sin(theta);
+            float z = 0;
+
+            // Convert to 3D space using orbital elements
+            vertices[j] = new Vector3f(x, y, z);;
+        }
+        // manually create a line loop
+        vertices[vertices.length - 1] = vertices[0].clone();
+
+        // Set up the index buffer for a line loop
+        short[] indices = new short[samples + 1];
+        for (int j = 0; j < samples; j++) {
+            indices[j] = (short) j;
+        }
+        indices[indices.length - 1] = indices[0];
+
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+        mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indices));
+//        mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
+        mesh.updateBound();
+        mesh.updateCounts();
+
+        // Create the quaternions for each rotation
+        Quaternion rotateZ1 = new Quaternion();
+        rotateZ1.fromAngleAxis(omega, Vector3f.UNIT_Z);  // Rotate by argument of periapsis (Z-axis)
+        Quaternion rotateX = new Quaternion();
+        rotateX.fromAngleAxis(i, Vector3f.UNIT_X);       // Rotate by inclination (X-axis)
+        Quaternion rotateZ2 = new Quaternion();
+        rotateZ2.fromAngleAxis(omegaBig, Vector3f.UNIT_Z);  // Rotate by longitude of ascending node (Z-axis)
+
+        // Combine the rotations in the same order: Z -> X -> Z
+        Quaternion combinedRotation = new Quaternion();
+        combinedRotation.multLocal(rotateZ2).multLocal(rotateX).multLocal(rotateZ1);
+
+        // Apply the combined rotation to the node
+        orbitNode.setLocalRotation(combinedRotation);
+        orbitNode.setLocalTranslation(bc);
+
+        if (showApPe) {
+            double aph = oe.semiMajorAxis * (1 + oe.eccentricity);
+            double per = oe.semiMajorAxis * (1 - oe.eccentricity);
+
+            UnitsConverter uc = jmeApp.getFxApp().getUnitConverter();
+            
+            Node apNode = orbitInfoNodes.get("AP");
+            Node peNode = orbitInfoNodes.get("PE");
+            
+            Vector3f apPosition = new Vector3f(-a * (1 + e), 0, 0);  // Apogee (AP)
+            Vector3f pePosition = new Vector3f(a * (1 - e), 0, 0);   // Perigee (PE)
+            
+            apPosition = combinedRotation.mult(apPosition);
+            pePosition = combinedRotation.mult(pePosition);
+
+            apNode.setLocalTranslation(apPosition.add(bc));
+            orbitInfoTexts.get("AP").setText("AP\n" + uc.distance(aph));
+            peNode.setLocalTranslation(pePosition.add(bc));
+            orbitInfoTexts.get("PE").setText("PE\n" + uc.distance(per));
+            
+//            Vector3f anPosition = new Vector3f(0, -a * (1 - e * e), 0);
+//            Vector3f dnPosition = new Vector3f(0, a * (1 - e * e), 0);
+            
+//            anPosition = rotateZ2.mult(anPosition);
+//            dnPosition = rotateZ2.mult(dnPosition);
+
+//            // todo: AN, DN should be relative, but the oe is calculated in absolute coordinates
+//            // todo: really???
+//            orbitInfoNodes.get("AN").setLocalTranslation(anPosition.add(bc));
+//            orbitInfoTexts.get("AN").setText("AN\n" + UnitsUtil.shortFmt.format(oe.inclination));
+//
+//            orbitInfoNodes.get("DN").setLocalTranslation(dnPosition.add(bc));
+//            orbitInfoTexts.get("DN").setText("DN\n" + UnitsUtil.shortFmt.format(oe.ascendingNode));
+        }
+    }
+
+    @Deprecated
+    public void fillEllipticOrbitMesh(
             Mesh mesh,
             double[] barycenter,
             OrbitalElements oe,
@@ -510,15 +657,19 @@ public class ObjectModel {
         mesh.updateCounts();
     }
 
-    public void makeHyperbolicOrbitMesh(
-            Mesh mesh,
+    public void showHyperbolicOrbit(
             double[] barycenter,
             OrbitalElements oe,
             int samples) {
 
-        float bcx = jmeApp.paneX(barycenter[0]);
-        float bcy = jmeApp.paneY(barycenter[1]);
-        float bcz = jmeApp.paneZ(barycenter[2]);
+        Mesh mesh = orbit.getMesh();
+        if (mesh == null || mesh == ObjectModel.blank) {
+            mesh = new Mesh();
+            mesh.setMode(Mesh.Mode.LineStrip);
+            orbit.setMesh(mesh);
+        }
+
+        Vector3f bc = jmeApp.panePosition(barycenter);
 
         float a = (float) (oe.semiMajorAxis * jmeApp.scale);  // Semi-major axis
         float e = (float) oe.eccentricity;                   // Eccentricity
@@ -532,29 +683,13 @@ public class ObjectModel {
 
         for (int j = 0; j < samples; j++) {
             float theta = -FastMath.PI + 2 * FastMath.PI * j / (samples - 1);  // Vary theta for hyperbolic orbit
-
-//            // Calculate the radius for a hyperbolic orbit
-//            float r = a * (e * e - 1) / (1 + e * (float) Math.cosh(theta * hyperbolicLimit / FastMath.PI));
-//
-//            float x = (float) (r * Math.cosh(theta));  // Hyperbolic X component
-//            float y = (float) (r * Math.sinh(theta));  // Hyperbolic Y component
-//            float z = 0;  // No initial Z component, orbit is in the X-Y plane
+            
             float x = a * ((float) Math.cosh(theta) - e);
             float y = b * (float) Math.sinh(theta);
             float z = 0;
 
             // Convert to 3D space using orbital elements
             Vector3f point = new Vector3f(x, y, z);
-
-            // Rotate to match the orbital elements
-            point = UiVectorUtils.rotateAroundZAxis(point, omega);    // Rotate by argument of periapsis
-            point = UiVectorUtils.rotateAroundXAxis(point, i);        // Rotate by inclination
-            point = UiVectorUtils.rotateAroundZAxis(point, omegaBig); // Rotate by longitude of the ascending node
-
-            // Translate by the barycenter
-            point.setX(point.x + bcx);
-            point.setY(point.y + bcy);
-            point.setZ(point.z + bcz);
 
             vertices[j] = point;
         }
@@ -571,6 +706,39 @@ public class ObjectModel {
         mesh.setMode(Mesh.Mode.LineStrip);  // Open curve for hyperbolic orbits
         mesh.updateBound();
         mesh.updateCounts();
+
+        // Create the quaternions for each rotation
+        Quaternion rotateZ1 = new Quaternion();
+        rotateZ1.fromAngleAxis(omega, Vector3f.UNIT_Z);  // Rotate by argument of periapsis (Z-axis)
+        Quaternion rotateX = new Quaternion();
+        rotateX.fromAngleAxis(i, Vector3f.UNIT_X);       // Rotate by inclination (X-axis)
+        Quaternion rotateZ2 = new Quaternion();
+        rotateZ2.fromAngleAxis(omegaBig, Vector3f.UNIT_Z);  // Rotate by longitude of ascending node (Z-axis)
+
+        // Combine the rotations in the same order: Z -> X -> Z
+        Quaternion combinedRotation = new Quaternion();
+        combinedRotation.multLocal(rotateZ2).multLocal(rotateX).multLocal(rotateZ1);
+
+        // Apply the combined rotation to the node
+        orbitNode.setLocalRotation(combinedRotation);
+        orbitNode.setLocalTranslation(bc);
+
+        if (showApPe) {
+//            double aph = oe.semiMajorAxis * (1 + oe.eccentricity);
+            double per = oe.semiMajorAxis * (1 - oe.eccentricity);
+
+            UnitsConverter uc = jmeApp.getFxApp().getUnitConverter();
+            
+            Node peNode = orbitInfoNodes.get("PE");
+
+            Vector3f apPosition = new Vector3f(-a * (1 + e), 0, 0);  // Apogee (AP)
+            Vector3f pePosition = new Vector3f(a * (1 - e), 0, 0);   // Perigee (PE)
+            
+            pePosition = combinedRotation.mult(pePosition);
+            
+            peNode.setLocalTranslation(pePosition.add(bc));
+            orbitInfoTexts.get("PE").setText("PE\n" + uc.distance(per));
+        }
     }
 
     public ColorRGBA getColor() {

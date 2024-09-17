@@ -129,6 +129,9 @@ public class ObjectStatsWrapper extends HBox {
     private void initStarPane() {
         int rowIndex = 0;
 
+        starPane.add(new Separator(), 0, rowIndex, 4, 1);
+        rowIndex++;
+
         starPane.add(new Label(strings.getString("colorTemp")), 0, rowIndex);
         colorTempLabel = new Label();
         starPane.add(colorTempLabel, 1, rowIndex);
@@ -142,6 +145,9 @@ public class ObjectStatsWrapper extends HBox {
 
     private void initPlanetPane() {
         int rowIndex = 0;
+        
+        planetPane.add(new Separator(), 0, rowIndex, 4, 1);
+        rowIndex++;
 
 //        planetPane.add(new Label(strings.getString("surfaceTempDay")), 0, rowIndex);
 //        surfaceTempDayLabel = new Label();

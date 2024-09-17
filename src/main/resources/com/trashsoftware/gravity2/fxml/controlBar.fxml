@@ -78,6 +78,14 @@
             <Button text="%showInfoPanel" onAction="#showObjectPaneAction"/>
         </HBox>
         <HBox spacing="5.0" alignment="CENTER_LEFT">
+            <MenuButton text="%menuFile">
+                <items>
+                    <MenuItem text="%menuSave"/>
+                    <MenuItem text="%menuLoad"/>
+                    <MenuItem text="%menuPresets"/>
+                </items>
+            </MenuButton>
+            
             <fx:define>
                 <ToggleGroup fx:id="refFrameGroup"/>
             </fx:define>
