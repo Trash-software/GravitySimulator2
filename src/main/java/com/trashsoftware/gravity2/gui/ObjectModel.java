@@ -9,7 +9,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -23,7 +22,6 @@ import com.jme3.shadow.PointLightShadowFilter;
 import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
-import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
 
@@ -33,11 +31,12 @@ import java.util.Map;
 public class ObjectModel {
     public static final int COLOR_GRADIENTS = 16;
     protected static Mesh blank = new Mesh();
+
     static {
         blank.setBuffer(VertexBuffer.Type.Position, 3,
                 BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
     }
-    
+
     protected final CelestialObject object;
     protected final ColorRGBA color;
     protected final ColorRGBA opaqueColor;
@@ -50,14 +49,14 @@ public class ObjectModel {
     protected Geometry rocheLimitModel;
     protected BitmapText labelText;
     protected Node labelNode;
-    
+
     protected Geometry path;
-    
+
     protected Geometry orbit;
     protected final Map<String, Node> orbitInfoNodes = new HashMap<>();
     protected final Map<String, BitmapText> orbitInfoTexts = new HashMap<>();
     protected Node orbitNode;
-    
+
     protected Geometry trace;
     protected Geometry axis;
     private boolean showLabel = true;
@@ -65,21 +64,22 @@ public class ObjectModel {
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
     final int samples;
-    
+
     protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
-    
+
     protected Vector3f rotationAxis;
 
     protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
 
     protected PointLightShadowRenderer plsr;
-    protected PointLightShadowFilter plsf;
-    protected FilterPostProcessor fpp;
+    protected BloomFilter bloom;
+//    protected PointLightShadowFilter plsf;
+//    protected FilterPostProcessor fpp;
 
     protected Quaternion tiltRotation;
-    protected double lastUsedObjectRadius;
+    protected double initialRadius;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
@@ -88,7 +88,7 @@ public class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
-        
+
         if (object.getTexture() == null) {
             samples = 32;
         } else {
@@ -97,7 +97,7 @@ public class ObjectModel {
 
         Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
-        lastUsedObjectRadius = object.getEquatorialRadius();
+        initialRadius = object.getEquatorialRadius();
         model = new Geometry(object.getName(), sphere);
         // Create a material for the box
         Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
@@ -109,54 +109,8 @@ public class ObjectModel {
         } else {
             mat.setTexture("DiffuseMap", object.getTexture());
         }
-        if (object.isEmittingLight()) {
-            mat.setFloat("Shininess", 128);
-
-            double colorTemp = object.getEmissionColorTemperature();
-            System.out.println(object.getName() + " color temp: " + colorTemp);
-            ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
-            System.out.println("Emission color: " + lightColor);
-            
-            mat.setColor("GlowColor", lightColor); // Glow effect color
-
-            emissionLight = new PointLight();
-            adjustPointLight();
-            jmeApp.getRootNode().addLight(emissionLight);
-
-            surfaceLight = new AmbientLight();
-            surfaceLight.setColor(ColorRGBA.White);
-            model.addLight(surfaceLight);
-
-            // Add shadow renderer
-            plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
-                    1024);
-            plsr.setLight(emissionLight);
-//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-            jmeApp.getViewPort().addProcessor(plsr);
-
-            // Add shadow filter for softer shadows
-            plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-            plsf.setLight(emissionLight);
-            plsf.setEnabled(true);
-            fpp = new FilterPostProcessor(jmeApp.getAssetManager());
-            fpp.addFilter(plsf);
-
-            // Add bloom effect to enhance the star's glow
-            BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-//            bloom.set
-            bloom.setBloomIntensity(2.0f); // Adjust intensity for more or less glow
-//            bloom.setBlurScale(10.0f);
-            fpp.addFilter(bloom);
-
-            jmeApp.getViewPort().addProcessor(fpp);
-            model.setShadowMode(RenderQueue.ShadowMode.Off);
-        } else {
-//            model.setCullHint(Spatial.CullHint.Never);
-            model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        }
         model.setMaterial(mat);
-//        model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        updateLightSource();
 
         // Create the text label
         labelText = new BitmapText(jmeApp.font);
@@ -193,15 +147,15 @@ public class ObjectModel {
         orbit.setMaterial(matLine2);
         orbitNode = new Node("OrbitNode");
         orbitNode.attachChild(orbit);
-        
+
         createApPeText();
-        
+
         axis = new Geometry("Axis", blank);
         Material matLine4 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         matLine4.setColor("Color", color);
         axis.setMaterial(matLine4);
         rotatingNode.attachChild(axis);
-        
+
         createAxisMesh();
 
         // Create a geometry, apply the mesh, and set the material
@@ -212,6 +166,91 @@ public class ObjectModel {
         trace.setMaterial(matLine3);
     }
     
+    private void updateLightSource() {
+        Material mat = model.getMaterial();
+        boolean emitting = object.isEmittingLight();
+        boolean changed = false;
+        if (emitting) {
+            if (emissionLight == null) {
+                mat.setFloat("Shininess", 128);
+
+                ColorRGBA lightColor;
+                if (object.getLightColorCode() != null) {
+                    lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+                } else {
+                    double colorTemp = object.getEmissionColorTemperature();
+                    System.out.println(object.getName() + " color temp: " + colorTemp);
+                    lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+                    System.out.println("Emission color: " + lightColor);
+                }
+
+                mat.setColor("GlowColor", lightColor); // Glow effect color
+
+                emissionLight = new PointLight();
+                adjustPointLight();
+                jmeApp.getRootNode().addLight(emissionLight);
+
+                surfaceLight = new AmbientLight();
+                surfaceLight.setColor(lightColor);
+                model.addLight(surfaceLight);
+
+                // Add shadow renderer
+                plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
+                        1024);
+                plsr.setLight(emissionLight);
+//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+                plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+                jmeApp.getViewPort().addProcessor(plsr);
+
+                // Add shadow filter for softer shadows
+//                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+//                plsf.setLight(emissionLight);
+//                plsf.setEnabled(true);
+//                fpp = new FilterPostProcessor(jmeApp.getAssetManager());
+//                fpp.addFilter(plsf);
+
+                // Add bloom effect to enhance the star's glow
+                bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+//            bloom.set
+                bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
+//            bloom.setBlurScale(10.0f);
+//                fpp.addFilter(bloom);
+                
+                jmeApp.filterPostProcessor.addFilter(bloom);
+//                jmeApp.filterPostProcessor.addFilter(plsf);
+
+//                jmeApp.getViewPort().addProcessor(fpp);
+                model.setShadowMode(RenderQueue.ShadowMode.Off);
+                changed = true;
+            }
+        } else {
+            changed = removeEmissionLight();
+            model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        }
+        if (changed) {
+            model.setMaterial(mat);
+        }
+    }
+    
+    protected boolean removeEmissionLight() {
+        if (emissionLight != null) {
+            jmeApp.getRootNode().removeLight(emissionLight);
+            model.removeLight(surfaceLight);
+            jmeApp.getViewPort().removeProcessor(plsr);
+            jmeApp.filterPostProcessor.removeFilter(bloom);
+//            jmeApp.filterPostProcessor.removeFilter(plsf);
+//                jmeApp.getViewPort().removeProcessor(fpp);
+
+            emissionLight = null;
+            surfaceLight = null;
+            plsr = null;
+//            plsf = null;
+            bloom = null;
+            return true;
+        }
+        return false;
+    }
+
     private void createApPeText() {
         for (String s : new String[]{"AP", "PE", "AN", "DN"}) {
             BitmapText text = new BitmapText(jmeApp.font);
@@ -224,12 +263,12 @@ public class ObjectModel {
             BillboardControl bc = new BillboardControl();
             node.addControl(bc);
             node.setLocalScale(0.06f);
-            
+
             orbitInfoTexts.put(s, text);
             orbitInfoNodes.put(s, node);
         }
     }
-    
+
     private void createAxisMesh() {
         Mesh mesh = new Mesh();
         Vector3f[] vertices = new Vector3f[2];
@@ -241,25 +280,31 @@ public class ObjectModel {
         // Set up indices to connect the vertices as line segments
         short[] indices = new short[]{0, 1};
         mesh.setBuffer(VertexBuffer.Type.Index, 2, BufferUtils.createShortBuffer(indices));
-        
+
         mesh.updateBound();
         mesh.updateCounts();
-        
+
         axis.setMesh(mesh);
     }
-    
-    private void updateSphereMesh() {
-        // todo: test memory leak
-        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
-        sphere.setTextureMode(Sphere.TextureMode.Projected);
-        model.setMesh(sphere);
-        lastUsedObjectRadius = object.getEquatorialRadius();
-    }
+
+//    private void updateSphereMesh() {
+//        // todo: test memory leak
+//        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
+//        sphere.setTextureMode(Sphere.TextureMode.Projected);
+//        model.setMesh(sphere);
+////        lastUsedObjectRadius = object.getEquatorialRadius();
+//    }
 
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
-        double colorTemp = object.getEmissionColorTemperature();
-        ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+
+        ColorRGBA lightColor;
+        if (object.getLightColorCode() != null) {
+            lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+        } else {
+            double colorTemp = object.getEmissionColorTemperature();
+            lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+        }
         
         double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
 //        System.out.println(radius);
@@ -290,7 +335,7 @@ public class ObjectModel {
 
         // Ensure transparency is rendered correctly
         sphere.setQueueBucket(RenderQueue.Bucket.Transparent);
-        
+
 //        sphere.setLocalScale(0.01f);  // initially invisible
 
         return sphere;
@@ -308,14 +353,17 @@ public class ObjectModel {
         tiltRotation.lookAt(rotationAxis, Vector3f.UNIT_Z);
 
         rotatingNode.setLocalRotation(tiltRotation);
+        
+        updateLightSource();
     }
 
     public void updateModelPosition(double scale) {
-        if (object.getEquatorialRadius() != lastUsedObjectRadius) {
-            updateSphereMesh();
-        }
-        
-        double radiusScale = scale;
+        double baseScale = object.getEquatorialRadius() / initialRadius;
+//        if (object.getEquatorialRadius() != initialRadius) {
+//            updateSphereMesh();
+//        }
+
+        double radiusScale = scale * baseScale;
         if (object.getEquatorialRadius() * scale < 0.1) {
             radiusScale = 0.1 / object.getEquatorialRadius();
         }
@@ -350,6 +398,7 @@ public class ObjectModel {
         if (showRocheLimit) {
             adjustRocheLimitScale((float) scale);
         }
+//        System.out.println(object.getName() + " " + xyz);
     }
 
     // Method to calculate the position on the ellipsoid at a given latitude, longitude, and altitude
@@ -409,7 +458,7 @@ public class ObjectModel {
         if (!axis.equals(rotationAxis)) {
             notifyObjectChanged();
         }
-        
+
         // Convert the current rotation degrees to radians
         float currentRotationRad = FastMath.DEG_TO_RAD * (float) object.getRotationAngle();
 
@@ -423,7 +472,7 @@ public class ObjectModel {
         // Apply the combined rotation to the sphere geometry
         rotatingNode.setLocalRotation(combinedRotation);
     }
-    
+
     public void setShowApPe(boolean showApPe) {
         // todo
         boolean wasShow = this.showApPe;
@@ -503,7 +552,7 @@ public class ObjectModel {
             rocheLimitModel.setLocalScale(ratio * baseScale);
         }
     }
-    
+
     public void showEllipticOrbit(
             double[] barycenter,
             OrbitalElements oe,
@@ -533,7 +582,8 @@ public class ObjectModel {
             float z = 0;
 
             // Convert to 3D space using orbital elements
-            vertices[j] = new Vector3f(x, y, z);;
+            vertices[j] = new Vector3f(x, y, z);
+            ;
         }
         // manually create a line loop
         vertices[vertices.length - 1] = vertices[0].clone();
@@ -572,13 +622,13 @@ public class ObjectModel {
             double per = oe.semiMajorAxis * (1 - oe.eccentricity);
 
             UnitsConverter uc = jmeApp.getFxApp().getUnitConverter();
-            
+
             Node apNode = orbitInfoNodes.get("AP");
             Node peNode = orbitInfoNodes.get("PE");
-            
+
             Vector3f apPosition = new Vector3f(-a * (1 + e), 0, 0);  // Apogee (AP)
             Vector3f pePosition = new Vector3f(a * (1 - e), 0, 0);   // Perigee (PE)
-            
+
             apPosition = combinedRotation.mult(apPosition);
             pePosition = combinedRotation.mult(pePosition);
 
@@ -586,10 +636,10 @@ public class ObjectModel {
             orbitInfoTexts.get("AP").setText("AP\n" + uc.distance(aph));
             peNode.setLocalTranslation(pePosition.add(bc));
             orbitInfoTexts.get("PE").setText("PE\n" + uc.distance(per));
-            
+
 //            Vector3f anPosition = new Vector3f(0, -a * (1 - e * e), 0);
 //            Vector3f dnPosition = new Vector3f(0, a * (1 - e * e), 0);
-            
+
 //            anPosition = rotateZ2.mult(anPosition);
 //            dnPosition = rotateZ2.mult(dnPosition);
 
@@ -683,7 +733,7 @@ public class ObjectModel {
 
         for (int j = 0; j < samples; j++) {
             float theta = -FastMath.PI + 2 * FastMath.PI * j / (samples - 1);  // Vary theta for hyperbolic orbit
-            
+
             float x = a * ((float) Math.cosh(theta) - e);
             float y = b * (float) Math.sinh(theta);
             float z = 0;
@@ -728,14 +778,14 @@ public class ObjectModel {
             double per = oe.semiMajorAxis * (1 - oe.eccentricity);
 
             UnitsConverter uc = jmeApp.getFxApp().getUnitConverter();
-            
+
             Node peNode = orbitInfoNodes.get("PE");
 
             Vector3f apPosition = new Vector3f(-a * (1 + e), 0, 0);  // Apogee (AP)
             Vector3f pePosition = new Vector3f(a * (1 - e), 0, 0);   // Perigee (PE)
-            
+
             pePosition = combinedRotation.mult(pePosition);
-            
+
             peNode.setLocalTranslation(pePosition.add(bc));
             orbitInfoTexts.get("PE").setText("PE\n" + uc.distance(per));
         }

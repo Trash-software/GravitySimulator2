@@ -40,6 +40,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     private int debrisLevel;
 
     private String colorCode;
+    private String lightColorCode;
     private final Texture texture;
 
     protected transient double[] lastAcceleration;
@@ -186,7 +187,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double[] axis = new double[]{0, 0, 1};
         CelestialObject co = new CelestialObject(
                 name,
-                BodyType.TERRESTRIAL,
+                BodyType.simpleInfer(mass),
                 mass,
                 radius,
                 radius,
@@ -289,9 +290,21 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return colorCode;
     }
 
+    public void setLightColorCode(String lightColorCode) {
+        this.lightColorCode = lightColorCode;
+    }
+
+    public String getLightColorCode() {
+        return lightColorCode;
+    }
+
     public void setTidalConstants(double tidalLoveNumber, double dissipationFunction) {
         this.tidalLoveNumber = tidalLoveNumber;
         this.dissipationFunction = dissipationFunction;
+    }
+
+    public void setRotationAngle(double rotationAngle) {
+        this.rotationAngle = rotationAngle;
     }
 
     protected void updateRotation(double timeSteps) {
@@ -569,7 +582,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public void gainMattersFrom(Simulator simulator, CelestialObject object, double timeStep) {
         if (object.equatorialRadius < 50) return;  // too small
         if (object.getMass() < 1e6) return;  // too light
-        double maxGain = getMass() * 3e-7 * timeStep;
+        double maxGain = Math.min(getMass() * 3e-7, SystemPresets.MOON_MASS * 1e-3) * timeStep;
         maxGain = Math.min(maxGain, object.getMass() - 5e5);  // half of 1e6
         double gain = Math.random() * maxGain;
         double transformedRatio = gain / object.getMass();
@@ -776,6 +789,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.velocity = newVelocity;
         this.rotationAxis = newRotationAxis;
         this.angularVelocity = newAngVel;
+        this.bodyType = bodyType.merge(other.bodyType, totalMass);
 
         // Step 6: Determine remaining energy for translational motion
         double newEnergySum = this.rotationalKineticEnergy() +

@@ -82,6 +82,7 @@ public class JmeApp extends SimpleApplication {
     private final FxApp fxApp;
     //    private final Set<Spatial> eachFrameErase = new HashSet<>();
     private AmbientLight ambientLight;
+    protected FilterPostProcessor filterPostProcessor;
     private RefFrame refFrame = RefFrame.STATIC;
 
     protected SpawningObject spawning;
@@ -104,6 +105,9 @@ public class JmeApp extends SimpleApplication {
 
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
 //        font = assetManager.loadFont("com/trashsoftware/gravity2/fonts/calibri12.fnt");
+        
+        filterPostProcessor = new FilterPostProcessor(assetManager);
+        viewPort.addProcessor(filterPostProcessor);
 
         setupMouses();
         initLights();
@@ -276,7 +280,7 @@ public class JmeApp extends SimpleApplication {
         simulator = new Simulator();
 
 //        simpleTest();
-        simpleTest2();
+//        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
 //        saturnRingTest();
@@ -286,8 +290,10 @@ public class JmeApp extends SimpleApplication {
 //        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
+        subStarTest();
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
+//        twoChaosSystemTest();
 //        threeBodyTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -310,12 +316,12 @@ public class JmeApp extends SimpleApplication {
                 // died object
                 rootNode.detachChild(om.objectNode);
                 rootNode.detachChild(om.orbitNode);
+                
+                om.setShowApPe(false);
 
                 // left its paths continues alive
                 if (om.emissionLight != null) {
-                    rootNode.removeLight(om.emissionLight);
-//                    viewPort.removeProcessor(om.plsr);
-                    viewPort.removeProcessor(om.fpp);
+                    om.removeEmissionLight();
                 }
             }
         }
@@ -324,7 +330,7 @@ public class JmeApp extends SimpleApplication {
             ObjectModel om = modelMap.get(object);
             if (om == null) {
                 om = new ObjectModel(object, this);
-                System.out.println("Creating " + object.getName());
+                System.out.println("Creating model for " + object.getName());
                 modelMap.put(object, om);
                 rootNode.attachChild(om.objectNode);
 
@@ -605,14 +611,6 @@ public class JmeApp extends SimpleApplication {
                     adjustFov(5f);
                 }
             }
-
-//            if (firstPersonStar == null && !leftButton.pressed) {
-//                if (spawning != null) {
-//                    if (name.startsWith("MouseMove")) {
-//                        updateSpawningPosition();
-//                    }
-//                }
-//            }
         }
     };
 
@@ -1105,7 +1103,7 @@ public class JmeApp extends SimpleApplication {
             AbstractObject child = spawning.object;
 
             double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
-
+            
             // velocity relative to parent system's barycenter movement
             double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed,
                     spawning.planeNormal);
@@ -1631,8 +1629,17 @@ public class JmeApp extends SimpleApplication {
     private void solarSystemTest() {
         scale = SystemPresets.solarSystem(simulator);
         scale *= 0.5;
+        
+//        pink();
 
         reloadObjects();
+    }
+    
+    private void pink() {
+        CelestialObject sun = simulator.findByName("Sun");
+        String color = "#ff55aa";
+        sun.setColorCode(color);
+        sun.setLightColorCode(color);
     }
 
     private void smallSolarSystemTest() {
@@ -1657,9 +1664,15 @@ public class JmeApp extends SimpleApplication {
 
         ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
+    
+    private void subStarTest() {
+        scale = SystemPresets.dwarfStarTest(simulator);
+        
+        reloadObjects();
+    }
 
     private void chaosSolarSystemTest() {
-        scale = SystemPresets.randomStarSystem(simulator, 100, 1.0);
+        scale = SystemPresets.randomStarSystem(simulator, 100);
         simulator.setEnableDisassemble(false);
 
         reloadObjects();
@@ -1669,6 +1682,15 @@ public class JmeApp extends SimpleApplication {
 
     private void twoChaosSolarSystemTest() {
         scale = SystemPresets.twoRandomStarSystems(simulator);
+        simulator.setEnableDisassemble(false);
+
+        reloadObjects();
+
+//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+    }
+
+    private void twoChaosSystemTest() {
+        scale = SystemPresets.twoRandomChaosSystems(simulator);
         simulator.setEnableDisassemble(false);
 
         reloadObjects();
@@ -1879,6 +1901,7 @@ public class JmeApp extends SimpleApplication {
                 rootNode.detachChild(spawning.model.orbitNode);
                 rootNode.detachChild(spawning.primaryLine);
                 rootNode.detachChild(spawning.secondaryLine);
+                spawning.model.setShowApPe(false);
 
                 gridPlaneNode.hide();
 

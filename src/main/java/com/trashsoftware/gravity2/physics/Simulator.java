@@ -1285,6 +1285,7 @@ public class Simulator {
         
         double[] direction;
         if (planeNormal != null) {
+//            System.out.println("Before: " + Arrays.toString(planeNormal) + " " + Arrays.toString(direction));
             direction = VectorOperations.crossProduct(planeNormal, connection);
             direction = VectorOperations.normalize(direction);
         } else {
@@ -1301,6 +1302,10 @@ public class Simulator {
         for (int dim = 0; dim < dimension; dim++) {
             velocity[dim] = direction[dim] * speedMag;
         }
+
+//        System.out.println("After: " + Arrays.toString(planeNormal) + " " +
+//                Arrays.toString(direction) + " " +
+//                Arrays.toString(velocity));
         
         VectorOperations.addInPlace(velocity, dominantVelocity);
 

@@ -228,6 +228,7 @@ public class SystemPresets {
         venus.setRelativeToParentEquator(false);
         earth.setRelativeToParentEquator(false);
         moon.setRelativeToParentEquator(false);
+//        moon.initRotationAngle = 150;
 
         mars.setRelativeToParentEquator(false);
         jupiter.setRelativeToParentEquator(false);
@@ -683,6 +684,7 @@ public class SystemPresets {
                 diffuseMap,
                 5000
         );
+        co.setRotationAngle(info.initRotationAngle);
         co.setTidalConstants(info.loveNumber, info.dissipationFunction);
         return co;
     }
@@ -845,27 +847,35 @@ public class SystemPresets {
     }
 
     public static double ellipseCluster(Simulator simulator, int n) {
-        double a = 1e10;
-        double b = 1e10;
-        double c = 1e10;
+        double a = 1e11;
+        double b = 1e11;
+        double c = 1e11;
 
-        double speed = 1e3;
+//        double speed = 1e3;
 
-        double centroidMass = 1e26;
+        double centroidMass = 5e29;
+        double starDensity = starDensity(centroidMass);
+        double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
+        String colorCode = GuiUtils.temperatureToRGBString(
+                CelestialObject.approxColorTemperatureOfStar(
+                        CelestialObject.approxLuminosityOfStar(centroidMass),
+                        starRadius
+                )
+        );
         CelestialObject centroid = CelestialObject.create3d(
                 "Centroid",
                 centroidMass,
-                CelestialObject.radiusOf(centroidMass, 1e5),
+                starRadius,
                 new double[3],
                 new double[3],
-                "#ffff00"
+                colorCode
         );
         centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-3);
         simulator.addObject(centroid);
 
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
-            double mass = rand.nextDouble(1e22, 1e25);
+            double mass = rand.nextDouble(1e26, 1e28);
             double density = rand.nextDouble(500, 6000);
             double radius = CelestialObject.radiusOf(mass, density);
 
@@ -888,17 +898,24 @@ public class SystemPresets {
                     mass,
                     radius,
                     new double[]{x, y, z},
-                    new double[]{
-                            rand.nextDouble(-speed, speed),
-                            rand.nextDouble(-speed, speed),
-                            rand.nextDouble(-speed, speed)
-                    },
+                    new double[3],
                     cc
             );
             double[] axis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
             axis = VectorOperations.normalize(axis);
             double angVel = rand.nextDouble(1e-8, 1e-1);
             co.forcedSetRotation(axis, angVel);
+            
+            double[] orbitAxis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
+            orbitAxis = VectorOperations.normalize(orbitAxis);
+            double[] velocity = simulator.computeVelocityOfN(
+                    centroid,
+                    co,
+                    rand.nextDouble(0, 1),
+                    orbitAxis
+            );
+            co.setVelocity(velocity);
+            
             simulator.addObject(co);
         }
 
@@ -906,24 +923,41 @@ public class SystemPresets {
     }
 
     public static double twoRandomStarSystems(Simulator simulator) {
-        double scale = randomStarSystem(simulator, 90, 0.9);
+        double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 5e25);
         simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
         simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
         simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-        randomStarSystem(simulator, 90, 1.5);
+        randomStarSystem(simulator, 90, 1.2, 2e30, 1e26);
 
         return scale;
     }
 
-    public static double randomStarSystem(Simulator simulator, int n, double scale) {
-        double a = 2e10 * scale;
-        double b = 2e10 * scale;
-        double c = 1e9 * scale;
+    public static double twoRandomChaosSystems(Simulator simulator) {
+        double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 1e27);
+        simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
+        simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
+        simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
+
+        randomStarSystem(simulator, 90, 1.2, 2e30, 5e27);
+
+        return scale;
+    }
+
+    public static double randomStarSystem(Simulator simulator, int n) {
+        return randomStarSystem(simulator, n, 1, 5e29, 1e27);
+    }
+
+    private static double randomStarSystem(Simulator simulator, int n, 
+                                           double sizeScale, double starMass,
+                                           double planetMass) {
+        double a = 2e10 * sizeScale;
+        double b = 2e10 * sizeScale;
+        double c = 1e9 * sizeScale;
 
         double flatRatio = c / (a + b) * 2;
 
-        double centroidMass = 5e29 * Math.pow(scale, 3);
+        double centroidMass = starMass;
         double starDensity = starDensity(centroidMass);
         double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
 
@@ -979,7 +1013,7 @@ public class SystemPresets {
                         1e3
                 );
             } else {
-                double mass = rand.nextDouble(1e25, 1e27);
+                double mass = rand.nextDouble(planetMass * 0.1, planetMass * 10);
                 double density = rand.nextDouble(500, 6000);
                 double radius = CelestialObject.radiusOf(mass, density);
 
@@ -1148,6 +1182,50 @@ public class SystemPresets {
         setTemperatureToSystem(simulator);
 
         return 1e-8;
+    }
+    
+    public static double dwarfStarTest(Simulator simulator) {
+        CelestialObject star = createMainSequenceStar("Star", 1e30);
+        
+        simulator.addObject(star);
+        
+        CelestialObject dwarf1 = createMainSequenceStar("Dwarf1", JUPITER_MASS * 50);
+        dwarf1.setPosition(new double[]{3e9, 3e9, 1e1});
+        dwarf1.setVelocity(simulator.computeVelocityOfN(star, dwarf1, 1, star.getRotationAxis()));
+        simulator.addObject(dwarf1);
+
+        CelestialObject dwarf2 = createMainSequenceStar("Dwarf2", JUPITER_MASS * 50);
+        dwarf2.setPosition(new double[]{2e9, 4.5e9, 1e1});
+        dwarf2.setVelocity(simulator.computeVelocityOfN(star, dwarf2, 1, star.getRotationAxis()));
+        simulator.addObject(dwarf2);
+        
+        simulator.setEnableDisassemble(false);
+        
+        return 1e-8;
+    }
+    
+    public static CelestialObject createMainSequenceStar(String name, double mass) {
+        double starDensity = starDensity(mass);
+        double starRadius = CelestialObject.radiusOf(mass, starDensity);
+
+        String colorCode = GuiUtils.temperatureToRGBString(
+                CelestialObject.approxColorTemperatureOfStar(
+                        CelestialObject.approxLuminosityOfStar(mass),
+                        starRadius
+                )
+        );
+
+        CelestialObject star = CelestialObject.create3d(
+                name,
+                mass,
+                starRadius,
+                new double[3],
+                new double[3],
+                colorCode
+        );
+
+        star.forcedSetRotation(new double[]{0, 0, 1}, 1e-6);
+        return star;
     }
 
     public static double saturnRingTest(Simulator simulator, int n) {
@@ -1506,6 +1584,7 @@ public class SystemPresets {
         public final double loveNumber;
         public final double dissipationFunction;
         public final ObjectInfo[] children;
+        protected double initRotationAngle;
 
         /**
          * Whether the orbital elements are related to parent's equatorial plane or ecliptic plane.
