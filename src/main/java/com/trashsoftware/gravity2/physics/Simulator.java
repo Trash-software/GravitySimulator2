@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.physics;
 
+import com.trashsoftware.gravity2.utils.Util;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -41,17 +42,17 @@ public class Simulator {
     private double[] barycenter;
 
     // temp buffers
-    private double[][] forcesBuffer;
-    private double[] dimDtBuffer;
-    private final List<CelestialObject> debrisBuffer = new ArrayList<>();
-    private final List<CelestialObject> newlyDestroyed = new ArrayList<>();
+    private transient double[][] forcesBuffer;
+    private transient double[] dimDtBuffer;
+    private transient final List<CelestialObject> debrisBuffer = new ArrayList<>();
+    private transient final List<CelestialObject> newlyDestroyed = new ArrayList<>();
 
     private transient final Map<CelestialObject, HieraticalSystem> systemMap = new HashMap<>();
     private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
     private transient int forceCounter1, forceCounter2;
 
-    private final ForkJoinPool forceCalculationPool = new ForkJoinPool();
-    protected final Random random = new Random();
+    private transient final ForkJoinPool forceCalculationPool = new ForkJoinPool();
+    protected transient final Random random = new Random();
 
     public Simulator(int dimension, double G, double gravityDtPower) {
         this.dimension = dimension;
@@ -73,6 +74,9 @@ public class Simulator {
         simulator.timeStep = json.getDouble("timeStep");
         simulator.timeStepAccumulator = json.getDouble("timeStepAccumulator");
         simulator.epsilon = json.getDouble("epsilon");
+        simulator.cutOffForce = json.getDouble("cutOffForce");
+        simulator.tidalEffectFactor = json.getDouble("tidalEffectFactor");
+        simulator.enableDisassemble = json.getBoolean("enableDisassemble");
 
         JSONArray objectsArr = json.getJSONArray("objects");
         for (int i = 0; i < objectsArr.length(); i++) {
@@ -93,6 +97,9 @@ public class Simulator {
         json.put("timeStep", timeStep);
         json.put("timeStepAccumulator", timeStepAccumulator);
         json.put("epsilon", epsilon);
+        json.put("cutOffForce", cutOffForce);
+        json.put("tidalEffectFactor", tidalEffectFactor);
+        json.put("enableDisassemble", enableDisassemble);
 
         JSONArray objectsArray = new JSONArray();
         for (CelestialObject co : objects) {
@@ -1457,8 +1464,9 @@ public class Simulator {
                         receiver.receiveLight(sourcePos, luminosity, timeStep);
                     }
                 }
+            } else {
+                co.emitThermalPower(timeStep);
             }
-            co.emitThermalPower(timeStep);
         }
     }
 

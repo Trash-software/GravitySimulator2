@@ -11,9 +11,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -201,6 +205,56 @@ public class ControlBar implements Initializable {
         refStaticBtn.setDisable(true);
         refSystemBtn.setDisable(true);
         refTargetBtn.setDisable(true);
+    }
+    
+    void saveAction() {
+        Simulator simulator = getJmeApp().getSimulator();
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(FxApp.SAVE_PATH));
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Simulation file", "*.tgs"));
+        fileChooser.setInitialFileName("*.tgs");
+        File file = fileChooser.showSaveDialog(window);
+        if (file != null) {
+            if (!file.getName().endsWith(".tgs")) {
+                throw new RuntimeException(file.getName() + " has not extension.");
+            }
+
+            JSONObject json = simulator.toJson();
+            String jsonString = json.toString(2);
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(jsonString);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    
+    void loadAction() {
+//        Simulator simulator = getJmeApp().getSimulator();
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(FxApp.SAVE_PATH));
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Simulation file", "*.tgs"));
+        File file = fileChooser.showOpenDialog(window);
+        if (file != null) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                StringBuilder sb = new StringBuilder();  // sb, hp
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+                JSONObject json = new JSONObject(sb.toString());
+                Simulator simulator = Simulator.loadFromJson(json);
+                simulator.setTimeStep(getJmeApp().getSimulationSpeed());
+                
+                getJmeApp().setSimulatorEnqueue(simulator);
+            } catch (IOException | JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @FXML

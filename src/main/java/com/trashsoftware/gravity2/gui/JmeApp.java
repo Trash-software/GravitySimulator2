@@ -48,8 +48,6 @@ public class JmeApp extends SimpleApplication {
 
     private double pathLength = 5000.0;
 
-    boolean initialized = false;
-
     protected Simulator simulator;
     protected double speed = 1.0;
     protected boolean playing = true;
@@ -105,22 +103,20 @@ public class JmeApp extends SimpleApplication {
 
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
 //        font = assetManager.loadFont("com/trashsoftware/gravity2/fonts/calibri12.fnt");
-        
+
+        setupMouses();
+
         filterPostProcessor = new FilterPostProcessor(assetManager);
         viewPort.addProcessor(filterPostProcessor);
 
-        setupMouses();
+        Simulator sim = initializeSimulator();
+        setSimulator(sim);
+        
         initLights();
         initMarks();
 
-//        putTestBox();
-        playing = false;
-
-        initializeSimulator();
-
         setCamera3rdPerson();
         updateLabelShowing();
-        playing = true;
     }
 
     @Override
@@ -275,8 +271,7 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void initializeSimulator() {
-        initialized = true;
+    private Simulator initializeSimulator() {
         simulator = new Simulator();
 
 //        simpleTest();
@@ -285,18 +280,37 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest4();
 //        saturnRingTest();
 //        rocheEffectTest();
-//        solarSystemTest();
+        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
-        subStarTest();
+//        subStarTest();
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
 //        threeBodyTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
+        
+        return simulator;
+    }
+    
+    private void detachObjectModel(ObjectModel om) {
+        // died object
+        rootNode.detachChild(om.objectNode);
+        if (om.orbitNode != null) {
+            rootNode.detachChild(om.orbitNode);
+        }
+        if (om.barycenterMark != null) {
+            rootNode.detachChild(om.barycenterMark);
+        }
+        om.setShowApPe(false);
+
+        // left its paths continues alive
+        if (om.emissionLight != null) {
+            om.removeEmissionLight();
+        }
     }
 
     void reloadObjects() {
@@ -313,16 +327,7 @@ public class JmeApp extends SimpleApplication {
                 iterator.remove();
                 diedObjects.put(entry.getKey(), om);
 
-                // died object
-                rootNode.detachChild(om.objectNode);
-                rootNode.detachChild(om.orbitNode);
-                
-                om.setShowApPe(false);
-
-                // left its paths continues alive
-                if (om.emissionLight != null) {
-                    om.removeEmissionLight();
-                }
+                detachObjectModel(om);
             }
         }
 
@@ -1410,8 +1415,11 @@ public class JmeApp extends SimpleApplication {
         List<float[]> drawnObjectPoses = new ArrayList<>();
 
         // Attempt to label each object
-        for (CelestialObject obj : objects) {
-            ObjectModel om = modelMap.get(obj);
+        for (ObjectModel om : modelMap.values()) {
+            CelestialObject obj = om.object;
+            if (!obj.isExist()) {
+                continue;
+            }
             if (om.object.getMass() < minimumMassShowing) {
                 om.setShowLabel(false);
             } else if (showLabel) {
@@ -1621,18 +1629,13 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 1e-7f;
-
-        reloadObjects();
+        
         ambientLight.setColor(ColorRGBA.White);
     }
 
     private void solarSystemTest() {
         scale = SystemPresets.solarSystem(simulator);
         scale *= 0.5;
-        
-//        pink();
-
-        reloadObjects();
     }
     
     private void pink() {
@@ -1645,37 +1648,27 @@ public class JmeApp extends SimpleApplication {
     private void smallSolarSystemTest() {
         scale = SystemPresets.smallSolarSystem(simulator);
         scale *= 0.5;
-
-        reloadObjects();
     }
 
     private void solarSystemWithCometsTest() {
         scale = SystemPresets.solarSystemWithComets(simulator);
         scale *= 0.5;
-
-        reloadObjects();
     }
 
     private void ellipseClusterTest() {
         scale = SystemPresets.ellipseCluster(simulator, 180);
         simulator.setEnableDisassemble(false);
 
-        reloadObjects();
-
         ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
     
     private void subStarTest() {
         scale = SystemPresets.dwarfStarTest(simulator);
-        
-        reloadObjects();
     }
 
     private void chaosSolarSystemTest() {
         scale = SystemPresets.randomStarSystem(simulator, 100);
         simulator.setEnableDisassemble(false);
-
-        reloadObjects();
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
@@ -1684,16 +1677,12 @@ public class JmeApp extends SimpleApplication {
         scale = SystemPresets.twoRandomStarSystems(simulator);
         simulator.setEnableDisassemble(false);
 
-        reloadObjects();
-
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
 
     private void twoChaosSystemTest() {
         scale = SystemPresets.twoRandomChaosSystems(simulator);
         simulator.setEnableDisassemble(false);
-
-        reloadObjects();
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
@@ -1909,6 +1898,22 @@ public class JmeApp extends SimpleApplication {
             }
         });
     }
+    
+    public void setSimulatorEnqueue(Simulator simulator) {
+        enqueue(() -> setSimulator(simulator));
+    }
+    
+    private void setSimulator(Simulator simulator) {
+        for (ObjectModel om : modelMap.values()) {
+            detachObjectModel(om);
+            rootNode.detachChild(om.path);
+            rootNode.detachChild(om.trace);
+        }
+        modelMap.clear();
+        
+        this.simulator = simulator;
+        reloadObjects();
+    }
 
     public void updateMinimumMassShowing(double minimumMassShowing) {
         enqueue(() -> {
@@ -1922,6 +1927,7 @@ public class JmeApp extends SimpleApplication {
         for (var it = diedObjects.entrySet().iterator(); it.hasNext(); ) {
             var entry = it.next();
             if (now - entry.getKey().getDieTime() > Simulator.MAX_TIME_AFTER_DIE) {
+                // todo: orbit, path
                 it.remove();
             }
         }

@@ -1,8 +1,8 @@
 package com.trashsoftware.gravity2.physics;
 
-import com.jme3.texture.Texture;
 import com.trashsoftware.gravity2.gui.GuiUtils;
-import com.trashsoftware.gravity2.gui.JmeApp;
+import com.trashsoftware.gravity2.utils.JsonUtil;
+import com.trashsoftware.gravity2.utils.Util;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -41,7 +41,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     private String colorCode;
     private String lightColorCode;
-    private final Texture texture;
+    private final String texturePath;
 
     protected transient double[] lastAcceleration;
     //    protected transient double[] orbitBasic;  // semi-major, eccentricity
@@ -61,7 +61,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                     double[] rotationAxis,
                     double angularVelocity,
                     String colorCode,
-                    Texture diffuseMap,
+                    String texturePath,
                     double internalAvgTemp) {
 
         if (position.length != velocity.length) {
@@ -81,7 +81,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.angularVelocity = angularVelocity;
         this.internalThermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, internalAvgTemp);
 
-        this.texture = diffuseMap;
+        this.texturePath = texturePath;
 
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
 //        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
@@ -146,7 +146,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                                              double[] axis,
                                              double angularVelocity,
                                              String colorCode,
-                                             Texture diffuseMap,
+                                             String texturePath,
                                              double internalAvgTemp) {
         CelestialObject co = new CelestialObject(
                 name,
@@ -159,7 +159,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 axis,
                 angularVelocity,
                 colorCode,
-                diffuseMap,
+                texturePath,
                 internalAvgTemp
         );
         // argument pos/vel can be shorter than dim
@@ -211,15 +211,13 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         JSONArray velocityArr = json.getJSONArray("velocity");
         JSONArray axisArr = json.getJSONArray("rotationAxis");
 
-        double[] position = Util.jsonArrayToDoubleArray(positionArr);
-        double[] velocity = Util.jsonArrayToDoubleArray(velocityArr);
-        double[] rotationAxis = Util.jsonArrayToDoubleArray(axisArr);
-        Texture texture = null;
-        if (json.has("texture")) {
-            String textureString = json.getString("texture");
-            if (textureString != null && !"null".equals(textureString)) {
-                texture = JmeApp.getInstance().getAssetManager().loadTexture(textureString);
-            }
+        double[] position = JsonUtil.jsonArrayToDoubleArray(positionArr);
+        double[] velocity = JsonUtil.jsonArrayToDoubleArray(velocityArr);
+        double[] rotationAxis = JsonUtil.jsonArrayToDoubleArray(axisArr);
+        String texturePath = null;
+        if (json.has("texturePath")) {
+            texturePath = json.getString("texturePath");
+            if ("null".equals(texturePath)) texturePath = null;
         }
 
 //        int dim = position.length;
@@ -234,39 +232,62 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 velocity,
                 rotationAxis,
                 json.getDouble("angularVelocity"),
-//                new ColorRGBA(json.getString("color")),
-                null,
-                texture,
+                json.getString("colorCode"),
+                texturePath,
                 0
         );
 
         co.exist = json.getBoolean("exist");
-//        co.shownScale = json.getDouble("shownScale");
-        co.rotationAngle = json.getDouble("rotationAngle");
-        co.internalThermalEnergy = json.getDouble("thermalEnergy");
+        co.lightColorCode = json.has("lightColorCode") ? json.getString("lightColorCode") : null;
+        co.debrisLevel = json.getInt("debrisLevel");
+        for (String attr : new String[]{
+                "tidalLoveNumber",
+                "dissipationFunction",
+                "emissivity",
+                "surfaceThermalEnergy",
+                "internalThermalEnergy",
+                "rotationAngle",
+                "lastBreakTime",
+                "dieTime",
+                "timeInsideRocheLimit"
+        }) {
+            try {
+                CelestialObject.class.getDeclaredField(attr).set(co, json.getDouble(attr));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         return co;
     }
 
     public JSONObject toJson() {
-        JSONObject json = new JSONObject();
-
-        json.put("name", name);
-        json.put("mass", mass);
-        json.put("equatorialRadius", equatorialRadius);
-        json.put("polarRadius", polarRadius);
-        json.put("exist", exist);
-//        json.put("shownScale", shownScale);
-//        json.put("color", Util.colorToHex(color));
-        json.put("texture", texture != null ? texture.getName() : "null");
-        json.put("position", new JSONArray(position));
-        json.put("velocity", new JSONArray(velocity));
-        json.put("rotationAxis", new JSONArray(rotationAxis));
-        json.put("angularVelocity", angularVelocity);
-        json.put("rotationAngle", rotationAngle);
-        json.put("thermalEnergy", internalThermalEnergy);
-
-        return json;
+        try {
+            return JsonUtil.objectToJson(this);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+//        JSONObject json = new JSONObject();
+//
+//        json.put("name", name);
+//        json.put("mass", mass);
+//        json.put("equatorialRadius", equatorialRadius);
+//        json.put("polarRadius", polarRadius);
+//        json.put("exist", exist);
+//        json.put("colorCode", colorCode);
+//        json.put("lightColorCode", lightColorCode);
+//        json.put("texturePath", texturePath);
+//        json.put("position", new JSONArray(position));
+//        json.put("velocity", new JSONArray(velocity));
+//        json.put("rotationAxis", new JSONArray(rotationAxis));
+//        json.put("angularVelocity", angularVelocity);
+//        json.put("rotationAngle", rotationAngle);
+//        json.put("internalThermalEnergy", internalThermalEnergy);
+//        json.put("tidalLoveNumber", tidalLoveNumber);
+//
+//        return json;
     }
 
     public String getName() {
@@ -777,19 +798,25 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double[] totalAngularMomentum = VectorOperations.add(L_A, L_B_to_A);
 
         // update radius
-        setRadiusByVolume(totalVolume);
-        double newEqRadius = this.equatorialRadius;
+
+        this.mass = totalMass;
+        this.velocity = newVelocity;
+        this.bodyType = bodyType.merge(other.bodyType, totalMass);
+        if (this.bodyType.adaptiveDensity) {
+            double newDensity = BodyType.massiveObjectDensity(this.mass);
+            double newVolume = this.mass / newDensity;
+            setRadiusByVolume(newVolume);
+        } else {
+            setRadiusByVolume(totalVolume);
+        }
 
         // Step 5: Compute new rotation axis and angular velocity for object A
         double[] newRotationAxis = VectorOperations.normalize(totalAngularMomentum);
-        double newAngVel = computeNewAngularVelocity(totalAngularMomentum, totalMass, newEqRadius);
+        double newAngVel = computeNewAngularVelocity(totalAngularMomentum, this.mass, this.equatorialRadius);
 
         // Step 5: Assign the new attributes to the surviving object
-        this.mass = totalMass;
-        this.velocity = newVelocity;
         this.rotationAxis = newRotationAxis;
         this.angularVelocity = newAngVel;
-        this.bodyType = bodyType.merge(other.bodyType, totalMass);
 
         // Step 6: Determine remaining energy for translational motion
         double newEnergySum = this.rotationalKineticEnergy() +
@@ -851,8 +878,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return dieTime;
     }
 
-    public Texture getTexture() {
-        return texture;
+    public String getTexturePath() {
+        return texturePath;
     }
 
     public CelestialObject getGravityMaster() {

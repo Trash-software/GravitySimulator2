@@ -16,6 +16,17 @@
         <Insets topRightBottomLeft="5.0"/>
     </padding>
 
+    <MenuBar>
+        <Menu text="%menuFile">
+            <MenuItem text="%menuSave" onAction="#saveAction"/>
+            <MenuItem text="%menuLoad" onAction="#loadAction"/>
+        </Menu>
+        <Menu text="%menuTool">
+            <CheckMenuItem text="%menuContour" fx:id="gravityContourMenu"/>
+            <CheckMenuItem text="%menuEffPotContour" fx:id="effPotentialContourMenu"/>
+        </Menu>
+    </MenuBar>
+
     <GridPane fx:id="infoPane" vgap="5.0" hgap="10.0" HBox.hgrow="ALWAYS">
         <Label text="%totalE" GridPane.rowIndex="0"/>
         <Label fx:id="totalEnergyText" GridPane.rowIndex="0" GridPane.columnIndex="1"/>

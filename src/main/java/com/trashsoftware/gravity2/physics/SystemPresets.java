@@ -3,9 +3,8 @@ package com.trashsoftware.gravity2.physics;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
-import com.jme3.texture.Texture;
 import com.trashsoftware.gravity2.gui.GuiUtils;
-import com.trashsoftware.gravity2.gui.JmeApp;
+import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.*;
 
@@ -434,8 +433,10 @@ public class SystemPresets {
         }
         if (sources.isEmpty()) return;
         for (CelestialObject co : simulator.getObjects()) {
-            double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
-            co.forceSetSurfaceTemperature(temp);
+            if (!sources.contains(co)) {
+                double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
+                co.forceSetSurfaceTemperature(temp);
+            }
         }
     }
 
@@ -653,18 +654,18 @@ public class SystemPresets {
 //        double[] axis = randomAxisToZ(info.tilt);
 
         String textureFile = TEXTURES.get(info.name);
-        Texture diffuseMap = null;
-        if (textureFile != null) {
-            try {
-                diffuseMap = JmeApp.getInstance().getAssetManager().loadTexture(textureFile);
-            } catch (IllegalArgumentException iae) {
-                System.err.println("Cannot read " + textureFile);
-                iae.printStackTrace();
-            }
-//            if (diffuseMap.isError()) {
-//                System.out.println(diffuseMap.getUrl());
+//        Texture diffuseMap = null;
+//        if (textureFile != null) {
+//            try {
+//                diffuseMap = JmeApp.getInstance().getAssetManager().loadTexture(textureFile);
+//            } catch (IllegalArgumentException iae) {
+//                System.err.println("Cannot read " + textureFile);
+//                iae.printStackTrace();
 //            }
-        }
+////            if (diffuseMap.isError()) {
+////                System.out.println(diffuseMap.getUrl());
+////            }
+//        }
 
         double rp = info.rotationPeriod * 24 * 60 * 60;
         double av = CelestialObject.angularVelocityOf(rp);
@@ -681,7 +682,7 @@ public class SystemPresets {
                 axis,
                 av,
                 info.colorCode,
-                diffuseMap,
+                textureFile,
                 5000
         );
         co.setRotationAngle(info.initRotationAngle);
@@ -780,7 +781,7 @@ public class SystemPresets {
         Random random = new Random();
 
         double starMass = random.nextDouble(1e30, 3e30) * massScale;
-        double starDensity = starDensity(starMass);
+        double starDensity = BodyType.massiveObjectDensity(starMass);
         double starRadius = CelestialObject.radiusOf(starMass, starDensity);
         CelestialObject star = CelestialObject.createNd(
                 starName,
@@ -854,7 +855,7 @@ public class SystemPresets {
 //        double speed = 1e3;
 
         double centroidMass = 5e29;
-        double starDensity = starDensity(centroidMass);
+        double starDensity = BodyType.massiveObjectDensity(centroidMass);
         double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
         String colorCode = GuiUtils.temperatureToRGBString(
                 CelestialObject.approxColorTemperatureOfStar(
@@ -939,7 +940,7 @@ public class SystemPresets {
         simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
         simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-        randomStarSystem(simulator, 90, 1.2, 2e30, 5e27);
+        randomStarSystem(simulator, 90, 1.2, 2e30, 2e28);
 
         return scale;
     }
@@ -958,7 +959,7 @@ public class SystemPresets {
         double flatRatio = c / (a + b) * 2;
 
         double centroidMass = starMass;
-        double starDensity = starDensity(centroidMass);
+        double starDensity = BodyType.massiveObjectDensity(centroidMass);
         double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
 
         String colorCode = GuiUtils.temperatureToRGBString(
@@ -1205,7 +1206,7 @@ public class SystemPresets {
     }
     
     public static CelestialObject createMainSequenceStar(String name, double mass) {
-        double starDensity = starDensity(mass);
+        double starDensity = BodyType.massiveObjectDensity(mass);
         double starRadius = CelestialObject.radiusOf(mass, starDensity);
 
         String colorCode = GuiUtils.temperatureToRGBString(
@@ -1291,25 +1292,6 @@ public class SystemPresets {
             small.setVelocity(velocity);
             simulator.addObject(small);
         }
-    }
-
-    public static double starDensity(double mass) {
-        double relMass = mass / SOLAR_MASS;
-        double alpha;
-        if (relMass < 0.5) {
-            alpha = 0.8;
-        } else if (relMass < 8.0) {
-            if (relMass <= 1.0) {
-                alpha = Util.linearMapping(0.5, 1.0, 0.8, 1.0, relMass);
-            } else {
-                alpha = Util.linearMapping(1.0, 8.0, 1.0, 0.8, relMass);
-            }
-        } else {
-            double x = relMass - 7.0;  // x start from 1
-            double multiplier = 0.8 - 0.5;
-            alpha = 1 / Math.pow(x, 0.75) * multiplier + 0.5;
-        }
-        return Math.pow(relMass, 1 - alpha * 3) * SOLAR_DENSITY;
     }
 
     private static double titiusBode(int x) {

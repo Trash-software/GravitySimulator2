@@ -1,9 +1,7 @@
-package com.trashsoftware.gravity2.physics;
+package com.trashsoftware.gravity2.utils;
 
-import com.jme3.math.ColorRGBA;
 import com.trashsoftware.gravity2.gui.GuiUtils;
 import javafx.scene.paint.Color;
-import org.json.JSONArray;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -44,14 +42,6 @@ public class Util {
         }
 
         return result;
-    }
-
-    public static double[] jsonArrayToDoubleArray(JSONArray jsonArray) {
-        double[] res = new double[jsonArray.length()];
-        for (int i = 0; i < res.length; i++) {
-            res[i] = jsonArray.getDouble(i);
-        }
-        return res;
     }
 
     public static double clamp(double input, double min, double max) {

@@ -1,13 +1,11 @@
 package com.trashsoftware.gravity2.fxml;
 
-import com.jme3.math.ColorRGBA;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.SystemPresets;
-import com.trashsoftware.gravity2.physics.Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -55,7 +53,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         super.initialize(url, resourceBundle);
-        
+
         setComboBoxes();
         setCheckBoxes();
     }
@@ -64,11 +62,11 @@ public class ObjectListPanel extends AbstractObjectPanel {
     public void oneFrameSlow(double frameTimeMs) {
         Simulator simulator = fxApp.getSimulator();
         if (simulator == null) return;
-        
+
         setTexts(simulator);
         setInfo(simulator);
     }
-    
+
     private void setCheckBoxes() {
         orbitSpeedMultipliers = Map.of(
                 spawnStillBtn, 0.0,
@@ -129,7 +127,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
             }
         }
     }
-    
+
     private void setTexts(Simulator simulator) {
         UnitsConverter uc = fxApp.getUnitConverter();
         double kinetic = simulator.calculateTotalKineticEnergy();
@@ -209,22 +207,32 @@ public class ObjectListPanel extends AbstractObjectPanel {
         reloadInfoPane(fxApp.getSimulator(), fxApp.getSimulator().getObjects());
         celestialContainer.setVvalue(celestialContainerVValueCache);
     }
-    
+
     public void reshow() {
         Platform.runLater(() -> window.show());
     }
-    
+
     public boolean isObjectExpanded() {
         Node root = celestialContainer.getContent();
         return root instanceof ObjectStatsWrapper;
     }
-    
+
+    @FXML
+    public void saveAction() {
+        fxApp.getControlBar().saveAction();
+    }
+
+    @FXML
+    public void loadAction() {
+        fxApp.getControlBar().loadAction();
+    }
+
     @FXML
     public void spawnModeAction() {
         JmeApp jmeApp = fxApp.getJmeApp();
         if (jmeApp == null) return;
         Simulator simulator = jmeApp.getSimulator();
-        
+
         if (jmeApp.isInSpawningMode()) {
             jmeApp.exitSpawningMode();
         } else {
@@ -260,7 +268,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
             if (presetInfo == null) {
                 Color color = colorPicker.getValue();
                 String colorCode = GuiUtils.fxColorToHex(color);
-                
+
                 spawning = CelestialObject.createNd(name, mass, radius, simulator.getDimension(),
                         colorCode);
             } else {
@@ -277,7 +285,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
             jmeApp.enterSpawningMode(spawning, speed);
         }
     }
-    
+
     private double getSpawningSpeed() {
         String speedMulText = speedMulInput.getText();
         double speed;
@@ -289,7 +297,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         }
         return speed;
     }
-    
+
     public void scrollTo(CelestialObject co) {
         Node root = celestialContainer.getContent();
         if (root == celestialListPane) {

@@ -20,6 +20,7 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.PointLightShadowFilter;
 import com.jme3.shadow.PointLightShadowRenderer;
+import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.CelestialObject;
@@ -89,7 +90,8 @@ public class ObjectModel {
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
 
-        if (object.getTexture() == null) {
+        String texturePath = object.getTexturePath();
+        if (texturePath == null) {
             samples = 32;
         } else {
             samples = 64;
@@ -102,12 +104,13 @@ public class ObjectModel {
         // Create a material for the box
         Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
 
-        if (object.getTexture() == null) {
+        if (texturePath == null) {
             mat.setBoolean("UseMaterialColors", true);
             mat.setColor("Diffuse", color);
             mat.setColor("Ambient", color);
         } else {
-            mat.setTexture("DiffuseMap", object.getTexture());
+            Texture texture = jmeApp.getAssetManager().loadTexture(texturePath);
+            mat.setTexture("DiffuseMap", texture);
         }
         model.setMaterial(mat);
         updateLightSource();
