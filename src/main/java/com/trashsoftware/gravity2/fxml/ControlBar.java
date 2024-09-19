@@ -5,6 +5,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
+import com.trashsoftware.gravity2.presets.Preset;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -251,10 +252,21 @@ public class ControlBar implements Initializable {
                 simulator.setTimeStep(getJmeApp().getSimulationSpeed());
                 
                 getJmeApp().setSimulatorEnqueue(simulator);
+                fxApp.getObjectListPanel().reloadInfoPane(simulator, simulator.getObjects());
             } catch (IOException | JSONException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+    
+    void loadPreset(Preset preset) {
+        Simulator simulator = new Simulator();
+        double scale = preset.instantiate(simulator);
+        JmeApp jmeApp = fxApp.getJmeApp();
+        jmeApp.setSimulatorEnqueue(simulator);
+        jmeApp.setScaleEnqueue(scale);
+        
+        fxApp.getObjectListPanel().reloadInfoPane(simulator, simulator.getObjects());
     }
 
     @FXML

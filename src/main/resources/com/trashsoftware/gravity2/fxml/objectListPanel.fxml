@@ -20,11 +20,11 @@
         <Menu text="%menuFile">
             <MenuItem text="%menuSave" onAction="#saveAction"/>
             <MenuItem text="%menuLoad" onAction="#loadAction"/>
+            <Menu fx:id="presetsMenu" text="%menuPresets">
+                
+            </Menu>
         </Menu>
-        <Menu text="%menuTool">
-            <CheckMenuItem text="%menuContour" fx:id="gravityContourMenu"/>
-            <CheckMenuItem text="%menuEffPotContour" fx:id="effPotentialContourMenu"/>
-        </Menu>
+        
     </MenuBar>
 
     <GridPane fx:id="infoPane" vgap="5.0" hgap="10.0" HBox.hgrow="ALWAYS">

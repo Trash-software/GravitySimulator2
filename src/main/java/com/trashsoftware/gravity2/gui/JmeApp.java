@@ -21,6 +21,8 @@ import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.*;
+import com.trashsoftware.gravity2.presets.Preset;
+import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.application.Platform;
 
 import java.util.*;
@@ -111,7 +113,7 @@ public class JmeApp extends SimpleApplication {
 
         Simulator sim = initializeSimulator();
         setSimulator(sim);
-        
+
         initLights();
         initMarks();
 
@@ -292,10 +294,10 @@ public class JmeApp extends SimpleApplication {
 //        threeBodyTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
-        
+
         return simulator;
     }
-    
+
     private void detachObjectModel(ObjectModel om) {
         // died object
         rootNode.detachChild(om.objectNode);
@@ -1108,7 +1110,7 @@ public class JmeApp extends SimpleApplication {
             AbstractObject child = spawning.object;
 
             double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
-            
+
             // velocity relative to parent system's barycenter movement
             double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed,
                     spawning.planeNormal);
@@ -1629,15 +1631,15 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 1e-7f;
-        
+
         ambientLight.setColor(ColorRGBA.White);
     }
 
     private void solarSystemTest() {
-        scale = SystemPresets.solarSystem(simulator);
+        scale = Preset.SOLAR_SYSTEM.instantiate(simulator);
         scale *= 0.5;
     }
-    
+
     private void pink() {
         CelestialObject sun = simulator.findByName("Sun");
         String color = "#ff55aa";
@@ -1661,7 +1663,7 @@ public class JmeApp extends SimpleApplication {
 
         ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
-    
+
     private void subStarTest() {
         scale = SystemPresets.dwarfStarTest(simulator);
     }
@@ -1898,11 +1900,19 @@ public class JmeApp extends SimpleApplication {
             }
         });
     }
-    
+
+    public void setScaleEnqueue(double scale) {
+        enqueue(() -> {
+            this.scale = scale;
+            updateLabelShowing();
+            updateCurvesShowing();
+        });
+    }
+
     public void setSimulatorEnqueue(Simulator simulator) {
         enqueue(() -> setSimulator(simulator));
     }
-    
+
     private void setSimulator(Simulator simulator) {
         for (ObjectModel om : modelMap.values()) {
             detachObjectModel(om);
@@ -1910,8 +1920,9 @@ public class JmeApp extends SimpleApplication {
             rootNode.detachChild(om.trace);
         }
         modelMap.clear();
-        
+
         this.simulator = simulator;
+        screenCenter.set(0, 0, 0);
         reloadObjects();
     }
 

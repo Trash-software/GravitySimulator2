@@ -1,9 +1,10 @@
-package com.trashsoftware.gravity2.physics;
+package com.trashsoftware.gravity2.presets;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.trashsoftware.gravity2.gui.GuiUtils;
+import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.*;
@@ -261,13 +262,6 @@ public class SystemPresets {
             moon
     );
 
-    public static double solarSystem(Simulator simulator) {
-        makeSystem(simulator, sun, 1, 1e3, 1e3);
-
-        setTemperatureToSystem(simulator);
-        return 0.005 * 1e-7;
-    }
-
     public static double smallSolarSystem(Simulator simulator) {
         makeSystem(simulator, sun, 1, 1e3, 1e2);
 
@@ -291,11 +285,11 @@ public class SystemPresets {
 
     }
 
-    private static void addComets(Simulator simulator,
-                                  CelestialObject sun,
-                                  int nObjects,
-                                  double dtMean,
-                                  double dtSd) {
+    static void addComets(Simulator simulator,
+                          CelestialObject sun,
+                          int nObjects,
+                          double dtMean,
+                          double dtSd) {
 
         Random random = new Random();
 
@@ -336,18 +330,18 @@ public class SystemPresets {
         }
     }
 
-    private static void addAsteroidsTo(Simulator simulator,
-                                       CelestialObject sun,
-                                       CelestialObject planet,
-                                       int nObjects,
-                                       double dtSd) {
+    static void addAsteroidsTo(Simulator simulator,
+                               CelestialObject sun,
+                               CelestialObject planet,
+                               int nObjects,
+                               double dtSd) {
 
         // sun's mass is very big, just ignore others
         double[] ae = OrbitCalculator.computeBasic(
                 planet,
-                sun.position,
+                sun.getPosition(),
                 sun.getMass() + planet.getMass(),
-                VectorOperations.subtract(planet.velocity, sun.velocity),
+                VectorOperations.subtract(planet.getVelocity(), sun.getVelocity()),
                 simulator.getG()
         );
         double a = ae[0];
@@ -366,7 +360,7 @@ public class SystemPresets {
             String color = Util.randomCelestialColorCode();
 
             CelestialObject co = CelestialObject.create2d(
-                    "Trojan-" + planet.name + i,
+                    "Trojan-" + planet.getName() + i,
                     mass,
                     radius,
                     x,
@@ -378,55 +372,19 @@ public class SystemPresets {
         }
     }
 
-    public static double solarSystemWithRandomAsteroids(Simulator simulator) {
-        double scale = solarSystem(simulator);
-
-        simulator.simulate(10, false);
-        simulator.updateMasters();
-
-        CelestialObject sun = simulator.findByName("Sun");
-
-        // jupiter around
-        CelestialObject jupiter = simulator.findByName("Jupiter");
-        addAsteroidsTo(simulator, sun, jupiter, 35, 5e9);
-
-        // asteroid belt
-        CelestialObject ceres = simulator.findByName("Ceres");
-        addAsteroidsTo(simulator, sun, ceres, 50, 5e10);
-
-        // earth belt
-        CelestialObject earth = simulator.findByName("Earth");
-        addAsteroidsTo(simulator, sun, earth, 25, 5e8);
-
-        // kuiper belt
-        CelestialObject kuiper = simulator.findByName("Makemake");
-        addAsteroidsTo(simulator, sun, kuiper, 40, 5e11);
-
-        return scale;
-    }
-
-    public static double twoSolarSystems(Simulator simulator) {
-        double baseScale = solarSystem(simulator);
-        simulator.shiftWholeSystem(new double[]{2e13, 0, 0});
-        simulator.accelerateWholeSystem(new double[]{0.0, -1e3, 0.0});
-        solarSystem(simulator);  // 2nd solar system
-
-        return baseScale * 1e-1;
-    }
-
-    private static void makeSystem(Simulator simulator,
-                                   ObjectInfo root,
-                                   double massMul,
-                                   double radiusMul,
-                                   double distanceMul) {
+    static void makeSystem(Simulator simulator,
+                           ObjectInfo root,
+                           double massMul,
+                           double radiusMul,
+                           double distanceMul) {
         if (true) {
             addObject3d(simulator, root, null, massMul, radiusMul, distanceMul, null);
         } else {
             addObject2d(simulator, root, null, massMul, radiusMul, distanceMul);
         }
     }
-    
-    private static void setTemperatureToSystem(Simulator simulator) {
+
+    static void setTemperatureToSystem(Simulator simulator) {
         List<CelestialObject> sources = new ArrayList<>();
         for (CelestialObject co : simulator.getObjects()) {
             if (co.isEmittingLight()) sources.add(co);
@@ -458,13 +416,13 @@ public class SystemPresets {
                 1e3 * scale);
     }
 
-    private static void addObject3d(Simulator simulator,
-                                    ObjectInfo info,
-                                    CelestialObject parent,
-                                    double massMul,
-                                    double radiusMul,
-                                    double distanceMul,
-                                    Vector3f parentOrbitPlaneNormal) {
+    static void addObject3d(Simulator simulator,
+                            ObjectInfo info,
+                            CelestialObject parent,
+                            double massMul,
+                            double radiusMul,
+                            double distanceMul,
+                            Vector3f parentOrbitPlaneNormal) {
         double[] position;
         double[] velocity;
         double[] localAxis = randomAxisToZ(info.tilt);
@@ -503,15 +461,15 @@ public class SystemPresets {
             if (info.relativeToParentEquator) {
 //                refPlaneNormal = parent.rotationAxis;
 
-                relPos = rotateToParentEclipticPlane(relPos, parent.rotationAxis);
+                relPos = rotateToParentEclipticPlane(relPos, parent.getRotationAxis());
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
-                relVel = rotateToParentEclipticPlane(relVel, parent.rotationAxis);
+                relVel = rotateToParentEclipticPlane(relVel, parent.getRotationAxis());
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
 
-                eclipticPlaneNormal = rotateToParentEclipticPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parent.rotationAxis);
+                eclipticPlaneNormal = rotateToParentEclipticPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parent.getRotationAxis());
                 eclipticPlaneNormal = rotateToXYPlane(eclipticPlaneNormal, parentEclipticNormal);
 
-                axisD = rotateToParentEclipticPlane(localAxis, parent.rotationAxis);
+                axisD = rotateToParentEclipticPlane(localAxis, parent.getRotationAxis());
                 axisD = rotateToXYPlane(axisD, parentEclipticNormal);
 
 //                System.out.println(info.name);
@@ -536,9 +494,9 @@ public class SystemPresets {
                 axisD = rotateToXYPlane(axisD, parentEclipticNormal);
             }
 
-            position = VectorOperations.add(position, parent.position);
+            position = VectorOperations.add(position, parent.getPosition());
 
-            velocity = VectorOperations.add(velocity, parent.velocity);
+            velocity = VectorOperations.add(velocity, parent.getVelocity());
 
 //            axis = calculateRotationAxis(
 //                    (float) Math.toRadians(info.eccentricity),
@@ -583,12 +541,12 @@ public class SystemPresets {
         }
     }
 
-    private static void addObject2d(Simulator simulator,
-                                    ObjectInfo info,
-                                    CelestialObject parent,
-                                    double massMul,
-                                    double radiusMul,
-                                    double distanceMul) {
+    static void addObject2d(Simulator simulator,
+                            ObjectInfo info,
+                            CelestialObject parent,
+                            double massMul,
+                            double radiusMul,
+                            double distanceMul) {
         double x, y, ecc;
         if (parent == null) {
             x = 0.0;
@@ -613,9 +571,9 @@ public class SystemPresets {
         if (parent != null) {
             double sf = 1.0 - ecc;
             if (info.inclination > 90 && info.inclination < 270) sf = -sf;
-            initVel = simulator.computeVelocityOfN(parent.position,
-                    parent.mass,
-                    parent.velocity,
+            initVel = simulator.computeVelocityOfN(parent.getPosition(),
+                    parent.getMass(),
+                    parent.getVelocity(),
                     pos,
                     info.mass * massMul,
                     sf,
@@ -644,13 +602,13 @@ public class SystemPresets {
         }
     }
 
-    private static CelestialObject createObject(Simulator simulator,
-                                                ObjectInfo info,
-                                                double[] position,
-                                                double[] initVel,
-                                                double[] axis,
-                                                double massMul,
-                                                double radiusMul) {
+    static CelestialObject createObject(Simulator simulator,
+                                        ObjectInfo info,
+                                        double[] position,
+                                        double[] initVel,
+                                        double[] axis,
+                                        double massMul,
+                                        double radiusMul) {
 //        double[] axis = randomAxisToZ(info.tilt);
 
         String textureFile = TEXTURES.get(info.name);
@@ -690,7 +648,7 @@ public class SystemPresets {
         return co;
     }
 
-    private static double[] randomAxisToZ(double tiltAngle) {
+    static double[] randomAxisToZ(double tiltAngle) {
         double randomAngle = Math.random() * 360; // Angle in degrees
 
         // Calculate the components of the random axis in the XY-plane
@@ -708,9 +666,9 @@ public class SystemPresets {
         return new double[]{x, y, z};
     }
 
-    private static CelestialObject addObjectTo(Simulator simulator,
-                                               ObjectInfo system,
-                                               CelestialObject parent) {
+    static CelestialObject addObjectTo(Simulator simulator,
+                                       ObjectInfo system,
+                                       CelestialObject parent) {
         double ecc = system.eccentricity;
         double semiMajor = system.semiMajorAxis;
         double aphelion = semiMajor * (1 + ecc);
@@ -766,13 +724,13 @@ public class SystemPresets {
         return scale1 * 0.2;
     }
 
-    private static double randomStarSystem(Simulator simulator,
-                                           String starName,
-                                           int n,
-                                           double scaleOfSolarSystem,
-                                           double denseFactor,
-                                           double[] position,
-                                           double[] velocity) {
+    static double randomStarSystem(Simulator simulator,
+                                   String starName,
+                                   int n,
+                                   double scaleOfSolarSystem,
+                                   double denseFactor,
+                                   double[] position,
+                                   double[] velocity) {
 
         double massScale = Math.pow(scaleOfSolarSystem, 3);
         double dtScale = Math.pow(scaleOfSolarSystem, 2) / denseFactor;
@@ -821,9 +779,9 @@ public class SystemPresets {
             String name = starName + " " + (char) (i + 65);
 
             double[] vel = simulator.computeVelocityOfN(
-                    star.position,
-                    star.mass,
-                    star.velocity,
+                    star.getPosition(),
+                    star.getMass(),
+                    star.getVelocity(),
                     pos,
                     mass,
                     1.0 - ecc,
@@ -843,7 +801,7 @@ public class SystemPresets {
         }
 
         setTemperatureToSystem(simulator);
-        
+
         return 20 / stdDt;
     }
 
@@ -906,7 +864,7 @@ public class SystemPresets {
             axis = VectorOperations.normalize(axis);
             double angVel = rand.nextDouble(1e-8, 1e-1);
             co.forcedSetRotation(axis, angVel);
-            
+
             double[] orbitAxis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
             orbitAxis = VectorOperations.normalize(orbitAxis);
             double[] velocity = simulator.computeVelocityOfN(
@@ -916,7 +874,7 @@ public class SystemPresets {
                     orbitAxis
             );
             co.setVelocity(velocity);
-            
+
             simulator.addObject(co);
         }
 
@@ -949,9 +907,9 @@ public class SystemPresets {
         return randomStarSystem(simulator, n, 1, 5e29, 1e27);
     }
 
-    private static double randomStarSystem(Simulator simulator, int n, 
-                                           double sizeScale, double starMass,
-                                           double planetMass) {
+    static double randomStarSystem(Simulator simulator, int n,
+                                   double sizeScale, double starMass,
+                                   double planetMass) {
         double a = 2e10 * sizeScale;
         double b = 2e10 * sizeScale;
         double c = 1e9 * sizeScale;
@@ -1045,7 +1003,7 @@ public class SystemPresets {
             co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
         }
-        
+
         setTemperatureToSystem(simulator);
 
         return 30 / (a + b + c);
@@ -1179,17 +1137,17 @@ public class SystemPresets {
                 1
         );
         simulator.addObject(moonObj);
-        
+
         setTemperatureToSystem(simulator);
 
         return 1e-8;
     }
-    
+
     public static double dwarfStarTest(Simulator simulator) {
         CelestialObject star = createMainSequenceStar("Star", 1e30);
-        
+
         simulator.addObject(star);
-        
+
         CelestialObject dwarf1 = createMainSequenceStar("Dwarf1", JUPITER_MASS * 50);
         dwarf1.setPosition(new double[]{3e9, 3e9, 1e1});
         dwarf1.setVelocity(simulator.computeVelocityOfN(star, dwarf1, 1, star.getRotationAxis()));
@@ -1199,12 +1157,12 @@ public class SystemPresets {
         dwarf2.setPosition(new double[]{2e9, 4.5e9, 1e1});
         dwarf2.setVelocity(simulator.computeVelocityOfN(star, dwarf2, 1, star.getRotationAxis()));
         simulator.addObject(dwarf2);
-        
+
         simulator.setEnableDisassemble(false);
-        
+
         return 1e-8;
     }
-    
+
     public static CelestialObject createMainSequenceStar(String name, double mass) {
         double starDensity = BodyType.massiveObjectDensity(mass);
         double starRadius = CelestialObject.radiusOf(mass, starDensity);
@@ -1247,9 +1205,9 @@ public class SystemPresets {
         return 1e-7;
     }
 
-    private static void addRingTo(String baseName, Simulator simulator, CelestialObject parent,
-                                  double near, double far, double thickness, int n,
-                                  double approxTotalMass) {
+    static void addRingTo(String baseName, Simulator simulator, CelestialObject parent,
+                          double near, double far, double thickness, int n,
+                          double approxTotalMass) {
         Random random = new Random();
         double meanMass = approxTotalMass / n;
         for (int i = 0; i < n; i++) {
@@ -1294,7 +1252,7 @@ public class SystemPresets {
         }
     }
 
-    private static double titiusBode(int x) {
+    static double titiusBode(int x) {
         int n;
         if (x == 0) n = 0;
         else n = (int) Math.pow(2, x - 1);
@@ -1302,7 +1260,7 @@ public class SystemPresets {
         return 0.4 + 0.3 * n;
     }
 
-    private static double refinedTitiusBode(int x) {
+    static double refinedTitiusBode(int x) {
         int n;
         if (x == 0) n = 0;
         else if (x < 8) n = (int) Math.pow(2, x - 1);
@@ -1435,17 +1393,17 @@ public class SystemPresets {
         return axis;
     }
 
-    private static double[] localRotationAxis(double tilt) {
+    static double[] localRotationAxis(double tilt) {
         double radTilt = Math.toRadians(tilt);
         double[] axis = new double[]{0, 0, 1};
         axis = VectorOperations.rotateVector(axis, new double[]{1, 0, 0}, radTilt);
         return axis;
     }
 
-    private static Vector3f planetRotationAxis(float i,
-                                               float omega,
-                                               float omegaBig,
-                                               float tilt) {
+    static Vector3f planetRotationAxis(float i,
+                                       float omega,
+                                       float omegaBig,
+                                       float tilt) {
         // Step 1: Start with the axis in the orbital plane's coordinate system
         Vector3f axis = new Vector3f(0, 0, 1);  // Pointing along the Z-axis (perpendicular to the plane)
 
@@ -1470,7 +1428,7 @@ public class SystemPresets {
         return rotOmegaBig.mult(axis);
     }
 
-    private static Vector3f calculateOrbitalPlaneNormal(float i, float omega, float omegaBig) {
+    static Vector3f calculateOrbitalPlaneNormal(float i, float omega, float omegaBig) {
         // Start with the unit vector (0, 0, 1) representing the normal to the orbital plane
         Vector3f normal = new Vector3f(0, 0, 1);
 
@@ -1490,11 +1448,11 @@ public class SystemPresets {
         return normal;
     }
 
-    private static Vector3f moonRotationAxis(float i,
-                                             float omega,
-                                             float omegaBig,
-                                             float tilt,
-                                             Vector3f planetOrbitalPlaneNormal) {
+    static Vector3f moonRotationAxis(float i,
+                                     float omega,
+                                     float omegaBig,
+                                     float tilt,
+                                     Vector3f planetOrbitalPlaneNormal) {
         // Step 1: Start with the axis in the moon's orbital plane (relative to the planet's plane)
         Vector3f axis = new Vector3f(0, 0, 1);  // Pointing along the Z-axis in the moon's orbital plane
 
@@ -1527,7 +1485,7 @@ public class SystemPresets {
         return axis;
     }
 
-    private static double[] rotateAroundZAxis(double[] point, double angle) {
+    static double[] rotateAroundZAxis(double[] point, double angle) {
         double cosAngle = Math.cos(angle);
         double sinAngle = Math.sin(angle);
         double xNew = cosAngle * point[0] - sinAngle * point[1];
@@ -1535,7 +1493,7 @@ public class SystemPresets {
         return new double[]{xNew, yNew, point[2]};
     }
 
-    private static double[] rotateAroundXAxis(double[] point, double angle) {
+    static double[] rotateAroundXAxis(double[] point, double angle) {
         double cosAngle = Math.cos(angle);
         double sinAngle = Math.sin(angle);
         double yNew = cosAngle * point[1] - sinAngle * point[2];
@@ -1573,7 +1531,7 @@ public class SystemPresets {
          * If true and parent exists, the inclination, etc., are respected to parent's equatorial plane,
          * Otherwise, respected to the absolute xy-plane (earth's ecliptic plane)
          */
-        private boolean relativeToParentEquator = true;
+        boolean relativeToParentEquator = true;
 
         public ObjectInfo(String name, BodyType bodyType, double mass, double radius, double equatorialRadius, double polarRadius,
                           double semiMajorAxis, double eccentricity, double argumentOfPeriapsis, double inclination,
@@ -1610,6 +1568,17 @@ public class SystemPresets {
         @Override
         public String toString() {
             return name;
+        }
+        
+        public int getNumChildrenIncludeSelf() {
+            if (children.length == 0) return 1;
+            else {
+                int sum = 1;
+                for (ObjectInfo info : children) {
+                    sum += info.getNumChildrenIncludeSelf();
+                }
+                return sum;
+            }
         }
     }
 }

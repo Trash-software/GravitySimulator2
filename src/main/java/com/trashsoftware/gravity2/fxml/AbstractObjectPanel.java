@@ -1,6 +1,6 @@
 package com.trashsoftware.gravity2.fxml;
 
-import com.trashsoftware.gravity2.physics.SystemPresets;
+import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
 

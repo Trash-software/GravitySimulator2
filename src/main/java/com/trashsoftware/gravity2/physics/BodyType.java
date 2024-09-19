@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.physics;
 
+import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.Util;
 
 public enum BodyType {

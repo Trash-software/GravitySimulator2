@@ -5,13 +5,15 @@ import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
-import com.trashsoftware.gravity2.physics.SystemPresets;
+import com.trashsoftware.gravity2.presets.Preset;
+import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -48,6 +50,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
     ColorPicker colorPicker;
     @FXML
     ComboBox<SpawnPreset> spawnPresetBox;
+    @FXML
+    Menu presetsMenu;
     private double celestialContainerVValueCache;
 
     @Override
@@ -56,6 +60,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
 
         setComboBoxes();
         setCheckBoxes();
+        setMenu();
     }
 
     @Override
@@ -65,6 +70,13 @@ public class ObjectListPanel extends AbstractObjectPanel {
 
         setTexts(simulator);
         setInfo(simulator);
+    }
+    
+    private void setMenu() {
+        for (Preset preset : Preset.DEFAULT_PRESETS) {
+            PresetMenuItem menuItem = new PresetMenuItem(preset);
+            presetsMenu.getItems().add(menuItem);
+        }
     }
 
     private void setCheckBoxes() {
@@ -226,6 +238,11 @@ public class ObjectListPanel extends AbstractObjectPanel {
     public void loadAction() {
         fxApp.getControlBar().loadAction();
     }
+    
+    @FXML
+    public void presetsAction() {
+        
+    }
 
     @FXML
     public void spawnModeAction() {
@@ -324,6 +341,22 @@ public class ObjectListPanel extends AbstractObjectPanel {
             } else {
                 System.err.println("?");
             }
+        }
+    }
+    
+    public class PresetMenuItem extends MenuItem {
+        final Preset preset;
+        PresetMenuItem(Preset preset) {
+            super();
+            
+            this.preset = preset;
+
+            String shown = preset.name;
+            
+            shown += " " + String.format(strings.getString("nObjectsFmt"), preset.nObjects);
+            setText(shown);
+            
+            setOnAction(e -> fxApp.getControlBar().loadPreset(preset));
         }
     }
 }

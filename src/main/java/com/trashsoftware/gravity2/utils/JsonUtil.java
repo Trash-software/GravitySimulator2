@@ -2,7 +2,7 @@ package com.trashsoftware.gravity2.utils;
 
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
-import com.trashsoftware.gravity2.physics.SystemPresets;
+import com.trashsoftware.gravity2.presets.SystemPresets;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
