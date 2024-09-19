@@ -1574,7 +1574,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void threeBodyTest() {
-        scale = SystemPresets.threeBodyTest(simulator);
+        scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
 
         reloadObjects();
     }
@@ -1669,21 +1669,21 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void chaosSolarSystemTest() {
-        scale = SystemPresets.randomStarSystem(simulator, 100);
+        scale = Preset.RANDOM_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
 
     private void twoChaosSolarSystemTest() {
-        scale = SystemPresets.twoRandomStarSystems(simulator);
+        scale = Preset.TWO_RANDOM_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
 
     private void twoChaosSystemTest() {
-        scale = SystemPresets.twoRandomChaosSystems(simulator);
+        scale = Preset.TWO_RANDOM_CHAOS_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
