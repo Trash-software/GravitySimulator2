@@ -1455,18 +1455,23 @@ public class Simulator {
     }
     
     protected void performTemperatureChange(double timeStep) {
-        for (CelestialObject co : objects) {
-            double luminosity = co.getLuminosity();
-            if (luminosity > 0) {
-                // is a light source
-                double[] sourcePos = co.getPosition().clone();
-                for (CelestialObject receiver : objects) {
-                    if (co != receiver) {
-                        receiver.receiveLight(sourcePos, luminosity, timeStep);
+        int iteration = (int) Math.min(64, timeStep);
+        double each = timeStep / iteration;
+        
+        for (int i = 0; i < iteration; i++) {
+            for (CelestialObject co : objects) {
+                double luminosity = co.getLuminosity();
+                if (luminosity > 0) {
+                    // is a light source
+                    double[] sourcePos = co.getPosition().clone();
+                    for (CelestialObject receiver : objects) {
+                        if (co != receiver) {
+                            receiver.receiveLight(sourcePos, luminosity, each);
+                        }
                     }
+                } else {
+                    co.emitThermalPower(each);
                 }
-            } else {
-                co.emitThermalPower(timeStep);
             }
         }
     }

@@ -1460,8 +1460,6 @@ public class JmeApp extends SimpleApplication {
         planet1.setVelocity(simulator.computeOrbitVelocity(sun, planet1, new double[]{0, 0, 1}));
 
         scale = 0.1f;
-
-        reloadObjects();
     }
 
     private void simpleTest2() {
@@ -1490,8 +1488,7 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 5e-7f;
-
-        reloadObjects();
+        
         ambientLight.setColor(ColorRGBA.White);
     }
 
@@ -1530,8 +1527,6 @@ public class JmeApp extends SimpleApplication {
 //        moon.setVelocity(vel);
 
         scale = 5e-9f;
-
-        reloadObjects();
     }
 
     private void simpleTest4() {
@@ -1568,15 +1563,12 @@ public class JmeApp extends SimpleApplication {
         comet.setVelocity(vel2);
 
         scale = 1e-7f;
-
-        reloadObjects();
+        
         ambientLight.setColor(ColorRGBA.White);
     }
 
     private void threeBodyTest() {
         scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
-
-        reloadObjects();
     }
 
     private void saturnRingTest() {
@@ -1658,7 +1650,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void ellipseClusterTest() {
-        scale = SystemPresets.ellipseCluster(simulator, 180);
+        scale = Preset.ELLIPSE_CLUSTER.instantiate(simulator);
         simulator.setEnableDisassemble(false);
 
         ambientLight.setColor(ColorRGBA.White.mult(0.5f));
@@ -1712,8 +1704,7 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 5e-7f;
-
-        reloadObjects();
+        
         ambientLight.setColor(ColorRGBA.White);
 
         simulator.setEnableDisassemble(true);
@@ -1884,21 +1875,25 @@ public class JmeApp extends SimpleApplication {
             reloadObjects();
         });
     }
-
-    public void exitSpawningMode() {
-        enqueue(() -> {
-            if (spawning != null) {
-                rootNode.detachChild(spawning.model.objectNode);
-                rootNode.detachChild(spawning.model.orbitNode);
+    
+    private void exitSpawningMode() {
+        if (spawning != null) {
+            detachObjectModel(spawning.model);
+//                rootNode.detachChild(spawning.model.objectNode);
+//                rootNode.detachChild(spawning.model.orbitNode);
                 rootNode.detachChild(spawning.primaryLine);
                 rootNode.detachChild(spawning.secondaryLine);
-                spawning.model.setShowApPe(false);
+//                spawning.model.removeEmissionLight();
+//                spawning.model.setShowApPe(false);
 
-                gridPlaneNode.hide();
+            gridPlaneNode.hide();
 
-                spawning = null;
-            }
-        });
+            spawning = null;
+        }
+    }
+
+    public void exitSpawningModeEnqueue() {
+        enqueue(this::exitSpawningMode);
     }
 
     public void setScaleEnqueue(double scale) {

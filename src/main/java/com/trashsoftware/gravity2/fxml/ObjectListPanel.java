@@ -13,7 +13,6 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -38,7 +37,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     @FXML
     CheckMenuItem gravityContourMenu, effPotentialContourMenu;
     @FXML
-    Label spawnPrompt, spawnDensityText;
+    Label spawnPrompt, spawnMassText, spawnRadiusText, spawnDensityText;
     @FXML
     ToggleGroup spawnOrbitGroup;
     @FXML
@@ -60,6 +59,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
 
         setComboBoxes();
         setCheckBoxes();
+        setInputsFields();
         setMenu();
     }
 
@@ -116,11 +116,35 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 colorPicker.setDisable(true);
                 createNameInput.setText(newValue.value.name);
                 createMassInput.setText(String.valueOf(newValue.value.mass));
-                createRadiusInput.setText(String.valueOf(newValue.value.radius));
+                createRadiusInput.setText(String.valueOf(newValue.value.radius * 1e3));
             } else {
                 colorPicker.setDisable(false);
             }
         });
+    }
+
+    private void setInputsFields() {
+        createMassInput.textProperty().addListener((observable, oldValue, newValue) ->
+                updateSpawnMass(newValue, createRadiusInput.getText()));
+        createRadiusInput.textProperty().addListener((observable, oldValue, newValue) ->
+                updateSpawnMass(createMassInput.getText(), newValue));
+    }
+
+    private void updateSpawnMass(String massText, String radiusText) {
+        double mass, radius;
+        try {
+            mass = Double.parseDouble(massText);
+            radius = Double.parseDouble(radiusText);
+        } catch (NumberFormatException e) {
+            spawnDensityText.setText("--");
+            return;
+        }
+        double volume = 4.0 / 3.0 * Math.PI * Math.pow(radius, 3);
+        double density = mass / volume;
+        UnitsConverter uc = fxApp.getUnitConverter();
+        spawnMassText.setText(uc.mass(mass));
+        spawnRadiusText.setText(uc.distance(radius));
+        spawnDensityText.setText(uc.mass(density) + "/m³");
     }
 
     private void setInfo(Simulator simulator) {
@@ -251,7 +275,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         Simulator simulator = jmeApp.getSimulator();
 
         if (jmeApp.isInSpawningMode()) {
-            jmeApp.exitSpawningMode();
+            jmeApp.exitSpawningModeEnqueue();
         } else {
             String name = createNameInput.getText();
             String massText = createMassInput.getText();

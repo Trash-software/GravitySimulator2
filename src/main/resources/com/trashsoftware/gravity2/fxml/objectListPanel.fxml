@@ -10,7 +10,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.trashsoftware.gravity2.fxml.ObjectListPanel" HBox.hgrow="ALWAYS"
-      spacing="10.0">
+      spacing="10.0" prefWidth="410.0">
 
     <padding>
         <Insets topRightBottomLeft="5.0"/>
@@ -68,28 +68,33 @@
         </fx:define>
 
         <columnConstraints>
-            <ColumnConstraints/>
-            <ColumnConstraints/>
-            <ColumnConstraints/>
+            <ColumnConstraints percentWidth="30.0"/>
+            <ColumnConstraints percentWidth="35.0"/>
+            <ColumnConstraints percentWidth="35.0"/>
+<!--            <ColumnConstraints percentWidth="25.0"/>-->
         </columnConstraints>
 
         <Label text="%spawnName"/>
-        <TextField fx:id="createNameInput" GridPane.columnIndex="1"/>
+        <TextField fx:id="createNameInput" GridPane.columnIndex="1" />
+        <ComboBox fx:id="spawnPresetBox" promptText="%spawnPreset"
+                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
         <Label text="%spawnMass" GridPane.rowIndex="1"/>
         <TextField fx:id="createMassInput" text="1" GridPane.rowIndex="1"
                    GridPane.columnIndex="1"/>
+        <Label text="1" fx:id="spawnMassText" mnemonicParsing="true" 
+               GridPane.rowIndex="1" GridPane.columnIndex="2"/>
         <Label text="%spawnRadius" GridPane.rowIndex="2"/>
         <TextField fx:id="createRadiusInput" text="1" GridPane.rowIndex="2"
                    GridPane.columnIndex="1"/>
-        <HBox spacing="3.0" alignment="CENTER_LEFT" GridPane.rowIndex="2"
+        <Label text="1" fx:id="spawnRadiusText" mnemonicParsing="true" 
+               GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        <Label text="%spawnColor" GridPane.rowIndex="3"/>
+        <ColorPicker fx:id="colorPicker" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <HBox spacing="3.0" alignment="CENTER_LEFT" GridPane.rowIndex="3"
               GridPane.columnIndex="2">
             <Label text="%spawnDensity"/>
             <Label text="1.0" fx:id="spawnDensityText"/>
         </HBox>
-        <Label text="%spawnColor" GridPane.rowIndex="3"/>
-        <ColorPicker fx:id="colorPicker" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <ComboBox fx:id="spawnPresetBox" promptText="%spawnPreset"
-                  GridPane.rowIndex="3" GridPane.columnIndex="2"/>
 
         <RadioButton text="%spawnStill" toggleGroup="$spawnOrbitGroup" fx:id="spawnStillBtn"
                      selected="true"

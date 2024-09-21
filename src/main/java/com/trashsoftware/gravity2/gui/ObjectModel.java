@@ -9,6 +9,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -76,7 +77,7 @@ public class ObjectModel {
 
     protected PointLightShadowRenderer plsr;
     protected BloomFilter bloom;
-//    protected PointLightShadowFilter plsf;
+    protected PointLightShadowFilter plsf;
 //    protected FilterPostProcessor fpp;
 
     protected Quaternion tiltRotation;
@@ -201,28 +202,24 @@ public class ObjectModel {
                 plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
                         1024);
                 plsr.setLight(emissionLight);
-//            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+                plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
                 plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
                 jmeApp.getViewPort().addProcessor(plsr);
 
                 // Add shadow filter for softer shadows
-//                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-//                plsf.setLight(emissionLight);
-//                plsf.setEnabled(true);
-//                fpp = new FilterPostProcessor(jmeApp.getAssetManager());
-//                fpp.addFilter(plsf);
+                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+                plsf.setLight(emissionLight);
+                plsf.setEnabled(true);
 
                 // Add bloom effect to enhance the star's glow
                 bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-//            bloom.set
                 bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
 //            bloom.setBlurScale(10.0f);
-//                fpp.addFilter(bloom);
-                
-                jmeApp.filterPostProcessor.addFilter(bloom);
-//                jmeApp.filterPostProcessor.addFilter(plsf);
 
-//                jmeApp.getViewPort().addProcessor(fpp);
+                jmeApp.filterPostProcessor.addFilter(bloom);
+                
+                jmeApp.filterPostProcessor.addFilter(plsf);
+                
                 model.setShadowMode(RenderQueue.ShadowMode.Off);
                 changed = true;
             }
@@ -241,13 +238,12 @@ public class ObjectModel {
             model.removeLight(surfaceLight);
             jmeApp.getViewPort().removeProcessor(plsr);
             jmeApp.filterPostProcessor.removeFilter(bloom);
-//            jmeApp.filterPostProcessor.removeFilter(plsf);
-//                jmeApp.getViewPort().removeProcessor(fpp);
+            jmeApp.filterPostProcessor.removeFilter(plsf);
 
             emissionLight = null;
             surfaceLight = null;
             plsr = null;
-//            plsf = null;
+            plsf = null;
             bloom = null;
             return true;
         }
@@ -394,6 +390,7 @@ public class ObjectModel {
         if (object.isEmittingLight()) {
             emissionLight.setPosition(xyz);
             adjustPointLight();
+//            System.out.println(object.getName() + " " + emissionLight.getPosition() + " " + emissionLight.getRadius());
         }
         if (showHillSphere) {
             adjustHillSphereScale((float) scale);

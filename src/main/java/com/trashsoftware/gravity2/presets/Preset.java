@@ -4,6 +4,7 @@ import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.physics.BodyType;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
+import com.trashsoftware.gravity2.physics.VectorOperations;
 import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.Random;
@@ -319,7 +320,7 @@ public abstract class Preset {
             return randomStarSystem(simulator, 90, 1, 5e29, 1e27);
         }
     };
-    
+
     public static Preset TWO_RANDOM_STAR_SYSTEM = new Preset("TwoStarSystem", 182) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -348,9 +349,90 @@ public abstract class Preset {
         }
     };
 
+    public static Preset ELLIPSE_CLUSTER = new Preset("EllipseCluster", 181) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            int n = nObjects - 1;
+            double a = 1e11;
+            double b = 1e11;
+            double c = 1e11;
+
+//        double speed = 1e3;
+
+            double centroidMass = 5e29;
+            double starDensity = BodyType.massiveObjectDensity(centroidMass);
+            double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
+            String colorCode = GuiUtils.temperatureToRGBString(
+                    CelestialObject.approxColorTemperatureOfStar(
+                            CelestialObject.approxLuminosityOfStar(centroidMass),
+                            starRadius
+                    )
+            );
+            CelestialObject centroid = CelestialObject.create3d(
+                    "Centroid",
+                    centroidMass,
+                    starRadius,
+                    new double[3],
+                    new double[3],
+                    colorCode
+            );
+            centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-3);
+            simulator.addObject(centroid);
+
+            Random rand = new Random();
+            for (int i = 0; i < n; i++) {
+                double mass = rand.nextDouble(1e26, 1e28);
+                double density = rand.nextDouble(500, 6000);
+                double radius = CelestialObject.radiusOf(mass, density);
+
+                double x, y, z;
+
+                // Generate random point within a unit sphere using the rejection method
+                do {
+                    x = 2 * rand.nextDouble() - 1;
+                    y = 2 * rand.nextDouble() - 1;
+                    z = 2 * rand.nextDouble() - 1;
+                } while (x * x + y * y + z * z > 1);
+
+                // Scale the point to the ellipsoid
+                String cc = Util.randomCelestialColorCode();
+                x = x * a;
+                y = y * b;
+                z = z * c;
+                CelestialObject co = CelestialObject.create3d(
+                        "Star" + i,
+                        mass,
+                        radius,
+                        new double[]{x, y, z},
+                        new double[3],
+                        cc
+                );
+                double[] axis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
+                axis = VectorOperations.normalize(axis);
+                double angVel = rand.nextDouble(1e-8, 1e-1);
+                co.forcedSetRotation(axis, angVel);
+
+                double[] orbitAxis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
+                orbitAxis = VectorOperations.normalize(orbitAxis);
+                double[] velocity = simulator.computeVelocityOfN(
+                        centroid,
+                        co,
+                        rand.nextDouble(0, 1),
+                        orbitAxis
+                );
+                co.setVelocity(velocity);
+
+                simulator.addObject(co);
+            }
+
+            return 10 / c;
+        }
+    };
+
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
             SIMPLE_THREE_BODY,
-            RANDOM_STAR_SYSTEM, TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM
+            RANDOM_STAR_SYSTEM, TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
+            ELLIPSE_CLUSTER
     };
 }

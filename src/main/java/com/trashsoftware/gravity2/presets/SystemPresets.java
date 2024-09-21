@@ -18,6 +18,7 @@ public class SystemPresets {
     public static final double EARTH_MASS = 5.972e24;
     public static final double MOON_MASS = 7.342e22;
     public static final double AU = 149598262000.0;  // 1 AU in meter
+    public static final double SOLAR_RADIUS = 696340;
 
     public static final Map<String, String> TEXTURES = new HashMap<>();
 
@@ -256,9 +257,42 @@ public class SystemPresets {
             pluto, eris, haumea, makemake,
             ceres, pallas, vesta, hygiea
     );
+    
+    public static ObjectInfo siriusA = new ObjectInfo(
+            "Sirius A", BodyType.STAR, SOLAR_MASS * 2.02, 
+            1.711 * SOLAR_RADIUS,
+            1.711 * SOLAR_RADIUS,
+            1.711 * SOLAR_RADIUS,
+            0, 0, 0, 0, 0, 0, 0, 5.5, 
+            "#C3DDFF",
+            0.03, 20000
+    );
+
+    public static ObjectInfo vega = new ObjectInfo(
+            "Vega", BodyType.STAR, SOLAR_MASS * 2.14,
+            2.288 * SOLAR_RADIUS,
+            2.362 * SOLAR_RADIUS,
+            2.288 * SOLAR_RADIUS,
+            0, 0, 0, 0, 0, 0, 0, 0.52,
+            "#B2C9FF",
+            0.03, 20000
+    );
+
+    public static ObjectInfo proximaCentauri = new ObjectInfo(
+            "Proxima Centauri", BodyType.STAR, SOLAR_MASS * 0.12,
+            0.1542 * SOLAR_RADIUS,
+            0.1542 * SOLAR_RADIUS,
+            0.1542 * SOLAR_RADIUS,
+            0, 0, 0, 0, 0, 0, 0, 83,
+            "#ffad99",
+            0.03, 20000
+    );
 
     public static List<ObjectInfo> PRESET_OBJECTS = List.of(
-            sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto,
+            vega, siriusA,
+            sun, 
+            proximaCentauri,
+            mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto,
             moon
     );
 
@@ -691,194 +725,6 @@ public class SystemPresets {
         planet.setVelocity(initVel);
 
         return planet;
-    }
-
-    public static double random3StarSystem(Simulator simulator) {
-        double baseShift = 3e12;
-        double baseSpeed = 1e3;
-        Random random = new Random();
-        double scale1 = randomStarSystem(simulator,
-                "Alpha",
-                random.nextInt(5, 10),
-                random.nextDouble(0.5, 2.0),
-                random.nextDouble(4.0, 6.0),
-                new double[]{baseShift * 2, 0.0, 0.0},
-                new double[]{0, 0, 0});
-
-        double scale2 = randomStarSystem(simulator,
-                "Beta",
-                random.nextInt(6, 11),
-                random.nextDouble(0.5, 2.0),
-                random.nextDouble(2, 4),
-                new double[]{baseShift, -baseShift * Math.sqrt(3), 0.0},
-                new double[]{baseSpeed, 0, 0});
-
-        double scale3 = randomStarSystem(simulator,
-                "Theta",
-                random.nextInt(8, 12),
-                random.nextDouble(0.5, 2.0),
-                random.nextDouble(1, 2),
-                new double[]{0, 0, 0},
-                new double[]{0, -baseSpeed, 0});
-
-        return scale1 * 0.2;
-    }
-
-    static double randomStarSystem(Simulator simulator,
-                                   String starName,
-                                   int n,
-                                   double scaleOfSolarSystem,
-                                   double denseFactor,
-                                   double[] position,
-                                   double[] velocity) {
-
-        double massScale = Math.pow(scaleOfSolarSystem, 3);
-        double dtScale = Math.pow(scaleOfSolarSystem, 2) / denseFactor;
-        double stdDt = dtScale * AU;
-
-        Random random = new Random();
-
-        double starMass = random.nextDouble(1e30, 3e30) * massScale;
-        double starDensity = BodyType.massiveObjectDensity(starMass);
-        double starRadius = CelestialObject.radiusOf(starMass, starDensity);
-        CelestialObject star = CelestialObject.createNd(
-                starName,
-                starMass,
-                starRadius,
-                simulator.getDimension(),
-                position,
-                velocity,
-                "#ffff00"
-        );
-        simulator.addObject(star);
-
-        for (int i = 0; i < n; i++) {
-            double dtAu = refinedTitiusBode(i);
-            double deviation = random.nextGaussian(1.0, 0.1);
-            double dt = dtAu * deviation * stdDt;
-            double ecc = random.nextDouble(0, 0.15);
-
-            double semiMajor = dt / (1 - Math.pow(ecc, 2) / 2);
-            double aphelion = semiMajor * (1 + ecc);
-
-            double radPos = random.nextDouble(2 * Math.PI);
-            double x = Math.cos(radPos) * aphelion;
-            double y = Math.sin(radPos) * aphelion;
-            double[] pos = Arrays.copyOf(position, position.length);
-            pos[0] += x;
-            pos[1] += y;
-
-            ColorRGBA color = new ColorRGBA(random.nextFloat(0.25f, 1.0f),
-                    random.nextFloat(0.25f, 1.0f),
-                    random.nextFloat(0.25f, 1.0f), 1);
-
-            double mass = random.nextDouble(2e23, 2e27) * massScale;
-            double density = random.nextDouble(500, 6000);
-            double radius = CelestialObject.radiusOf(mass, density);
-
-            String name = starName + " " + (char) (i + 65);
-
-            double[] vel = simulator.computeVelocityOfN(
-                    star.getPosition(),
-                    star.getMass(),
-                    star.getVelocity(),
-                    pos,
-                    mass,
-                    1.0 - ecc,
-                    new double[]{0, 0, 1}
-            );
-
-            CelestialObject planet = CelestialObject.createNd(
-                    name,
-                    mass,
-                    radius,
-                    simulator.getDimension(),
-                    pos,
-                    vel,
-                    GuiUtils.colorToHex(color)
-            );
-            simulator.addObject(planet);
-        }
-
-        setTemperatureToSystem(simulator);
-
-        return 20 / stdDt;
-    }
-
-    public static double ellipseCluster(Simulator simulator, int n) {
-        double a = 1e11;
-        double b = 1e11;
-        double c = 1e11;
-
-//        double speed = 1e3;
-
-        double centroidMass = 5e29;
-        double starDensity = BodyType.massiveObjectDensity(centroidMass);
-        double starRadius = CelestialObject.radiusOf(centroidMass, starDensity);
-        String colorCode = GuiUtils.temperatureToRGBString(
-                CelestialObject.approxColorTemperatureOfStar(
-                        CelestialObject.approxLuminosityOfStar(centroidMass),
-                        starRadius
-                )
-        );
-        CelestialObject centroid = CelestialObject.create3d(
-                "Centroid",
-                centroidMass,
-                starRadius,
-                new double[3],
-                new double[3],
-                colorCode
-        );
-        centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-3);
-        simulator.addObject(centroid);
-
-        Random rand = new Random();
-        for (int i = 0; i < n; i++) {
-            double mass = rand.nextDouble(1e26, 1e28);
-            double density = rand.nextDouble(500, 6000);
-            double radius = CelestialObject.radiusOf(mass, density);
-
-            double x, y, z;
-
-            // Generate random point within a unit sphere using the rejection method
-            do {
-                x = 2 * rand.nextDouble() - 1;
-                y = 2 * rand.nextDouble() - 1;
-                z = 2 * rand.nextDouble() - 1;
-            } while (x * x + y * y + z * z > 1);
-
-            // Scale the point to the ellipsoid
-            String cc = Util.randomCelestialColorCode();
-            x = x * a;
-            y = y * b;
-            z = z * c;
-            CelestialObject co = CelestialObject.create3d(
-                    "Star" + i,
-                    mass,
-                    radius,
-                    new double[]{x, y, z},
-                    new double[3],
-                    cc
-            );
-            double[] axis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
-            axis = VectorOperations.normalize(axis);
-            double angVel = rand.nextDouble(1e-8, 1e-1);
-            co.forcedSetRotation(axis, angVel);
-
-            double[] orbitAxis = new double[]{rand.nextDouble(), rand.nextDouble(), rand.nextDouble()};
-            orbitAxis = VectorOperations.normalize(orbitAxis);
-            double[] velocity = simulator.computeVelocityOfN(
-                    centroid,
-                    co,
-                    rand.nextDouble(0, 1),
-                    orbitAxis
-            );
-            co.setVelocity(velocity);
-
-            simulator.addObject(co);
-        }
-
-        return 10 / c;
     }
 
     public static double testCollision(Simulator simulator) {

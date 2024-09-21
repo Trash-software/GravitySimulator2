@@ -39,11 +39,12 @@ public class UnitsUtil {
         } else if (kg < jupiter * 0.1) {
             return stdFmt.format(kg / earth) + " Earths";
         } else if (kg < sun * 0.1) {
-            return stdFmt.format(kg / jupiter) + " Jupiters";
+            // Mⱼᵤₚ
+            return stdFmt.format(kg / jupiter) + " Mjup";
         } else if (kg < sun * 1000) {
-            return stdFmt.format(kg / sun) + " Suns";
+            return stdFmt.format(kg / sun) + " M☉";
         } else {
-            return sciFmt.format(kg / sun) + " Suns";
+            return sciFmt.format(kg / sun) + " M☉";
         }
     }
 
@@ -78,7 +79,7 @@ public class UnitsUtil {
         double au = 149_598_262;
         double ly = 9_460_730_472_580.8;
         if (km < sun * 1.5) {
-            return stdFmt.format(km / sun) + " Suns";
+            return stdFmt.format(km / sun) + " R☉";
         } else if (km < au * 1000) {
             return stdFmt.format(km / au) + " AU";
         } else if (km < ly * 0.1) {
