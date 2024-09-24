@@ -90,6 +90,37 @@ public class UnitsUtil {
             return sciFmt.format(km / ly) + " ly";
         }
     }
+    
+    public static String adaptiveRadius(double m) {
+        if (m < 1) {
+            return stdFmt.format(m * 1e3) + " mm";
+        } else if (m < 1e3) {
+            return shortFmt.format(m) + " m";
+        } else if (m < 1e9) {
+            return shortFmt.format(m / 1e3) + " km";
+        }
+//        else if (m < 1e12) {
+//            return shortFmt.format(m / 1e6) + "k km";
+//        } 
+        else if (m < 1e12) {
+            return shortFmt.format(m / 1e9) + "M km";
+        }
+        double km = m / 1000;
+        double sun = 696340 * 2;
+        double au = 149_598_262;
+        double ly = 9_460_730_472_580.8;
+        if (km < sun * 1.5) {
+            return stdFmt.format(km / sun) + " R☉";
+        } else if (km < au * 1000) {
+            return stdFmt.format(km / au) + " AU";
+        } else if (km < ly * 0.1) {
+            return sciFmt.format(km / au) + " AU";
+        } else if (km < ly * 1000) {
+            return stdFmt.format(km / ly) + " ly";
+        } else {
+            return sciFmt.format(km / ly) + " ly";
+        }
+    }
 
     public static String adaptiveVolume(double volumeInCubicMeters) {
         double volumeInCubicKilometers = volumeInCubicMeters * 1e-9; // Convert m³ to km³

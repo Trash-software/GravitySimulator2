@@ -13,6 +13,8 @@ public interface UnitsConverter {
     
     String distance(double m);
     
+    String radius(double m);
+    
     String area(double m2);
     
     String volume(double m3);
@@ -24,6 +26,8 @@ public interface UnitsConverter {
     String energy(double joules);
     
     String temperature(double k);
+    
+    String luminosity(double watt);
     
     String angleDegreeDecimal(double deg);
     

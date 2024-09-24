@@ -22,7 +22,7 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     Pane modelPane;
     @FXML
-    Label nameLabel, massLabel, diameterLabel, speedLabel, densityLabel;
+    Label nameLabel, typeLabel, massLabel, diameterLabel, speedLabel, densityLabel;
     @FXML
     GridPane starPane, planetPane;
     @FXML
@@ -51,7 +51,7 @@ public class ObjectStatsWrapper extends HBox {
     CelestialObject object;
     OrbitalElements orbitalElements;
 
-    private ResourceBundle strings;
+    private final ResourceBundle strings;
     boolean hasExpanded = false;
     boolean hasStarPaneExpanded = false;
     boolean hasPlanetPaneExpanded = false;
@@ -146,7 +146,7 @@ public class ObjectStatsWrapper extends HBox {
 
     private void initPlanetPane() {
         int rowIndex = 0;
-        
+
         planetPane.add(new Separator(), 0, rowIndex, 4, 1);
         rowIndex++;
 
@@ -321,8 +321,9 @@ public class ObjectStatsWrapper extends HBox {
     }
 
     public void update(Simulator simulator, UnitsConverter uc) {
+        typeLabel.setText(objectType());
         massLabel.setText(uc.mass(object.getMass()));
-        diameterLabel.setText(uc.distance(object.getAverageRadius() * 2));
+        diameterLabel.setText(uc.radius(object.getAverageRadius() * 2));
         double vol = object.getVolume();
         densityLabel.setText(uc.mass(object.getMass() / vol) + "/m³");
         speedLabel.setText(uc.speed(object.getSpeed()));
@@ -334,8 +335,8 @@ public class ObjectStatsWrapper extends HBox {
     }
 
     private void selfDetail(Simulator simulator, UnitsConverter uc) {
-        eqRadiusLabel.setText(uc.distance(object.getEquatorialRadius()));
-        polarRadiusLabel.setText(uc.distance(object.getPolarRadius()));
+        eqRadiusLabel.setText(uc.radius(object.getEquatorialRadius()));
+        polarRadiusLabel.setText(uc.radius(object.getPolarRadius()));
 
         transKineticLabel.setText(uc.energy(object.transitionalKineticEnergy()));
         rotKineticLabel.setText(uc.energy(object.rotationalKineticEnergy()));
@@ -380,7 +381,7 @@ public class ObjectStatsWrapper extends HBox {
         double luminosity = object.getLuminosity();
         double colorTemp = object.getEmissionColorTemperature();
 
-        luminosityLabel.setText(UnitsUtil.sciFmt.format(luminosity) + "W");
+        luminosityLabel.setText(uc.luminosity(luminosity));
         colorTempLabel.setText(String.format("%.0fK", colorTemp));
     }
 
@@ -395,9 +396,9 @@ public class ObjectStatsWrapper extends HBox {
                 received += object.calculateLightReceived(luminosity, distance);
             }
         }
-        
+
         double emitted = object.getThermalEmission();
-        
+
         albedoLabel.setText(uc.generalNumber(albedo * 100) + "%");
         powerReceivedLabel.setText(UnitsUtil.sciFmt.format(received) + "W");
         powerEmittedLabel.setText(UnitsUtil.sciFmt.format(emitted) + "W");
@@ -408,8 +409,8 @@ public class ObjectStatsWrapper extends HBox {
         CelestialObject parent = object.getHillMaster();
         HieraticalSystem system = simulator.getHieraticalSystem(object);
 //        childrenCountLabel.setText(String.valueOf(system.nChildren()));
-        int level = system.getLevel();
-        hieraticalLabel.setText(levelName(level));
+        int level = object.getLevelFromStar();
+        hieraticalLabel.setText(levelName(level, system.isRoot()));
 
         if (!system.isObject()) {
             HieraticalSystem.SystemStats systemStats = system.getCurStats(simulator);
@@ -494,7 +495,7 @@ public class ObjectStatsWrapper extends HBox {
             perihelionLabel.setText(uc.distance(per));
             inclinationLabel.setText(uc.angleDegreeDecimal(orbitalElements.inclination));
             ascendingNodeLabel.setText(uc.angleDegreeDecimal(orbitalElements.ascendingNode));
-            hillRadiusLabel.setText(uc.distance(object.getHillRadius()));
+            hillRadiusLabel.setText(uc.radius(object.getHillRadius()));
         } else {
             parentLabel.setText("free");
             distanceLabel.setText("--");
@@ -511,13 +512,66 @@ public class ObjectStatsWrapper extends HBox {
         }
     }
 
-    private String levelName(int level) {
+    private String levelName(int level, boolean isRoot) {
         return switch (level) {
             case 0 -> strings.getString("levelStar");
-            case 1 -> strings.getString("levelPlanet");
+            case 1 ->
+                    isRoot ? strings.getString("levelCentralBody") : strings.getString("levelPlanet");
             case 2 -> strings.getString("levelMoon");
             default -> String.format(strings.getString("levelSecondaryMoonFmt"), level - 1);
         };
+    }
+
+    private String objectType() {
+        BodyType bodyType = object.getBodyType();
+        if (bodyType == BodyType.STAR) {
+            return starType(object.getEmissionColorTemperature());
+        } else if (bodyType == BodyType.BROWN_DWARF) {
+            return strings.getString("brownDwarf");
+        } else if (bodyType == BodyType.GAS_GIANT) {
+            return strings.getString("gasGiant");
+        } else if (bodyType == BodyType.ICE_GIANT) {
+            return strings.getString("iceGiant");
+        } else {
+            int level = object.getLevelFromStar();
+            if (level == 0) {
+                return "";  // should not happen
+            } else if (level == 1) {
+                if (object.getMass() > SystemPresets.MOON_MASS) {
+                    return strings.getString("terrestrialPlanet");
+                } else {
+                    return strings.getString("smallPlanet");
+                }
+            } else {
+                return strings.getString("levelMoon");
+            }
+        }
+    }
+
+    private String starType(double colorTemp) {
+        if (colorTemp == 0) return "";
+
+        final String[] classes = {"O", "B", "A", "F", "G", "K", "M"};
+        final double[] thresholds = {50000, 33000, 10000, 7500, 6000, 5200, 3700, 2400};
+
+        String type;
+        if (colorTemp < 2300) type = "L";
+        else {
+            int classIndex = 1;  // start from 33000
+            for (; classIndex < thresholds.length; classIndex++) {
+                if (colorTemp >= thresholds[classIndex]) {
+                    break;
+                }
+            }
+            double tUpper = thresholds[classIndex - 1], tLower = thresholds[classIndex];
+            type = classes[classIndex - 1] + starSubDivision(colorTemp, tUpper, tLower);
+        }
+
+        return strings.getString("spectralClfFmt").formatted(type);
+    }
+
+    private int starSubDivision(double colorTemp, double tUpper, double tLower) {
+        return (int) ((tUpper - colorTemp) / (tUpper - tLower) * 10);
     }
 
     @FXML

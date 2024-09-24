@@ -18,11 +18,14 @@
     </VBox>
     
     <VBox>
-        <Label fx:id="nameLabel">
-            <font>
-                <Font size="18.0"/>
-            </font>
-        </Label>
+        <HBox spacing="10.0" alignment="CENTER_LEFT">
+            <Label fx:id="nameLabel">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+            </Label>
+            <Label fx:id="typeLabel"/>
+        </HBox>
         <GridPane vgap="2.0" hgap="8.0">
             <columnConstraints>
                 <ColumnConstraints prefWidth="75.0"/>

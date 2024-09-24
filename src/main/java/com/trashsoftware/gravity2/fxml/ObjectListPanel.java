@@ -143,7 +143,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         double density = mass / volume;
         UnitsConverter uc = fxApp.getUnitConverter();
         spawnMassText.setText(uc.mass(mass));
-        spawnRadiusText.setText(uc.distance(radius));
+        spawnRadiusText.setText(uc.radius(radius));
         spawnDensityText.setText(uc.mass(density) + "/m³");
     }
 

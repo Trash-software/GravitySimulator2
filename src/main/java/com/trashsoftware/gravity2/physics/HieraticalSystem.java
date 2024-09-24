@@ -18,6 +18,10 @@ public class HieraticalSystem implements AbstractObject {
     HieraticalSystem(CelestialObject master) {
         this.master = master;
     }
+    
+    public boolean isRoot() {
+        return parent == null;
+    }
 
     void addChild(HieraticalSystem child) {
         if (children == null) children = new HashSet<>();
@@ -129,10 +133,18 @@ public class HieraticalSystem implements AbstractObject {
                 // check if child system escape
                 double bindEnergy = bindingEnergyOf(child, simulator);
                 if (bindEnergy < 0) {
-                    // child system not escape
-                    // any orbiting children of child should also not escape
-                    curStats.nClosedObjectInSystem += child.curStats.nClosedObjectInSystem;
-                    curStats.circlingMass += child.curStats.circlingMass;
+                    if (child.curStats == null) {
+                        // fixme: this is a bug
+                        // fixme: maybe closed-loop recursion
+                        System.err.println(child.master.getName() + "'s sub system is null");
+                        curStats.nClosedObjectInSystem += 1;
+                        curStats.circlingMass += child.getMass();
+                    } else {
+                        // child system not escape
+                        // any orbiting children of child should also not escape
+                        curStats.nClosedObjectInSystem += child.curStats.nClosedObjectInSystem;
+                        curStats.circlingMass += child.curStats.circlingMass;
+                    }
                 } else {
                     // child escape
                     // note: if child escape, child's child escape from child but be caught by this,
@@ -167,7 +179,10 @@ public class HieraticalSystem implements AbstractObject {
         return children == null ? 0 : children.size();
     }
 
-    public int getLevel() {
+    /**
+     * @return the hieratical level of this, 0 is universe
+     */
+    public int getTrueLevel() {
         return level;
     }
 

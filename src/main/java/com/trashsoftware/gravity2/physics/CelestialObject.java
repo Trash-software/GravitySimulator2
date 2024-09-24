@@ -51,6 +51,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected transient double hillRadius;
     protected transient double possibleRocheLimit;
     protected transient double approxRocheLimit;
+    protected transient double lastLuminosity;
 
     CelestialObject(String name,
                     BodyType bodyType,
@@ -453,23 +454,49 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public boolean isEmittingLight() {
         return getLuminosity() > 0;
     }
-
-    public double getLuminosity() {
+    
+    protected double updateLuminosity() {
         if (getMass() < SystemPresets.JUPITER_MASS * 80) {
-            return 0;
+            lastLuminosity = 0;
         } else {
             // todo: assume is main sequence
             double ratio = Math.pow(getMass() / SystemPresets.SOLAR_MASS, 3.5);
-            return ratio * SystemPresets.SOLAR_LUMINOSITY;
+            lastLuminosity = ratio * SystemPresets.SOLAR_LUMINOSITY;
         }
+        return lastLuminosity;
+    }
+
+    public double getLuminosity() {
+        return lastLuminosity;
     }
 
     public double getEmissionColorTemperature() {
         double lumin = getLuminosity();
         if (lumin == 0) return 0;
         double radius = getAverageRadius();
+        return computeEmissionColorTemperature(lumin, radius);
+    }
+    
+    public static double computeEmissionColorTemperature(double luminosity, double radius) {
         double divisor = 4 * Math.PI * radius * radius * STEFAN_BOLTZMANN_CONSTANT;
-        return Math.pow(lumin / divisor, 0.25);
+        return Math.pow(luminosity / divisor, 0.25);
+    }
+
+    public BodyType getBodyType() {
+        return bodyType;
+    }
+
+    /**
+     * @return the star-system level of this, 0 is the most relative star. If no star, the most central is 1
+     */
+    public int getLevelFromStar() {
+        if (isEmittingLight()) return 0;
+
+        if (hillMaster == null) {
+            return 1;
+        } else {
+            return hillMaster.getLevelFromStar() + 1;
+        }
     }
 
     @Override

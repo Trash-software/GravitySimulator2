@@ -29,6 +29,11 @@ public class OriginalUnitsConverter implements UnitsConverter {
     }
 
     @Override
+    public String radius(double m) {
+        return distance(m);
+    }
+
+    @Override
     public String area(double m2) {
         return String.format("%6.3e m²", m2);
     }
@@ -56,6 +61,11 @@ public class OriginalUnitsConverter implements UnitsConverter {
     @Override
     public String temperature(double k) {
         return String.format("%6.3eK", k);
+    }
+
+    @Override
+    public String luminosity(double watt) {
+        return String.format("%6.3eW", watt);
     }
 
     @Override

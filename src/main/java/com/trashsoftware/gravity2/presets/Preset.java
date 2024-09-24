@@ -343,7 +343,7 @@ public abstract class Preset {
             simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
             simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-            randomStarSystem(simulator, 90, 1.2, 2e30, 2e28);
+            randomStarSystem(simulator, 90, 1.2, 2e30, 5e28);
 
             return scale;
         }

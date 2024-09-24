@@ -1,5 +1,7 @@
 package com.trashsoftware.gravity2.fxml.units;
 
+import com.trashsoftware.gravity2.presets.SystemPresets;
+
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -27,6 +29,11 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
     @Override
     public String distance(double m) {
         return UnitsUtil.adaptiveDistance(m);
+    }
+
+    @Override
+    public String radius(double m) {
+        return UnitsUtil.adaptiveRadius(m);
     }
 
     @Override
@@ -64,6 +71,17 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
             return UnitsUtil.stdFmt.format(k / 1e6) + "M K";
         } else {
             return UnitsUtil.sciFmt.format(k) + " K";
+        }
+    }
+
+    @Override
+    public String luminosity(double watt) {
+        if (watt < 1e6) return UnitsUtil.shortFmt.format(watt) + "W";
+        double lSun = watt / SystemPresets.SOLAR_LUMINOSITY;
+        if (lSun < 0.01) {
+            return UnitsUtil.sciFmt.format(watt) + "W";
+        } else {
+            return UnitsUtil.stdFmt.format(lSun) + " L☉";
         }
     }
 

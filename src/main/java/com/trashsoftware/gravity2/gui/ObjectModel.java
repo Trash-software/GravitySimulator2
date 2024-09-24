@@ -82,6 +82,7 @@ public class ObjectModel {
 
     protected Quaternion tiltRotation;
     protected double initialRadius;
+    protected double displayingEmitLightColorTemp;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
@@ -178,24 +179,23 @@ public class ObjectModel {
             if (emissionLight == null) {
                 mat.setFloat("Shininess", 128);
 
-                ColorRGBA lightColor;
-                if (object.getLightColorCode() != null) {
-                    lightColor = GuiUtils.stringToColor(object.getLightColorCode());
-                } else {
-                    double colorTemp = object.getEmissionColorTemperature();
-                    System.out.println(object.getName() + " color temp: " + colorTemp);
-                    lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
-                    System.out.println("Emission color: " + lightColor);
-                }
+//                ColorRGBA lightColor;
+//                if (object.getLightColorCode() != null) {
+//                    lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+//                } else {
+//                    double colorTemp = object.getEmissionColorTemperature();
+//                    System.out.println(object.getName() + " color temp: " + colorTemp);
+//                    lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+//                    System.out.println("Emission color: " + lightColor);
+//                }
 
-                mat.setColor("GlowColor", lightColor); // Glow effect color
+//                mat.setColor("GlowColor", lightColor); // Glow effect color
 
                 emissionLight = new PointLight();
-                adjustPointLight();
                 jmeApp.getRootNode().addLight(emissionLight);
 
                 surfaceLight = new AmbientLight();
-                surfaceLight.setColor(lightColor);
+//                surfaceLight.setColor(lightColor);
                 model.addLight(surfaceLight);
 
                 // Add shadow renderer
@@ -221,6 +221,8 @@ public class ObjectModel {
                 jmeApp.filterPostProcessor.addFilter(plsf);
                 
                 model.setShadowMode(RenderQueue.ShadowMode.Off);
+                
+                adjustPointLight();
                 changed = true;
             }
         } else {
@@ -293,26 +295,31 @@ public class ObjectModel {
 //        model.setMesh(sphere);
 ////        lastUsedObjectRadius = object.getEquatorialRadius();
 //    }
+    
+    private void updateEmissionColor(ColorRGBA lightColor) {
+        emissionLight.setColor(lightColor);
+        model.getMaterial().setColor("GlowColor", lightColor);
+        surfaceLight.setColor(lightColor);
+    }
 
     private void adjustPointLight() {
         double luminosity = object.getLuminosity();
-
-        ColorRGBA lightColor;
+        
         if (object.getLightColorCode() != null) {
-            lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+            ColorRGBA lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+            updateEmissionColor(lightColor);
         } else {
             double colorTemp = object.getEmissionColorTemperature();
-            lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+            if (colorTemp != displayingEmitLightColorTemp) {
+                displayingEmitLightColorTemp = colorTemp;
+                ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+                updateEmissionColor(lightColor);
+            }
+            
         }
         
         double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
-//        System.out.println(radius);
-        double scaledLuminosity = 1;
-//        System.out.println(scaledLuminosity);
-        emissionLight.setColor(lightColor.mult((float) scaledLuminosity));
         emissionLight.setRadius((float) radius);
-
-//        System.out.println(scaledLuminosity);
     }
 
     private Geometry createTransparentSphere(String name, float opacity) {
@@ -388,6 +395,9 @@ public class ObjectModel {
             rotateModel();
         }
         if (object.isEmittingLight()) {
+            if (emissionLight == null) {
+                updateLightSource();
+            }
             emissionLight.setPosition(xyz);
             adjustPointLight();
 //            System.out.println(object.getName() + " " + emissionLight.getPosition() + " " + emissionLight.getRadius());

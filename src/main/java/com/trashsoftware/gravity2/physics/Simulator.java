@@ -28,8 +28,8 @@ public class Simulator {
     protected double tidalEffectFactor = 1;
 //    protected double tidalEffectFactor = 1e25;
 
-    public final double G;
-    public final double gravityDtPower;
+    protected double G;
+    protected double gravityDtPower;
     private double epsilon = 0.0;
     private double cutOffForce;
     private boolean enableDisassemble = true;
@@ -137,8 +137,16 @@ public class Simulator {
         return enableDisassemble;
     }
 
+    public void setG(double g) {
+        this.G = g;
+    }
+
     public double getG() {
         return G;
+    }
+
+    public void setGravityDtPower(double gravityDtPower) {
+        this.gravityDtPower = gravityDtPower;
     }
 
     public double getGravityDtPower() {
@@ -1455,12 +1463,12 @@ public class Simulator {
     }
     
     protected void performTemperatureChange(double timeStep) {
-        int iteration = (int) Math.min(64, timeStep);
+        int iteration = (int) Math.min(32, timeStep);
         double each = timeStep / iteration;
         
         for (int i = 0; i < iteration; i++) {
             for (CelestialObject co : objects) {
-                double luminosity = co.getLuminosity();
+                double luminosity = co.updateLuminosity();
                 if (luminosity > 0) {
                     // is a light source
                     double[] sourcePos = co.getPosition().clone();

@@ -53,6 +53,7 @@ public class JmeApp extends SimpleApplication {
     protected Simulator simulator;
     protected double speed = 1.0;
     protected boolean playing = true;
+    private boolean locked = false;
     protected double scale = 1.0;
     private final Vector3d screenCenter = new Vector3d();  // must be double, otherwise the distance object will jump
     private double refOffsetX, refOffsetY, refOffsetZ;
@@ -107,6 +108,8 @@ public class JmeApp extends SimpleApplication {
 //        font = assetManager.loadFont("com/trashsoftware/gravity2/fonts/calibri12.fnt");
 
         setupMouses();
+        initLights();
+        initMarks();
 
         filterPostProcessor = new FilterPostProcessor(assetManager);
         viewPort.addProcessor(filterPostProcessor);
@@ -114,15 +117,13 @@ public class JmeApp extends SimpleApplication {
         Simulator sim = initializeSimulator();
         setSimulator(sim);
 
-        initLights();
-        initMarks();
-
         setCamera3rdPerson();
         updateLabelShowing();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
+        if (locked) return;
         if (playing) {
             int nPhysicalFrames = Math.round(tpf * 1000);
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
@@ -1417,18 +1418,19 @@ public class JmeApp extends SimpleApplication {
         List<float[]> drawnObjectPoses = new ArrayList<>();
 
         // Attempt to label each object
-        for (ObjectModel om : modelMap.values()) {
-            CelestialObject obj = om.object;
-            if (!obj.isExist()) {
+        for (CelestialObject co : objects) {
+            ObjectModel om = modelMap.get(co);
+            if (om == null) {
+                // just for safety
                 continue;
             }
-            if (om.object.getMass() < minimumMassShowing) {
+            if (co.getMass() < minimumMassShowing) {
                 om.setShowLabel(false);
             } else if (showLabel) {
-                float labelX = paneX(obj.getX());
-                float labelY = paneY(obj.getY());
+                Vector3f pos = panePosition(co.getPosition());
+                Vector3f screenPos = cam.getScreenCoordinates(pos);
 
-                float[] canvasPos = new float[]{labelX, labelY};
+                float[] canvasPos = new float[]{screenPos.x, screenPos.y};
                 if (canLabel(drawnObjectPoses, canvasPos)) {
                     om.setShowLabel(true);
                     drawnObjectPoses.add(canvasPos);
@@ -1909,6 +1911,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void setSimulator(Simulator simulator) {
+        locked = true;
         for (ObjectModel om : modelMap.values()) {
             detachObjectModel(om);
             rootNode.detachChild(om.path);
@@ -1919,6 +1922,7 @@ public class JmeApp extends SimpleApplication {
         this.simulator = simulator;
         screenCenter.set(0, 0, 0);
         reloadObjects();
+        locked = false;
     }
 
     public void updateMinimumMassShowing(double minimumMassShowing) {
