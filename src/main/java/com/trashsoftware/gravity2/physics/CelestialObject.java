@@ -46,7 +46,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     protected transient double[] lastAcceleration;
     //    protected transient double[] orbitBasic;  // semi-major, eccentricity
-    protected transient CelestialObject gravityMaster;
+    protected transient CelestialObject maxGravityObject;
+    protected transient CelestialObject gravityMaster;  // the
     protected transient CelestialObject hillMaster;
     protected transient double hillRadius;
     protected transient double possibleRocheLimit;
@@ -910,6 +911,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return texturePath;
     }
 
+    public CelestialObject getMaxGravityObject() {
+        return maxGravityObject;
+    }
+
     public CelestialObject getGravityMaster() {
         return gravityMaster;
     }
@@ -922,8 +927,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         this.hillMaster = hillMaster;
     }
 
-    public void setGravityMaster(CelestialObject gravityMaster) {
-        this.gravityMaster = gravityMaster;
+    public void setMaxGravityObject(CelestialObject maxGravityObject) {
+        this.maxGravityObject = maxGravityObject;
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
+import com.trashsoftware.gravity2.utils.ConicCalculator;
 import javafx.application.Platform;
 
 import java.util.*;
@@ -76,6 +77,7 @@ public class JmeApp extends SimpleApplication {
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
+    private boolean renderLight;
     private boolean eclipticOrbitOnly;
     private double minimumMassShowing;
     private CelestialObject focusing;
@@ -289,10 +291,12 @@ public class JmeApp extends SimpleApplication {
 //        tidalTest();
 //        ellipseClusterTest();
 //        subStarTest();
+//        infantStarSystemTest();
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
 //        threeBodyTest();
+//        plutoCharonTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
 
@@ -842,7 +846,7 @@ public class JmeApp extends SimpleApplication {
         if (gravityMaster != null) {
             // this does not consider the mass.
             // but gravityMaster will be wiped once the spawning is placed
-            spawning.object.setGravityMaster(gravityMaster);
+            spawning.object.setMaxGravityObject(gravityMaster);
         }
     }
 
@@ -1097,6 +1101,7 @@ public class JmeApp extends SimpleApplication {
         for (CelestialObject object : simulator.getObjects()) {
             if (object.getMass() >= minimumMassShowing) {
                 drawOrbitOf(object);
+//                drawFittedOrbitOf(object);
             }
         }
         if (spawning != null) {
@@ -1119,18 +1124,19 @@ public class JmeApp extends SimpleApplication {
 
             double[] position = VectorOperations.subtract(child.getPosition(),
                     parent.getPosition());
+            double totalMass = child.getMass() + parent.getMass();
             OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
                     velocity,
-                    child.getMass() + parent.getMass(),
+                    totalMass,
                     simulator.getG());
 
             if (specs.isElliptical()) {
-                drawEllipticalOrbit(spawning.model, barycenter, specs);
+                drawEllipticalOrbit(spawning.model, barycenter, specs, child.getMass() / totalMass);
             } else {
                 if (eclipticOrbitOnly) {
                     spawning.model.orbit.setMesh(ObjectModel.blank);
                 } else {
-                    drawHyperbolicOrbit(spawning.model, barycenter, specs);
+                    drawHyperbolicOrbit(spawning.model, barycenter, specs, child.getMass() / totalMass);
                 }
             }
         }
@@ -1138,11 +1144,16 @@ public class JmeApp extends SimpleApplication {
 
     private void drawOrbitOf(CelestialObject object) {
         CelestialObject parent = object.getHillMaster();
-        if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
-            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
+        boolean useSystem = true;
+        if (parent == null) {
+            parent = object.getMaxGravityObject();
+            useSystem = false;
+        }
+        if (parent != null) {
+//            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
 
             AbstractObject child;
-            if (true) {
+            if (useSystem) {
                 child = simulator.getHieraticalSystem(object);
             } else {
                 child = object;
@@ -1152,35 +1163,37 @@ public class JmeApp extends SimpleApplication {
 
             // velocity relative to parent system's barycenter movement
             double[] velocity = VectorOperations.subtract(child.getVelocity(),
-                    parentSystem.getVelocity());
+                    parent.getVelocity());
             double[] position = VectorOperations.subtract(child.getPosition(),
-                    barycenter);
+                    parent.getPosition());
+            double totalMass = parent.getMass() + child.getMass();
             OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
                     velocity,
-                    child.getMass() + parent.getMass(),
+                    totalMass,
                     simulator.getG());
 
             ObjectModel om = modelMap.get(object);
             if (specs.isElliptical()) {
-                drawEllipticalOrbit(om, barycenter, specs);
+                drawEllipticalOrbit(om, barycenter, specs, child.getMass() / totalMass);
             } else {
                 if (eclipticOrbitOnly) {
                     om.orbit.setMesh(ObjectModel.blank);
                 } else {
-                    drawHyperbolicOrbit(om, barycenter, specs);
+                    drawHyperbolicOrbit(om, barycenter, specs, child.getMass() / totalMass);
                 }
             }
         }
     }
 
-    private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
-        om.showEllipticOrbit(barycenter, oe, 360);
+    private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, double childMassPercent) {
+        om.showEllipticOrbit(barycenter, oe, 360, childMassPercent);
     }
 
-    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe) {
+    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, double childMassPercent) {
         om.showHyperbolicOrbit(barycenter,
                 oe,
-                360);
+                360,
+                childMassPercent);
     }
 
     private void drawRecentPaths() {
@@ -1573,6 +1586,12 @@ public class JmeApp extends SimpleApplication {
         scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
     }
 
+    private void plutoCharonTest() {
+        scale = Preset.PLUTO_CHARON.instantiate(simulator);
+        
+        ambientLight.setColor(ColorRGBA.White);
+    }
+
     private void saturnRingTest() {
         scale = (float) SystemPresets.saturnRingTest(simulator, 100);
 
@@ -1667,6 +1686,11 @@ public class JmeApp extends SimpleApplication {
         simulator.setEnableDisassemble(false);
 
 //        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+    }
+    
+    private void infantStarSystemTest() {
+        scale = Preset.INFANT_STAR_SYSTEM.instantiate(simulator);
+        simulator.setEnableDisassemble(false);
     }
 
     private void twoChaosSolarSystemTest() {
@@ -1813,6 +1837,16 @@ public class JmeApp extends SimpleApplication {
             this.showOrbit = showOrbit;
 
             updateCurvesShowing();
+        });
+    }
+    
+    public void setRenderLight(boolean renderLight) {
+        enqueue(() -> {
+            this.renderLight = renderLight;
+            
+            for (ObjectModel om : modelMap.values()) {
+                om.setRenderLight(renderLight);
+            }
         });
     }
 

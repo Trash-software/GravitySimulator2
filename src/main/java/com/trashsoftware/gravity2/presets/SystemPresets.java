@@ -236,7 +236,6 @@ public class SystemPresets {
         saturn.setRelativeToParentEquator(false);
         uranus.setRelativeToParentEquator(false);
         neptune.setRelativeToParentEquator(false);
-        triton.setRelativeToParentEquator(false);
 
         pluto.setRelativeToParentEquator(false);
         eris.setRelativeToParentEquator(false);

@@ -453,7 +453,9 @@ public class Simulator {
         double cutOffDistance = calculateCutoffDistance(coi.mass, coj.mass);
 
         if (distance < cutOffDistance) {
-            double forceMagnitude = G * coi.mass * coj.mass / Math.pow(distance, gravityDtPower);
+            // only for potential performance improvement
+            double dtPow = gravityDtPower == 2 ? distance * distance : Math.pow(distance, gravityDtPower);
+            double forceMagnitude = G * coi.mass * coj.mass / dtPow;
             forceCounter1++;
 
             double[] fi = forcesBuffer[i];
@@ -619,16 +621,16 @@ public class Simulator {
 
         updateBarycenter();
     }
-    
+
     public void rotateWholeSystem(double[] newZAxis) {
         newZAxis = VectorOperations.normalize(newZAxis);
-        
+
         for (CelestialObject co : objects) {
             double[] newPos = SystemPresets.rotateToXYPlane(co.getPosition(), newZAxis);
             double[] newVel = SystemPresets.rotateToXYPlane(co.getVelocity(), newZAxis);
             double[] newAxis = VectorOperations.normalize(
                     SystemPresets.rotateToXYPlane(co.getRotationAxis(), newZAxis));
-            
+
             co.setPosition(newPos);
             co.setVelocity(newVel);
             co.forcedSetRotation(newAxis, co.angularVelocity);
@@ -698,8 +700,8 @@ public class Simulator {
         return potentialEnergyBetween(co1.mass, co2.mass, distance,
                 G, gravityDtPower);
     }
-    
-    public static double potentialEnergyBetween(double mass1, double mass2, double r, 
+
+    public static double potentialEnergyBetween(double mass1, double mass2, double r,
                                                 double G, double dtPower) {
         double upper = -G * mass1 * mass2 * Math.pow(r, 1 - dtPower);
         double lower = dtPower - 1;
@@ -736,7 +738,7 @@ public class Simulator {
         int nObjects = objects.size();
         for (int i = 0; i < nObjects; i++) {
             CelestialObject coi = objects.get(i);
-            coi.gravityMaster = null;
+            coi.maxGravityObject = null;
             if (coi.mass > maxMass) {
                 maxMass = coi.mass;
                 mostMassive = coi;
@@ -757,12 +759,13 @@ public class Simulator {
         for (var entry : gravityMap.entrySet()) {
             CelestialObject object = entry.getKey();
             TreeMap<Double, CelestialObject> gravities = entry.getValue();
+            if (!gravities.isEmpty()) {
+                object.maxGravityObject = gravities.lastEntry().getValue();
+            }
             while (!gravities.isEmpty()) {
                 var biggest = gravities.pollLastEntry();
                 if (biggest.getValue().mass > object.mass) {
-                    if (biggest.getValue().mass * PLANET_MAX_MASS > object.mass) {
-                        object.gravityMaster = biggest.getValue();
-                    }
+                    object.gravityMaster = biggest.getValue();
                     break;
                 }
             }
@@ -772,9 +775,11 @@ public class Simulator {
         for (CelestialObject object : objects) {
             object.hillRadius = computeHillRadiusVsGravityMaster(object);  // temporary
             if (mostMassive != null &&
-                    object.mass > mostMassive.mass * PLANET_MAX_MASS) object.hillMaster = null;
-            else object.hillMaster = object.gravityMaster;
-
+                    object.mass > mostMassive.mass) {
+                object.hillMaster = null;
+            } else {
+                object.hillMaster = object.getGravityMaster();
+            }
 //            System.out.println(object.name + " gm: " + object.gravityMaster + " hm: " + object.hillMaster);
         }
 
@@ -1277,7 +1282,7 @@ public class Simulator {
                                        double[] dominantVelocity,
                                        double[] placingPos,
                                        double placingMass,
-                                       double speedFactor, 
+                                       double speedFactor,
                                        double[] planeNormal) {
         if (dimension < 2) {
             throw new IllegalArgumentException("In space less than 2d, these velocity does not exist.");
@@ -1298,7 +1303,7 @@ public class Simulator {
             sqrSum += dtAtD * dtAtD;
         }
         double distance = Math.sqrt(sqrSum);
-        
+
         double[] direction;
         if (planeNormal != null) {
 //            System.out.println("Before: " + Arrays.toString(planeNormal) + " " + Arrays.toString(direction));
@@ -1313,7 +1318,7 @@ public class Simulator {
         speedFactor = Math.abs(speedFactor);
 
         double speedMag = sign * Math.sqrt(speedFactor * G * totalMass / Math.pow(distance, gravityDtPower - 1));
-        
+
         double[] velocity = new double[dimension];
         for (int dim = 0; dim < dimension; dim++) {
             velocity[dim] = direction[dim] * speedMag;
@@ -1322,7 +1327,7 @@ public class Simulator {
 //        System.out.println("After: " + Arrays.toString(planeNormal) + " " +
 //                Arrays.toString(direction) + " " +
 //                Arrays.toString(velocity));
-        
+
         VectorOperations.addInPlace(velocity, dominantVelocity);
 
         return velocity;
@@ -1369,12 +1374,13 @@ public class Simulator {
     }
 
     private double computeHillRadiusVsGravityMaster(CelestialObject co) {
-        if (co.gravityMaster == null) return Double.MAX_VALUE;
+        CelestialObject gravityMaster = co.getGravityMaster();
+        if (gravityMaster == null) return Double.MAX_VALUE;
 
-        double m1 = co.gravityMaster.mass;
+        double m1 = gravityMaster.mass;
         double m2 = co.mass;
-        double[] barycenter = OrbitCalculator.calculateBarycenter(co, co.gravityMaster);
-        double[] v = VectorOperations.subtract(co.velocity, co.gravityMaster.velocity);
+        double[] barycenter = OrbitCalculator.calculateBarycenter(co, gravityMaster);
+        double[] v = VectorOperations.subtract(co.velocity, gravityMaster.velocity);
         double[] ae = OrbitCalculator.computeBasic(co, barycenter, m1 + m2, v, G);
         double inside = m2 / (3 * (m1 + m2));
         double cbrt = Math.cbrt(inside);
@@ -1461,11 +1467,11 @@ public class Simulator {
 
         return new double[][]{L1, L2, L3, L4, L5};
     }
-    
+
     protected void performTemperatureChange(double timeStep) {
         int iteration = (int) Math.min(32, timeStep);
         double each = timeStep / iteration;
-        
+
         for (int i = 0; i < iteration; i++) {
             for (CelestialObject co : objects) {
                 double luminosity = co.updateLuminosity();

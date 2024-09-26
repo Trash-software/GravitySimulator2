@@ -30,7 +30,7 @@ public abstract class Preset {
 
     static double randomStarSystem(Simulator simulator, int n,
                                    double sizeScale, double starMass,
-                                   double planetMass) {
+                                   double planetMass, double planetMassDeviation) {
         double a = 2e10 * sizeScale;
         double b = 2e10 * sizeScale;
         double c = 1e9 * sizeScale;
@@ -94,7 +94,7 @@ public abstract class Preset {
                         1e3
                 );
             } else {
-                double mass = rand.nextDouble(planetMass * 0.1, planetMass * 10);
+                double mass = rand.nextDouble(planetMass / planetMassDeviation, planetMass * planetMassDeviation);
                 double density = rand.nextDouble(500, 6000);
                 double radius = CelestialObject.radiusOf(mass, density);
 
@@ -317,19 +317,26 @@ public abstract class Preset {
     public static Preset RANDOM_STAR_SYSTEM = new Preset("StarSystem", 91) {
         @Override
         public double instantiate(Simulator simulator) {
-            return randomStarSystem(simulator, 90, 1, 5e29, 1e27);
+            return randomStarSystem(simulator, 90, 1, 5e29, 1e27, 10);
+        }
+    };
+
+    public static Preset INFANT_STAR_SYSTEM = new Preset("InfantStarSystem", 191) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            return randomStarSystem(simulator, 100, 5, 2e30, 1e28, 30);
         }
     };
 
     public static Preset TWO_RANDOM_STAR_SYSTEM = new Preset("TwoStarSystem", 182) {
         @Override
         public double instantiate(Simulator simulator) {
-            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 5e25);
+            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 5e25, 10);
             simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
             simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
             simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-            randomStarSystem(simulator, 90, 1.2, 2e30, 1e26);
+            randomStarSystem(simulator, 90, 1.2, 2e30, 1e26, 10);
 
             return scale;
         }
@@ -338,12 +345,12 @@ public abstract class Preset {
     public static Preset TWO_RANDOM_CHAOS_SYSTEM = new Preset("TwoChaosSystem", 182) {
         @Override
         public double instantiate(Simulator simulator) {
-            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 1e27);
+            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 1e27, 10);
             simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
             simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
             simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-            randomStarSystem(simulator, 90, 1.2, 2e30, 5e28);
+            randomStarSystem(simulator, 90, 1.2, 2e30, 5e28, 10);
 
             return scale;
         }
@@ -428,11 +435,38 @@ public abstract class Preset {
             return 10 / c;
         }
     };
+    
+    public static final Preset PLUTO_CHARON = new Preset("PlutoCharon", 2) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject pluto = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.pluto,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(pluto);
+            CelestialObject charon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.charon,
+                    new double[]{3e7, 0, 1e6},
+                    new double[3],
+                    1
+            );
+            simulator.addObject(charon);
+            charon.setVelocity(simulator.computeVelocityOfN(pluto, charon, 1.0, pluto.getRotationAxis()));
+            
+            return 5e-7;
+        }
+    };
 
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
             SIMPLE_THREE_BODY,
-            RANDOM_STAR_SYSTEM, TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
-            ELLIPSE_CLUSTER
+            RANDOM_STAR_SYSTEM, INFANT_STAR_SYSTEM,
+            TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
+            ELLIPSE_CLUSTER, 
+            PLUTO_CHARON
     };
 }

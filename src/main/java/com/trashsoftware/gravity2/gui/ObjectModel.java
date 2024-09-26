@@ -9,7 +9,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -26,6 +25,7 @@ import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
+import com.trashsoftware.gravity2.utils.ConicCalculator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +63,7 @@ public class ObjectModel {
     protected Geometry axis;
     private boolean showLabel = true;
     private boolean showApPe = false;
+    private boolean renderLight = true;
     private boolean showHillSphere = false;
     private boolean showRocheLimit = false;
     final int samples;
@@ -547,6 +548,23 @@ public class ObjectModel {
         }
     }
 
+    public void setRenderLight(boolean renderLight) {
+        boolean wasRenderLight = this.renderLight;
+        this.renderLight = renderLight;
+//        System.out.println("Toggled " + object.getName() + " " + wasShowLabel + " " + showLabel);
+        if (wasRenderLight != renderLight) {
+            if (renderLight) {
+                if (object.isEmittingLight()) {
+                    // todo:
+//                    updateLightSource();
+                }
+            } else {
+                objectNode.detachChild(labelNode);
+                rotatingNode.detachChild(axis);
+            }
+        }
+    }
+
     private void adjustHillSphereScale(float baseScale) {
         if (hillSphereModel != null && object.getHillMaster() != null) {
             float ratio = (float) (object.getHillRadius() / object.getEquatorialRadius());
@@ -566,7 +584,8 @@ public class ObjectModel {
     public void showEllipticOrbit(
             double[] barycenter,
             OrbitalElements oe,
-            int samples
+            int samples,
+            double childMassPercent
     ) {
         Mesh mesh = orbit.getMesh();
         if (mesh == null || mesh == ObjectModel.blank) {
@@ -577,7 +596,7 @@ public class ObjectModel {
 
         Vector3f bc = jmeApp.panePosition(barycenter);
 
-        float a = (float) (oe.semiMajorAxis * jmeApp.scale);
+        float a = (float) (oe.semiMajorAxis * jmeApp.scale * (1 - childMassPercent));
         float e = (float) oe.eccentricity;
         float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
         float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
@@ -593,7 +612,6 @@ public class ObjectModel {
 
             // Convert to 3D space using orbital elements
             vertices[j] = new Vector3f(x, y, z);
-            ;
         }
         // manually create a line loop
         vertices[vertices.length - 1] = vertices[0].clone();
@@ -662,65 +680,12 @@ public class ObjectModel {
 //            orbitInfoTexts.get("DN").setText("DN\n" + UnitsUtil.shortFmt.format(oe.ascendingNode));
         }
     }
-
-    @Deprecated
-    public void fillEllipticOrbitMesh(
-            Mesh mesh,
-            double[] barycenter,
-            OrbitalElements oe,
-            int samples) {
-        float bcx = jmeApp.paneX(barycenter[0]);
-        float bcy = jmeApp.paneY(barycenter[1]);
-        float bcz = jmeApp.paneZ(barycenter[2]);
-
-        float a = (float) (oe.semiMajorAxis * jmeApp.scale);
-        float e = (float) oe.eccentricity;
-        float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));
-        float omegaBig = (float) (FastMath.DEG_TO_RAD * (oe.ascendingNode));
-        float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);
-
-        Vector3f[] vertices = new Vector3f[samples + 1];
-        for (int j = 0; j < samples; j++) {
-            float theta = j * 2 * FastMath.PI / samples;
-            float r = a * (1 - e * e) / (1 + e * FastMath.cos(theta));
-            float x = r * FastMath.cos(theta);
-            float y = r * FastMath.sin(theta);
-            float z = 0;
-
-            // Convert to 3D space using orbital elements
-            Vector3f point = new Vector3f(x, y, z);
-
-            point = UiVectorUtils.rotateAroundZAxis(point, omega); // Rotate by argument of periapsis
-            point = UiVectorUtils.rotateAroundXAxis(point, i);     // Rotate by inclination
-            point = UiVectorUtils.rotateAroundZAxis(point, omegaBig); // Rotate by longitude of the ascending node
-
-            point.setX(point.x + bcx);
-            point.setY(point.y + bcy);
-            point.setZ(point.z + bcz);
-
-            vertices[j] = point;
-        }
-        // manually create a line loop
-        vertices[vertices.length - 1] = vertices[0].clone();
-
-        // Set up the index buffer for a line loop
-        short[] indices = new short[samples + 1];
-        for (int j = 0; j < samples; j++) {
-            indices[j] = (short) j;
-        }
-        indices[indices.length - 1] = indices[0];
-
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
-        mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indices));
-//        mesh.setMode(Mesh.Mode.LineLoop); // Create a closed loop
-        mesh.updateBound();
-        mesh.updateCounts();
-    }
-
+    
     public void showHyperbolicOrbit(
             double[] barycenter,
             OrbitalElements oe,
-            int samples) {
+            int samples,
+            double childMassPercent) {
 
         Mesh mesh = orbit.getMesh();
         if (mesh == null || mesh == ObjectModel.blank) {
@@ -731,7 +696,7 @@ public class ObjectModel {
 
         Vector3f bc = jmeApp.panePosition(barycenter);
 
-        float a = (float) (oe.semiMajorAxis * jmeApp.scale);  // Semi-major axis
+        float a = (float) (oe.semiMajorAxis * jmeApp.scale * (1 - childMassPercent));  // Semi-major axis
         float e = (float) oe.eccentricity;                   // Eccentricity
         float b = a * FastMath.sqrt(e * e - 1);
         float omega = (float) (FastMath.DEG_TO_RAD * (oe.argumentOfPeriapsis));   // Argument of periapsis

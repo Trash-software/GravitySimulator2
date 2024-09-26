@@ -14,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
@@ -41,6 +42,8 @@ public class ObjectStatsWrapper extends HBox {
     Label colorTempLabel, luminosityLabel;
     Label surfaceTempDayLabel, surfaceTempNightLabel, surfaceTempAvgLabel,
             powerReceivedLabel, powerEmittedLabel, albedoLabel;
+    
+    Label binaryPairPrompt, binaryPairLabel;
 
     @FXML
     Hyperlink showOrbitPaneBtn;
@@ -243,6 +246,11 @@ public class ObjectStatsWrapper extends HBox {
         detailPane.add(new Label(strings.getString("hieraticalLevel")), 0, rowIndex);
         hieraticalLabel = new Label();
         detailPane.add(hieraticalLabel, 1, rowIndex);
+
+        binaryPairPrompt = new Label(strings.getString("binaryPair"));
+        detailPane.add(binaryPairPrompt, 2, rowIndex);
+        binaryPairLabel = new Label();
+        detailPane.add(binaryPairLabel, 3, rowIndex);
         rowIndex++;
 
         detailPane.add(new Label(strings.getString("parent")), 0, rowIndex);
@@ -404,13 +412,58 @@ public class ObjectStatsWrapper extends HBox {
         powerEmittedLabel.setText(UnitsUtil.sciFmt.format(emitted) + "W");
         surfaceTempAvgLabel.setText(uc.temperature(object.getSurfaceTemperature()));
     }
+    
+    private boolean isBinaryRelation(CelestialObject primary, AbstractObject secondary) {
+        double[] barycenter = Simulator.barycenterOf(primary.getPosition().length, primary, secondary);
+        double dt = VectorOperations.distance(primary.getPosition(), barycenter);
+        // whether is outside primary body
+        return dt > primary.getAverageRadius();
+    }
+    
+    private CelestialObject getBinaryPlanet(HieraticalSystem selfSystem, CelestialObject hillMaster) {
+        if (hillMaster != null && !hillMaster.isEmittingLight()) {
+            // a planet cannot be binary star with its planet
+            if (isBinaryRelation(hillMaster, selfSystem)) {
+                return hillMaster;
+            }
+        }
+
+        List<HieraticalSystem> sortedChildren = selfSystem.getChildrenSorted();
+        if (!sortedChildren.isEmpty()) {
+            HieraticalSystem firstChild = sortedChildren.get(0);
+            if (isBinaryRelation(object, firstChild)) {
+                return firstChild.master;
+            }
+        }
+        
+        return null;
+    }
 
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
         CelestialObject parent = object.getHillMaster();
         HieraticalSystem system = simulator.getHieraticalSystem(object);
 //        childrenCountLabel.setText(String.valueOf(system.nChildren()));
         int level = object.getLevelFromStar();
-        hieraticalLabel.setText(levelName(level, system.isRoot()));
+        if (level == 0) {
+            // todo: temp
+            hieraticalLabel.setText(levelName(level, system.isRoot()));
+        } else if (level == 1 || level == 2) {
+            CelestialObject binaryPartner = getBinaryPlanet(system, parent);
+            if (binaryPartner == null) {
+                hieraticalLabel.setText(levelName(level, system.isRoot()));
+                binaryPairPrompt.setVisible(false);
+                binaryPairLabel.setVisible(false);
+            } else {
+                hieraticalLabel.setText(strings.getString("levelBinaryPlanet"));
+                binaryPairPrompt.setVisible(true);
+                binaryPairLabel.setVisible(true);
+                binaryPairLabel.setText(binaryPartner.getName());
+            }
+        } else {
+            hieraticalLabel.setText(levelName(level, false));
+            binaryPairPrompt.setVisible(false);
+            binaryPairLabel.setVisible(false);
+        }
 
         if (!system.isObject()) {
             HieraticalSystem.SystemStats systemStats = system.getCurStats(simulator);
@@ -422,8 +475,8 @@ public class ObjectStatsWrapper extends HBox {
         }
 
         if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
-            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
             parentLabel.setText(parent.getName());
+            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
 
             double orbitBinding = parentSystem.bindingEnergyOf(system, simulator);
 //            System.out.println(object.getName() + " " + orbitBinding);
@@ -555,7 +608,7 @@ public class ObjectStatsWrapper extends HBox {
         final double[] thresholds = {50000, 33000, 10000, 7500, 6000, 5200, 3700, 2400};
 
         String type;
-        if (colorTemp < 2300) type = "L";
+        if (colorTemp < thresholds[thresholds.length - 1]) type = "L";
         else {
             int classIndex = 1;  // start from 33000
             for (; classIndex < thresholds.length; classIndex++) {
