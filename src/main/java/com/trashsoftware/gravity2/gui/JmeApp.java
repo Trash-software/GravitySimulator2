@@ -77,7 +77,7 @@ public class JmeApp extends SimpleApplication {
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
-    private boolean renderLight;
+    private boolean renderLight = true;
     private boolean eclipticOrbitOnly;
     private double minimumMassShowing;
     private CelestialObject focusing;
@@ -119,6 +119,7 @@ public class JmeApp extends SimpleApplication {
         Simulator sim = initializeSimulator();
         setSimulator(sim);
 
+        updateAmbientLight();
         setCamera3rdPerson();
         updateLabelShowing();
     }
@@ -187,9 +188,26 @@ public class JmeApp extends SimpleApplication {
 
     private void initLights() {
         ambientLight = new AmbientLight();
-        ambientLight.setColor(ColorRGBA.White.mult(0.02f));
         rootNode.addLight(ambientLight);
         rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
+    }
+    
+    private void updateAmbientLight() {
+        boolean hasLight = false;
+        if (renderLight) {
+            for (CelestialObject co : simulator.getObjects()) {
+                if (co.isEmittingLight()) {
+                    hasLight = true;
+                    break;
+                }
+            }
+        }
+        
+        if (hasLight) {
+            ambientLight.setColor(ColorRGBA.White.mult(0.02f));
+        } else {
+            ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+        }
     }
 
     private void initMarks() {
@@ -285,13 +303,13 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest4();
 //        saturnRingTest();
 //        rocheEffectTest();
-        solarSystemTest();
+//        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
 //        subStarTest();
-//        infantStarSystemTest();
+        infantStarSystemTest();
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
@@ -1503,8 +1521,6 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 5e-7f;
-        
-        ambientLight.setColor(ColorRGBA.White);
     }
 
     private void simpleTest3() {
@@ -1578,8 +1594,6 @@ public class JmeApp extends SimpleApplication {
         comet.setVelocity(vel2);
 
         scale = 1e-7f;
-        
-        ambientLight.setColor(ColorRGBA.White);
     }
 
     private void threeBodyTest() {
@@ -1588,8 +1602,6 @@ public class JmeApp extends SimpleApplication {
 
     private void plutoCharonTest() {
         scale = Preset.PLUTO_CHARON.instantiate(simulator);
-        
-        ambientLight.setColor(ColorRGBA.White);
     }
 
     private void saturnRingTest() {
@@ -1644,8 +1656,6 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 1e-7f;
-
-        ambientLight.setColor(ColorRGBA.White);
     }
 
     private void solarSystemTest() {
@@ -1673,8 +1683,6 @@ public class JmeApp extends SimpleApplication {
     private void ellipseClusterTest() {
         scale = Preset.ELLIPSE_CLUSTER.instantiate(simulator);
         simulator.setEnableDisassemble(false);
-
-        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
 
     private void subStarTest() {
@@ -1684,13 +1692,13 @@ public class JmeApp extends SimpleApplication {
     private void chaosSolarSystemTest() {
         scale = Preset.RANDOM_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
-
-//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
     }
     
     private void infantStarSystemTest() {
         scale = Preset.INFANT_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
+        
+        getFxApp().getControlBar().highPerformanceMode(true);
     }
 
     private void twoChaosSolarSystemTest() {
@@ -1730,8 +1738,6 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 5e-7f;
-        
-        ambientLight.setColor(ColorRGBA.White);
 
         simulator.setEnableDisassemble(true);
     }
@@ -1847,6 +1853,8 @@ public class JmeApp extends SimpleApplication {
             for (ObjectModel om : modelMap.values()) {
                 om.setRenderLight(renderLight);
             }
+            
+            updateAmbientLight();
         });
     }
 

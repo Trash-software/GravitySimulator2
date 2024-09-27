@@ -89,6 +89,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
 //        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
         approxRocheLimit = Simulator.computeRocheLimitSolid(this);
+        
+        updateLuminosity();
     }
 
     public static CelestialObject create2d(String name,

@@ -47,6 +47,7 @@
             <MenuButton text="%displayOptions">
                 <items>
                     <CheckMenuItem fx:id="nameOnCanvasCheck" text="%showName" selected="true"/>
+                    <CheckMenuItem fx:id="lightShadowCheck" text="%lightShadow" selected="true"/>
                     <CheckMenuItem fx:id="barycenterCheck" text="%barycenter"/>
                     <CheckMenuItem fx:id="hillSpheresCheck" text="%hillSphere"/>
                     <CheckMenuItem fx:id="rocheLimitCheck" text="%rocheLimit"/>

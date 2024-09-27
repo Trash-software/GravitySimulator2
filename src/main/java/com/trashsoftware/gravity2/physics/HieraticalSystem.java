@@ -1,6 +1,9 @@
 package com.trashsoftware.gravity2.physics;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class HieraticalSystem implements AbstractObject {
     public final CelestialObject master;
@@ -11,14 +14,14 @@ public class HieraticalSystem implements AbstractObject {
     protected HieraticalSystem parent;
     private Set<HieraticalSystem> children;
     private int level;
-    
+
     transient boolean visited;
     transient SystemStats curStats;
 
     HieraticalSystem(CelestialObject master) {
         this.master = master;
     }
-    
+
     public boolean isRoot() {
         return parent == null;
     }
@@ -33,9 +36,9 @@ public class HieraticalSystem implements AbstractObject {
         if (visited) return;
         visited = true;
         curStats = null;
-        
+
         this.level = depth;
-        
+
         if (children != null) {
             // remove those who no longer belongs to me or is destroyed
             children.removeIf(c -> c.parent != this || !c.master.isExist() || c.visited);
@@ -44,7 +47,7 @@ public class HieraticalSystem implements AbstractObject {
                 children = null;
                 return;
             }
-            
+
             int dim = master.position.length;
             barycenter = new double[dim];
             barycenterV = new double[dim];
@@ -73,7 +76,7 @@ public class HieraticalSystem implements AbstractObject {
     public boolean isObject() {
         return children == null || children.isEmpty();  // children shouldn't be empty if update correctly
     }
-    
+
     void sortByDistance(List<CelestialObject> hsList) {
         hsList.add(master);
         if (children != null) {
@@ -87,14 +90,14 @@ public class HieraticalSystem implements AbstractObject {
             }
         }
     }
-    
+
     public List<HieraticalSystem> getChildrenSorted() {
         if (isObject()) return new ArrayList<>();
         var result = new ArrayList<>(children);
         result.sort((a, b) -> Double.compare(b.getMass(), a.getMass()));
         return result;
     }
-    
+
     public double bindingEnergyOf(AbstractObject child, Simulator simulator) {
         // assume "child" is a child of this system and is not the only of the system
         double remMass = systemMass - child.getMass();
@@ -108,17 +111,17 @@ public class HieraticalSystem implements AbstractObject {
             remBarycenter[i] = (systemMass * barycenter[i] - child.getMass() * childPos[i]) / remMass;
         }
 //        System.out.println(Arrays.toString(barycenter) + " " + Arrays.toString(remBarycenter));
-        
+
         double[] relV = VectorOperations.subtract(child.getVelocity(), barycenterV);
         double kinetic = 0.5 * child.getMass() * Math.pow(VectorOperations.magnitude(relV), 2);
-        double potential = Simulator.potentialEnergyBetween(remMass, child.getMass(), 
-                VectorOperations.distance(childPos, remBarycenter), 
+        double potential = Simulator.potentialEnergyBetween(remMass, child.getMass(),
+                VectorOperations.distance(childPos, remBarycenter),
                 simulator.getG(),
                 simulator.getGravityDtPower());
 //        System.out.println(kinetic + " " + potential);
         return kinetic + potential;
     }
-    
+
     private Set<HieraticalSystem> computeSystemStats(Simulator simulator) {
         if (isObject()) {
             curStats = new SystemStats(1, getMass());
@@ -129,7 +132,7 @@ public class HieraticalSystem implements AbstractObject {
             for (HieraticalSystem child : children) {
                 // recursive call
                 Set<HieraticalSystem> childUnhandled = child.computeSystemStats(simulator);
-                
+
                 // check if child system escape
                 double bindEnergy = bindingEnergyOf(child, simulator);
                 if (bindEnergy < 0) {
@@ -151,9 +154,9 @@ public class HieraticalSystem implements AbstractObject {
                     // should be in "childUnhandled"
                     thisUnhandled.add(child);
                 }
-                
+
                 // check if something escape from children will not escape this
-                for (var cui = childUnhandled.iterator(); cui.hasNext();) {
+                for (var cui = childUnhandled.iterator(); cui.hasNext(); ) {
                     HieraticalSystem cu = cui.next();
                     double bindEnergyChild = bindingEnergyOf(cu, simulator);
                     if (bindEnergyChild < 0) {
@@ -200,20 +203,26 @@ public class HieraticalSystem implements AbstractObject {
     @Override
     public double[] getPosition() {
         if (isObject()) return master.getPosition();
-        else return barycenter;
+        else {
+            if (barycenter == null) throw new RuntimeException("System '" + master.getName() + "' not properly updated");
+            return barycenter;
+        }
     }
 
     @Override
     public double[] getVelocity() {
         if (isObject()) return master.getVelocity();
-        else return barycenterV;
+        else {
+            if (barycenterV == null) throw new RuntimeException("System '" + master.getName() + "' not properly updated");
+            return barycenterV;
+        }
     }
 
     @Override
     public String toString() {
         return "HieraticalSystem{" + master.getName() + "}";
     }
-    
+
     public HieraticalSystem getDeepestHillMaster(double[] position) {
         // postorder traversal
         double dt = VectorOperations.distance(position, getPosition());
@@ -231,11 +240,11 @@ public class HieraticalSystem implements AbstractObject {
             return null;
         }
     }
-    
+
     public static class SystemStats {
         private int nClosedObjectInSystem;  // recursive, include self
         private double circlingMass;
-        
+
         SystemStats(int nClosedObjectInSystem, double circlingMass) {
             this.nClosedObjectInSystem = nClosedObjectInSystem;
             this.circlingMass = circlingMass;

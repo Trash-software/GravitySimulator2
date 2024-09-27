@@ -176,21 +176,9 @@ public class ObjectModel {
         Material mat = model.getMaterial();
         boolean emitting = object.isEmittingLight();
         boolean changed = false;
-        if (emitting) {
+        if (emitting && renderLight) {
             if (emissionLight == null) {
                 mat.setFloat("Shininess", 128);
-
-//                ColorRGBA lightColor;
-//                if (object.getLightColorCode() != null) {
-//                    lightColor = GuiUtils.stringToColor(object.getLightColorCode());
-//                } else {
-//                    double colorTemp = object.getEmissionColorTemperature();
-//                    System.out.println(object.getName() + " color temp: " + colorTemp);
-//                    lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
-//                    System.out.println("Emission color: " + lightColor);
-//                }
-
-//                mat.setColor("GlowColor", lightColor); // Glow effect color
 
                 emissionLight = new PointLight();
                 jmeApp.getRootNode().addLight(emissionLight);
@@ -236,21 +224,43 @@ public class ObjectModel {
     }
     
     protected boolean removeEmissionLight() {
+        boolean changed = false;
         if (emissionLight != null) {
             jmeApp.getRootNode().removeLight(emissionLight);
-            model.removeLight(surfaceLight);
-            jmeApp.getViewPort().removeProcessor(plsr);
-            jmeApp.filterPostProcessor.removeFilter(bloom);
-            jmeApp.filterPostProcessor.removeFilter(plsf);
-
             emissionLight = null;
-            surfaceLight = null;
-            plsr = null;
-            plsf = null;
-            bloom = null;
-            return true;
+            changed = true;
         }
-        return false;
+        if (surfaceLight != null) {
+            model.removeLight(surfaceLight);
+            surfaceLight = null;
+            changed = true;
+        }
+        if (plsr != null) {
+            jmeApp.getViewPort().removeProcessor(plsr);
+            plsr = null;
+            changed = true;
+        }
+        if (bloom != null) {
+            try {
+                jmeApp.filterPostProcessor.removeFilter(bloom);
+            } catch (RuntimeException e) {
+                System.err.println(object.getName() + " has rendering problem: bloom.");
+                e.printStackTrace(System.err);
+            }
+            bloom = null;
+            changed = true;
+        }
+        if (plsf != null) {
+            try {
+                jmeApp.filterPostProcessor.removeFilter(plsf);
+            } catch (RuntimeException e) {
+                System.err.println(object.getName() + " has rendering problem: plsf.");
+                e.printStackTrace(System.err);
+            }
+            plsf = null;
+            changed = true;
+        }
+        return changed;
     }
 
     private void createApPeText() {
@@ -395,7 +405,7 @@ public class ObjectModel {
         if (object.getAngularVelocity() != 0) {
             rotateModel();
         }
-        if (object.isEmittingLight()) {
+        if (object.isEmittingLight() && renderLight) {
             if (emissionLight == null) {
                 updateLightSource();
             }
@@ -553,15 +563,7 @@ public class ObjectModel {
         this.renderLight = renderLight;
 //        System.out.println("Toggled " + object.getName() + " " + wasShowLabel + " " + showLabel);
         if (wasRenderLight != renderLight) {
-            if (renderLight) {
-                if (object.isEmittingLight()) {
-                    // todo:
-//                    updateLightSource();
-                }
-            } else {
-                objectNode.detachChild(labelNode);
-                rotatingNode.detachChild(axis);
-            }
+            updateLightSource();
         }
     }
 
