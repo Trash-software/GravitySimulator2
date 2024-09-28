@@ -12,6 +12,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.*;
 import com.jme3.shadow.DirectionalLightShadowFilter;
@@ -113,6 +114,7 @@ public class JmeApp extends SimpleApplication {
         initMarks();
 
         filterPostProcessor = new FilterPostProcessor(assetManager);
+//        filterPostProcessor.addFilter(new FXAAFilter());
         viewPort.addProcessor(filterPostProcessor);
 
         Simulator sim = initializeSimulator();
@@ -302,7 +304,8 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest4();
 //        saturnRingTest();
 //        rocheEffectTest();
-        solarSystemTest();
+        toyStarSystemTest();
+//        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
 //        tidalTest();
@@ -1467,7 +1470,7 @@ public class JmeApp extends SimpleApplication {
                     rootNode.detachChild(om.path);
                 }
 
-                om.setShowApPe(showOrbit && focusing == om.object);
+                om.setShowApPe(showOrbit && showLabel && focusing == om.object);
             }
         }
     }
@@ -1502,6 +1505,8 @@ public class JmeApp extends SimpleApplication {
                 om.setShowLabel(false);
             }
         }
+        
+        updateCurvesShowing();
     }
 
     private boolean canLabel(List<float[]> drawnObjectPoses, float[] targetPos) {
@@ -1686,6 +1691,10 @@ public class JmeApp extends SimpleApplication {
         moon.setVelocity(vel);
 
         scale = 1e-7f;
+    }
+    
+    private void toyStarSystemTest() {
+        scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
     }
 
     private void solarSystemTest() {

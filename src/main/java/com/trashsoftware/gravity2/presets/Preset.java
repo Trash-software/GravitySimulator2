@@ -131,6 +131,52 @@ public abstract class Preset {
         return 30 / (a + b + c);
     }
 
+    public static Preset TOY_STAR_SYSTEM = new Preset("ToyStarSystem", 20) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star = SystemPresets.createMainSequenceStar(
+                    "Star",
+                    SOLAR_MASS * 0.25
+            );
+            simulator.addObject(star);
+
+            ObjectInfo[] infos = {
+                    mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
+            };
+            double[] distancesAu = {0.025, 0.04, 0.07, 0.1, 0.15, 0.25, 0.4, 0.7};
+
+            Random random = new Random();
+
+            for (int i = 0; i < infos.length; i++) {
+                double ecc = random.nextDouble(0, 0.2);
+//                double inclination = random.nextDouble(0, 10);
+                double theta = random.nextDouble(0, Math.PI * 2);
+
+                double r = distancesAu[i] * AU;
+                double x = Math.cos(theta) * r;
+                double y = Math.sin(theta) * r;
+                double z = random.nextDouble(r * -0.05, r * 0.05);
+                double[] pos = new double[]{x, y, z};
+
+                CelestialObject co = SystemPresets.createObjectPreset(
+                        simulator,
+                        infos[i],
+                        pos,
+                        new double[3],
+                        1.0
+                );
+
+                double[] vel = simulator.computeVelocityOfN(star, co, 1 - ecc, new double[]{0, 0, 1});
+                co.setVelocity(vel);
+                simulator.addObject(co);
+            }
+            
+            setTemperatureToSystem(simulator);
+
+            return 1e-9;
+        }
+    };
+
     public static Preset SOLAR_SYSTEM = new Preset("SolarSystem", SystemPresets.sun.getNumChildrenIncludeSelf()) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -435,7 +481,7 @@ public abstract class Preset {
             return 10 / c;
         }
     };
-    
+
     public static final Preset PLUTO_CHARON = new Preset("PlutoCharon", 2) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -456,17 +502,17 @@ public abstract class Preset {
             );
             simulator.addObject(charon);
             charon.setVelocity(simulator.computeVelocityOfN(pluto, charon, 1.0, pluto.getRotationAxis()));
-            
+
             return 5e-7;
         }
     };
 
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
-            SIMPLE_THREE_BODY,
+            SIMPLE_THREE_BODY, TOY_STAR_SYSTEM,
             RANDOM_STAR_SYSTEM, INFANT_STAR_SYSTEM,
             TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
-            ELLIPSE_CLUSTER, 
+            ELLIPSE_CLUSTER,
             PLUTO_CHARON
     };
 }

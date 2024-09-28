@@ -325,8 +325,8 @@ public class SystemPresets {
     );
     
     public static ObjectInfo helloKitty = new ObjectInfo(
-            "HelloKitty", BodyType.TERRESTRIAL, EARTH_MASS * 0.7,
-            EARTH_RADIUS_KM * 0.9, EARTH_RADIUS_KM * 0.9, EARTH_RADIUS_KM * 0.9,
+            "HelloKitty", BodyType.TERRESTRIAL, EARTH_MASS * 1.8,
+            EARTH_RADIUS_KM * 1.23, EARTH_RADIUS_KM * 1.29, EARTH_RADIUS_KM * 1.2,
             0, 0, 0, 0, 0, 0, 22.5, 0.5, 
             "#ffaec9", 0.140, 50
     );
