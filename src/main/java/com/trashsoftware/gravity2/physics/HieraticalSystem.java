@@ -139,7 +139,7 @@ public class HieraticalSystem implements AbstractObject {
                     if (child.curStats == null) {
                         // fixme: this is a bug
                         // fixme: maybe closed-loop recursion
-                        System.err.println(child.master.getName() + "'s sub system is null");
+                        System.err.println(child.master.getId() + "'s sub system is null");
                         curStats.nClosedObjectInSystem += 1;
                         curStats.circlingMass += child.getMass();
                     } else {
@@ -204,7 +204,7 @@ public class HieraticalSystem implements AbstractObject {
     public double[] getPosition() {
         if (isObject()) return master.getPosition();
         else {
-            if (barycenter == null) throw new RuntimeException("System '" + master.getName() + "' not properly updated");
+            if (barycenter == null) throw new RuntimeException("System '" + master.getId() + "' not properly updated");
             return barycenter;
         }
     }
@@ -213,14 +213,14 @@ public class HieraticalSystem implements AbstractObject {
     public double[] getVelocity() {
         if (isObject()) return master.getVelocity();
         else {
-            if (barycenterV == null) throw new RuntimeException("System '" + master.getName() + "' not properly updated");
+            if (barycenterV == null) throw new RuntimeException("System '" + master.getId() + "' not properly updated");
             return barycenterV;
         }
     }
 
     @Override
     public String toString() {
-        return "HieraticalSystem{" + master.getName() + "}";
+        return "HieraticalSystem{" + master.getId() + "}";
     }
 
     public HieraticalSystem getDeepestHillMaster(double[] position) {

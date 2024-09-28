@@ -219,7 +219,7 @@ public class Simulator {
                     // hill master is heavier, so its velocity will be updated earlier
                     double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
                     if (VectorOperations.magnitude(relVel) * timeStep > object.hillMaster.possibleRocheLimit * 0.33) {
-                        System.out.println("Too fast: " + object.name);
+                        System.out.println("Too fast: " + object.id);
                         result = SimResult.TOO_FAST;
                     }
                 }
@@ -553,7 +553,7 @@ public class Simulator {
         if (celestialObject.position.length < dimension) {
             int oldDim = celestialObject.position.length;
             System.out.printf("Casting object %s from %dD to %dD\n",
-                    celestialObject.name,
+                    celestialObject.id,
                     oldDim,
                     dimension);
             double[] newDPos = new double[dimension];
@@ -575,19 +575,19 @@ public class Simulator {
     }
 
     private void renameIfConflict(CelestialObject newObject) {
-        String origName = newObject.getName();
+        String origName = newObject.getId();
         String name = origName;
         int counter = 0;
         while (nameConflict(name)) {
             counter += 1;
             name = origName + "-" + counter;
         }
-        if (!name.equals(origName)) newObject.name = name;
+        if (!name.equals(origName)) newObject.id = name;
     }
 
     private boolean nameConflict(String name) {
         for (CelestialObject object : objects) {
-            if (name.equals(object.getName())) return true;
+            if (name.equals(object.getId())) return true;
         }
         return false;
     }
@@ -1410,7 +1410,7 @@ public class Simulator {
 
     public CelestialObject findByName(String name) {
         for (CelestialObject co : objects) {
-            if (co.name.equals(name)) return co;
+            if (co.id.equals(name)) return co;
         }
         return null;
     }

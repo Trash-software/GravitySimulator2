@@ -114,7 +114,7 @@ public class ObjectStatsWrapper extends HBox {
         this.onCollapse = onCollapse;
         this.onLand = onLand;
 
-        nameLabel.setText(object.getName());
+        nameLabel.setText(object.getNameShowing());
 //        GraphicsContext gc = canvas.getGraphicsContext2D();
 //        gc.setFill(object.getColor());
 //
@@ -419,6 +419,25 @@ public class ObjectStatsWrapper extends HBox {
         // whether is outside primary body
         return dt > primary.getAverageRadius();
     }
+
+    private CelestialObject getBinaryStar(HieraticalSystem selfSystem, CelestialObject hillMaster) {
+        if (hillMaster != null && hillMaster.isEmittingLight()) {
+            // a planet cannot be binary star with its planet
+            if (isBinaryRelation(hillMaster, selfSystem)) {
+                return hillMaster;
+            }
+        }
+
+        List<HieraticalSystem> sortedChildren = selfSystem.getChildrenSorted();
+        if (!sortedChildren.isEmpty()) {
+            HieraticalSystem firstChild = sortedChildren.get(0);
+            if (firstChild.master.isEmittingLight() && isBinaryRelation(object, firstChild)) {
+                return firstChild.master;
+            }
+        }
+
+        return null;
+    }
     
     private CelestialObject getBinaryPlanet(HieraticalSystem selfSystem, CelestialObject hillMaster) {
         if (hillMaster != null && !hillMaster.isEmittingLight()) {
@@ -445,8 +464,17 @@ public class ObjectStatsWrapper extends HBox {
 //        childrenCountLabel.setText(String.valueOf(system.nChildren()));
         int level = object.getLevelFromStar();
         if (level == 0) {
-            // todo: temp
-            hieraticalLabel.setText(levelName(level, system.isRoot()));
+            CelestialObject binaryPartner = getBinaryStar(system, parent);
+            if (binaryPartner == null) {
+                hieraticalLabel.setText(levelName(level, system.isRoot()));
+                binaryPairPrompt.setVisible(false);
+                binaryPairLabel.setVisible(false);
+            } else {
+                hieraticalLabel.setText(strings.getString("levelBinaryStar"));
+                binaryPairPrompt.setVisible(true);
+                binaryPairLabel.setVisible(true);
+                binaryPairLabel.setText(binaryPartner.getNameShowing());
+            }
         } else if (level == 1 || level == 2) {
             CelestialObject binaryPartner = getBinaryPlanet(system, parent);
             if (binaryPartner == null) {
@@ -457,7 +485,7 @@ public class ObjectStatsWrapper extends HBox {
                 hieraticalLabel.setText(strings.getString("levelBinaryPlanet"));
                 binaryPairPrompt.setVisible(true);
                 binaryPairLabel.setVisible(true);
-                binaryPairLabel.setText(binaryPartner.getName());
+                binaryPairLabel.setText(binaryPartner.getNameShowing());
             }
         } else {
             hieraticalLabel.setText(levelName(level, false));
@@ -475,7 +503,7 @@ public class ObjectStatsWrapper extends HBox {
         }
 
         if (parent != null && parent.getMass() > object.getMass() * Simulator.PLANET_MAX_MASS) {
-            parentLabel.setText(parent.getName());
+            parentLabel.setText(parent.getNameShowing());
             HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
 
             double orbitBinding = parentSystem.bindingEnergyOf(system, simulator);
@@ -495,9 +523,9 @@ public class ObjectStatsWrapper extends HBox {
             ));
             rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
 
-            double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
-            double[] velocity = VectorOperations.subtract(system.getVelocity(), parentSystem.getVelocity());
-            double[] position = VectorOperations.subtract(system.getPosition(), barycenter);
+//            double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
+            double[] velocity = VectorOperations.subtract(system.getVelocity(), parent.getVelocity());
+            double[] position = VectorOperations.subtract(system.getPosition(), parent.getPosition());
 
             if (level >= 2) {
                 // moons
@@ -518,12 +546,12 @@ public class ObjectStatsWrapper extends HBox {
                     simulator.getG());
 
             if (isOrbiting != orbitalElements.isElliptical()) {
-                System.out.println(object.getName() + " has marginal orbit with ecc: " +
+                System.out.println(object.getId() + " has marginal orbit with ecc: " +
                         orbitalElements.eccentricity + ", energy: " +
                         orbitBinding);
             }
 
-            double dt = Math.hypot(object.getX() - parent.getX(), object.getY() - parent.getY());
+            double dt = VectorOperations.distance(object.getPosition(), parent.getPosition());
             distanceLabel.setText(uc.distance(dt));
 
             double a = orbitalElements.semiMajorAxis;

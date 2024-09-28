@@ -27,7 +27,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected double equatorialRadius, polarRadius;
     protected double internalThermalEnergy;
     protected double surfaceThermalEnergy;
-    protected String name;
+    protected String id;
+    protected String shownName;
 
     private boolean exist = true;
 
@@ -54,7 +55,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected transient double approxRocheLimit;
     protected transient double lastLuminosity;
 
-    CelestialObject(String name,
+    CelestialObject(String id,
                     BodyType bodyType,
                     double mass,
                     double equatorialRadius,
@@ -72,7 +73,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         }
         lastAcceleration = new double[position.length];
 
-        this.name = name;
+        this.id = id;
         this.bodyType = bodyType;
         this.mass = mass;
         this.equatorialRadius = equatorialRadius;
@@ -110,13 +111,13 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 colorCode);
     }
 
-    public static CelestialObject create2d(String name,
+    public static CelestialObject create2d(String id,
                                            double mass,
                                            double radius,
                                            double x,
                                            double y,
                                            String colorCode) {
-        return create2d(name,
+        return create2d(id,
                 mass,
                 radius,
                 x,
@@ -126,12 +127,12 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 colorCode);
     }
 
-    public static CelestialObject createNd(String name,
+    public static CelestialObject createNd(String id,
                                            double mass,
                                            double radius,
                                            int dim,
                                            String colorCode) {
-        return createNd(name,
+        return createNd(id,
                 mass,
                 radius,
                 dim,
@@ -140,7 +141,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 colorCode);
     }
 
-    public static CelestialObject createReal(String name,
+    public static CelestialObject createReal(String id,
                                              BodyType bodyType,
                                              double mass,
                                              double equatorialRadius,
@@ -154,7 +155,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                                              String texturePath,
                                              double internalAvgTemp) {
         CelestialObject co = new CelestialObject(
-                name,
+                id,
                 bodyType,
                 mass,
                 equatorialRadius,
@@ -173,16 +174,16 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return co;
     }
 
-    public static CelestialObject create3d(String name,
+    public static CelestialObject create3d(String id,
                                            double mass,
                                            double radius,
                                            double[] position,
                                            double[] velocity,
                                            String colorCode) {
-        return createNd(name, mass, radius, 3, position, velocity, colorCode);
+        return createNd(id, mass, radius, 3, position, velocity, colorCode);
     }
 
-    public static CelestialObject createNd(String name,
+    public static CelestialObject createNd(String id,
                                            double mass,
                                            double radius,
                                            int dim,
@@ -191,7 +192,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                                            String colorCode) {
         double[] axis = new double[]{0, 0, 1};
         CelestialObject co = new CelestialObject(
-                name,
+                id,
                 BodyType.simpleInfer(mass),
                 mass,
                 radius,
@@ -228,7 +229,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        int dim = position.length;
 
         CelestialObject co = new CelestialObject(
-                json.getString("name"),
+                json.getString("id"),
                 BodyType.valueOf(json.getString("bodyType")),
                 json.getDouble("mass"),
                 json.getDouble("equatorialRadius"),
@@ -241,9 +242,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 texturePath,
                 0
         );
+        
+        co.shownName = JsonUtil.optString(json, "shownName", null);
 
         co.exist = json.getBoolean("exist");
-        co.lightColorCode = json.has("lightColorCode") ? json.getString("lightColorCode") : null;
+        co.lightColorCode = JsonUtil.optString(json, "lightColorCode", null);
         co.debrisLevel = json.getInt("debrisLevel");
         for (String attr : new String[]{
                 "tidalLoveNumber",
@@ -295,8 +298,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        return json;
     }
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
 //    public void setColor(ColorRGBA color) {
@@ -306,7 +309,30 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        material.setDiffuseColor(color);
 //        model.setMaterial(material);
 //    }
+    
+    public void setShownName(String shownName) {
+        this.shownName = shownName;
+    }
 
+    public String getShownName() {
+        return shownName;
+    }
+    
+    public String getNameShowing() {
+        if (shownName != null) return shownName;
+        else return id;
+    }
+    
+    public void forceSetBasics(double mass, double avgRadius) {
+        double internalTemp = getBodyAverageTemperature();
+        
+        double adjustRatio = avgRadius / getAverageRadius();
+        this.mass = mass;
+        equatorialRadius *= adjustRatio;
+        polarRadius *= adjustRatio;
+        
+        internalThermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, internalTemp);
+    }
 
     public void setColorCode(String colorCode) {
         this.colorCode = colorCode;
@@ -736,7 +762,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             BodyType debrisType = bodyType.disassemble(debrisMass);
 
             CelestialObject debris = new CelestialObject(
-                    name + "-debris",
+                    id + "-debris",
                     debrisType,
                     debrisMass,
                     debrisRadius,
@@ -794,7 +820,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             throw new RuntimeException("Calling 'collideWith()' in the wrong order");
         }
 
-        System.out.println(name + " collides with " + other.getName());
+        System.out.println(id + " collides with " + other.getId());
 
         // Step 2: Calculate initial total energy (translational + rotational + gravitational potential)
         double initialEnergy = this.rotationalKineticEnergy() +
@@ -950,12 +976,12 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public int compareTo(CelestialObject o) {
         int massCmp = Double.compare(this.mass, o.mass);
         if (massCmp != 0) return massCmp;
-        return this.name.compareTo(o.name);
+        return this.id.compareTo(o.id);
     }
 
     @Override
     public String toString() {
-        return "CelestialObject{" + name + "}";
+        return "CelestialObject{" + id + "}";
     }
 
     public static double radiusOf(double mass, double density) {

@@ -450,7 +450,7 @@ public abstract class Preset {
             CelestialObject charon = SystemPresets.createObjectPreset(
                     simulator,
                     SystemPresets.charon,
-                    new double[]{3e7, 0, 1e6},
+                    new double[]{2e7, 0, 1e6},
                     new double[3],
                     1
             );

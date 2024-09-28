@@ -1,9 +1,10 @@
 package com.trashsoftware.gravity2.presets;
 
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.trashsoftware.gravity2.gui.GuiUtils;
+import com.trashsoftware.gravity2.gui.Matrix3d;
+import com.trashsoftware.gravity2.gui.Vector3d;
 import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.utils.Util;
 
@@ -18,7 +19,9 @@ public class SystemPresets {
     public static final double EARTH_MASS = 5.972e24;
     public static final double MOON_MASS = 7.342e22;
     public static final double AU = 149598262000.0;  // 1 AU in meter
-    public static final double SOLAR_RADIUS = 696340;
+    public static final double SOLAR_RADIUS_KM = 696340;
+    public static final double JUPITER_RADIUS_KM = 69911;
+    public static final double EARTH_RADIUS_KM = 6371.0;
 
     public static final Map<String, String> TEXTURES = new HashMap<>();
 
@@ -58,6 +61,13 @@ public class SystemPresets {
         TEXTURES.put("Eris", "com/trashsoftware/gravity2/textures/2k_eris_fictional.jpg");
         TEXTURES.put("Haumea", "com/trashsoftware/gravity2/textures/2k_haumea_fictional.jpg");
         TEXTURES.put("Makemake", "com/trashsoftware/gravity2/textures/2k_makemake_fictional.jpg");
+        
+        TEXTURES.put("Sedna", "com/trashsoftware/gravity2/textures/sedna.jpg");
+        TEXTURES.put("Gonggong", "com/trashsoftware/gravity2/textures/gonggong.jpg");
+    }
+    
+    static {
+        TEXTURES.put("HelloKitty", "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg");
     }
 
     // Moon
@@ -172,6 +182,28 @@ public class SystemPresets {
             "#FF7F50", 0.045, 450
     );
 
+    // Sedna
+    public static ObjectInfo sedna = new ObjectInfo(
+            "Sedna", BodyType.ICE, 4.77e21, 497, 497, 497, // mass, radius, equatorialRadius, polarRadius
+            532684576000.0, 0.855, 311.0, 11.93, // semiMajorAxis (km), eccentricity, argumentOfPeriapsis, inclination (deg)
+            144.544, 358.0, 25.0, 10.27, // ascendingNode (deg), trueAnomaly (deg), tilt (deg), rotationPeriod (days)
+            "#FF7F50", 0.2, 100.0 // colorCode, loveNumber, dissipationFunction
+    );
+    // 2007 OR10
+    public static ObjectInfo gonggong = new ObjectInfo(
+            "Gonggong", BodyType.ICE, 1.75e21, 650, 650, 650, // mass, radius, equatorialRadius, polarRadius
+            67000000000.0, 0.500, 212.0, 30.7, // semiMajorAxis (km), eccentricity, argumentOfPeriapsis, inclination (deg)
+            198.7, 190.0, 45.0, 22.4, // ascendingNode (deg), trueAnomaly (deg), tilt (deg), rotationPeriod (days)
+            "#8A2BE2", 0.1, 70.0 // colorCode, loveNumber, dissipationFunction
+    );
+    // 2015 TG387 (a.k.a "The Goblin")
+    public static ObjectInfo tg387 = new ObjectInfo(
+            "2015 TG387", BodyType.ICE, 1.2e21, 300, 300, 300, // mass, radius, equatorialRadius, polarRadius
+            1140000000000.0, 0.937, 300.0, 11.7, // semiMajorAxis (km), eccentricity, argumentOfPeriapsis, inclination (deg)
+            180.0, 30.0, 23.5, 15.50, // ascendingNode (deg), trueAnomaly (deg), tilt (deg), rotationPeriod (days)
+            "#FFD700", 0.2, 75.0 // colorCode, loveNumber, dissipationFunction
+    );
+
     // Asteroids
     public static ObjectInfo pallas = new ObjectInfo(
             "Pallas", BodyType.ICE, 2.04e20, 273, 275, 263, 414500000, 0.231, 310.07, 34.837, 173.085, 83.6, 3.0, 7.813,
@@ -242,6 +274,10 @@ public class SystemPresets {
         haumea.setRelativeToParentEquator(false);
         makemake.setRelativeToParentEquator(false);
         ceres.setRelativeToParentEquator(false);
+        
+        sedna.setRelativeToParentEquator(false);
+        gonggong.setRelativeToParentEquator(false);
+        tg387.setRelativeToParentEquator(false);
 
         pallas.setRelativeToParentEquator(false);
         vesta.setRelativeToParentEquator(false);
@@ -254,14 +290,15 @@ public class SystemPresets {
             "#FFD700", 0.03, 20000,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
             pluto, eris, haumea, makemake,
+            sedna, gonggong, tg387,
             ceres, pallas, vesta, hygiea
     );
     
     public static ObjectInfo siriusA = new ObjectInfo(
             "Sirius A", BodyType.STAR, SOLAR_MASS * 2.02, 
-            1.711 * SOLAR_RADIUS,
-            1.711 * SOLAR_RADIUS,
-            1.711 * SOLAR_RADIUS,
+            1.711 * SOLAR_RADIUS_KM,
+            1.711 * SOLAR_RADIUS_KM,
+            1.711 * SOLAR_RADIUS_KM,
             0, 0, 0, 0, 0, 0, 0, 5.5, 
             "#C3DDFF",
             0.03, 20000
@@ -269,9 +306,9 @@ public class SystemPresets {
 
     public static ObjectInfo vega = new ObjectInfo(
             "Vega", BodyType.STAR, SOLAR_MASS * 2.14,
-            2.288 * SOLAR_RADIUS,
-            2.362 * SOLAR_RADIUS,
-            2.288 * SOLAR_RADIUS,
+            2.288 * SOLAR_RADIUS_KM,
+            2.362 * SOLAR_RADIUS_KM,
+            2.288 * SOLAR_RADIUS_KM,
             0, 0, 0, 0, 0, 0, 0, 0.52,
             "#B2C9FF",
             0.03, 20000
@@ -279,18 +316,26 @@ public class SystemPresets {
 
     public static ObjectInfo proximaCentauri = new ObjectInfo(
             "Proxima Centauri", BodyType.STAR, SOLAR_MASS * 0.12,
-            0.1542 * SOLAR_RADIUS,
-            0.1542 * SOLAR_RADIUS,
-            0.1542 * SOLAR_RADIUS,
+            0.1542 * SOLAR_RADIUS_KM,
+            0.1542 * SOLAR_RADIUS_KM,
+            0.1542 * SOLAR_RADIUS_KM,
             0, 0, 0, 0, 0, 0, 0, 83,
             "#ffad99",
             0.03, 20000
+    );
+    
+    public static ObjectInfo helloKitty = new ObjectInfo(
+            "HelloKitty", BodyType.TERRESTRIAL, EARTH_MASS * 0.7,
+            EARTH_RADIUS_KM * 0.9, EARTH_RADIUS_KM * 0.9, EARTH_RADIUS_KM * 0.9,
+            0, 0, 0, 0, 0, 0, 22.5, 0.5, 
+            "#ffaec9", 0.140, 50
     );
 
     public static List<ObjectInfo> PRESET_OBJECTS = List.of(
             vega, siriusA,
             sun, 
             proximaCentauri,
+            helloKitty,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto,
             moon
     );
@@ -393,7 +438,7 @@ public class SystemPresets {
             String color = Util.randomCelestialColorCode();
 
             CelestialObject co = CelestialObject.create2d(
-                    "Trojan-" + planet.getName() + i,
+                    "Trojan-" + planet.getId() + i,
                     mass,
                     radius,
                     x,
@@ -455,22 +500,22 @@ public class SystemPresets {
                             double massMul,
                             double radiusMul,
                             double distanceMul,
-                            Vector3f parentOrbitPlaneNormal) {
+                            Vector3d parentOrbitPlaneNormal) {
         double[] position;
         double[] velocity;
         double[] localAxis = randomAxisToZ(info.tilt);
         double[] axisD;
-        Vector3f localEclipticPlaneNormal = calculateOrbitalPlaneNormal(
-                (float) Math.toRadians(info.inclination),
-                (float) Math.toRadians(info.argumentOfPeriapsis),
-                (float) Math.toRadians(info.ascendingNode));
+        Vector3d localEclipticPlaneNormal = calculateOrbitalPlaneNormal(
+                Math.toRadians(info.inclination),
+                Math.toRadians(info.argumentOfPeriapsis),
+                Math.toRadians(info.ascendingNode));
         double[] eclipticPlaneNormal;
         if (parent != null) {
             // todo: check this correctness for moons
             // position and velocity respect to local plane
             double[] relPos = calculatePosition(
                     info.semiMajorAxis * distanceMul,
-                    Math.toRadians(info.eccentricity),
+                    info.eccentricity,
                     Math.toRadians(info.inclination),
                     Math.toRadians(info.argumentOfPeriapsis),
                     Math.toRadians(info.ascendingNode),
@@ -479,7 +524,7 @@ public class SystemPresets {
             double mu = simulator.getG() * (parent.getMass() + info.mass * massMul);
             double[] relVel = calculateVelocity(
                     info.semiMajorAxis * distanceMul,
-                    Math.toRadians(info.eccentricity),
+                    info.eccentricity,
                     Math.toRadians(info.inclination),
                     Math.toRadians(info.argumentOfPeriapsis),
                     Math.toRadians(info.ascendingNode),
@@ -487,57 +532,31 @@ public class SystemPresets {
                     mu
             );
 
-            double[] parentEclipticNormal = GuiUtils.toDoubleArray(parentOrbitPlaneNormal);
-
-//            double[] refPlaneNormal;
-//            Vector3f axisPlaneNormal;
+            double[] parentEclipticNormal = parentOrbitPlaneNormal.toArray();
+            
             if (info.relativeToParentEquator) {
-//                refPlaneNormal = parent.rotationAxis;
-
                 relPos = rotateToParentEclipticPlane(relPos, parent.getRotationAxis());
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
                 relVel = rotateToParentEclipticPlane(relVel, parent.getRotationAxis());
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
 
-                eclipticPlaneNormal = rotateToParentEclipticPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parent.getRotationAxis());
+                eclipticPlaneNormal = rotateToParentEclipticPlane(localEclipticPlaneNormal.toArray(), parent.getRotationAxis());
                 eclipticPlaneNormal = rotateToXYPlane(eclipticPlaneNormal, parentEclipticNormal);
 
                 axisD = rotateToParentEclipticPlane(localAxis, parent.getRotationAxis());
-                axisD = rotateToXYPlane(axisD, parentEclipticNormal);
 
-//                System.out.println(info.name);
-//                System.out.println(Arrays.toString(position));
-//                System.out.println(Arrays.toString(velocity));
-
-//                axisPlaneNormal = GuiUtils.fromDoubleArray(refPlaneNormal);
-                if (info.name.equals("Charon")) {
-                    System.out.println("Charon planes:");
-                    System.out.println(Arrays.toString(axisD));
-                    System.out.println(Arrays.toString(eclipticPlaneNormal));
-                }
             } else {
-//                axisPlaneNormal = parentOrbitPlaneNormal;
-
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
-                eclipticPlaneNormal = rotateToXYPlane(GuiUtils.toDoubleArray(localEclipticPlaneNormal), parentEclipticNormal);
+                eclipticPlaneNormal = rotateToXYPlane(localEclipticPlaneNormal.toArray(), parentEclipticNormal);
 
                 double[] revEPN = VectorOperations.scale(eclipticPlaneNormal, 1);
                 axisD = rotateToParentEclipticPlane(localAxis, revEPN);
-                axisD = rotateToXYPlane(axisD, parentEclipticNormal);
             }
+            axisD = rotateToXYPlane(axisD, parentEclipticNormal);
 
             position = VectorOperations.add(position, parent.getPosition());
-
             velocity = VectorOperations.add(velocity, parent.getVelocity());
-
-//            axis = calculateRotationAxis(
-//                    (float) Math.toRadians(info.eccentricity),
-//                    (float) Math.toRadians(info.inclination),
-//                    (float) Math.toRadians(info.argumentOfPeriapsis),
-//                    (float) Math.toRadians(info.tilt),
-//                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
-//            );
         } else {
             position = new double[3];
             velocity = new double[3];
@@ -569,7 +588,7 @@ public class SystemPresets {
                     massMul,
                     radiusMul,
                     distanceMul,
-                    GuiUtils.fromDoubleArray(eclipticPlaneNormal)
+                    Vector3d.fromArray(eclipticPlaneNormal)
             );
         }
     }
@@ -889,7 +908,7 @@ public class SystemPresets {
         return position; // This is the position relative to Saturn's equatorial plane
     }
 
-    // Calculate 3D velocity from orbital elements relative to Saturn's equatorial plane
+    // Calculate 3D velocity from orbital elements relative to central object's equatorial plane
     public static double[] calculateVelocity(double a,
                                              double e,
                                              double i,
@@ -904,7 +923,7 @@ public class SystemPresets {
         double Vr = Math.sqrt(mu / p) * e * Math.sin(nu);
         double Vtheta = Math.sqrt(mu / p) * (1 + e * Math.cos(nu));
 
-        // Step 3: Calculate velocity components in the orbital plane (Vx', Vy', Vz') relative to Saturn's equator
+        // Step 3: Calculate velocity components in the orbital plane (Vx', Vy', Vz') relative to central object's equator
         double VxPrime = Vr * Math.cos(nu) - Vtheta * Math.sin(nu);
         double VyPrime = Vr * Math.sin(nu) + Vtheta * Math.cos(nu);
         double VzPrime = 0;
@@ -912,16 +931,16 @@ public class SystemPresets {
         // Step 4: Apply the same rotations for orbital elements
         double[] velocity = {VxPrime, VyPrime, VzPrime};
 
-        // Rotate by -ω (argument of periapsis) around Z-axis (Saturn's equatorial)
+        // Rotate by -ω (argument of periapsis) around Z-axis (central object's equatorial)
         velocity = rotateAroundZAxis(velocity, omega);
 
-        // Rotate by -i (inclination, with respect to Saturn's equatorial plane) around X-axis
+        // Rotate by -i (inclination, with respect to central object's equatorial plane) around X-axis
         velocity = rotateAroundXAxis(velocity, i);
 
         // Rotate by -Ω (longitude of ascending node) around Z-axis
         velocity = rotateAroundZAxis(velocity, omegaBig);
 
-        return velocity; // This is the velocity relative to Saturn's equatorial plane
+        return velocity; // This is the velocity relative to central object's equatorial plane
     }
 
     // Rotate the position and velocity from Planet's equatorial plane to Planet's ecliptic plane
@@ -1016,6 +1035,26 @@ public class SystemPresets {
         Matrix3f rotOmegaBig = new Matrix3f();
         rotOmegaBig.fromAngleAxis(-omegaBig, Vector3f.UNIT_Z);
         return rotOmegaBig.mult(axis);
+    }
+
+    static Vector3d calculateOrbitalPlaneNormal(double i, double omega, double omegaBig) {
+        // Start with the unit vector (0, 0, 1) representing the normal to the orbital plane
+        Vector3d normal = new Vector3d(0, 0, 1);
+
+        // Apply the planet's orbital elements to rotate the plane's normal into the global reference frame
+        Matrix3d rotOmega = new Matrix3d();
+        rotOmega.fromAngleAxis(-omega, Vector3d.UNIT_Z);
+        normal = rotOmega.mult(normal);
+
+        Matrix3d rotInclination = new Matrix3d();
+        rotInclination.fromAngleAxis(-i, Vector3d.UNIT_X);
+        normal = rotInclination.mult(normal);
+
+        Matrix3d rotOmegaBig = new Matrix3d();
+        rotOmegaBig.fromAngleAxis(-omegaBig, Vector3d.UNIT_Z);
+        normal = rotOmegaBig.mult(normal);
+
+        return normal;
     }
 
     static Vector3f calculateOrbitalPlaneNormal(float i, float omega, float omegaBig) {

@@ -1,0 +1,1516 @@
+{
+  "timeStepAccumulator": 2168665,
+  "epsilon": 0,
+  "gravityDtPower": 2,
+  "timeStep": 2,
+  "G": 6.6743E-11,
+  "cutOffForce": 0,
+  "objects": [
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "STAR",
+      "polarRadius": 6.9634E8,
+      "emissivity": 0.95,
+      "mass": 1.989E30,
+      "velocity": [
+        0.4559732466019099,
+        0.4696270358506683,
+        -0.024888082725476157
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/sunmap.jpg",
+      "angularVelocity": 2.8653290845717256E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 0,
+      "rotationAxis": [
+        3.580226868228458E-35,
+        7.901238033279839E-36,
+        1
+      ],
+      "rotationAngle": 356.0383832413742,
+      "internalThermalEnergy": 1.422135E38,
+      "dissipationFunction": 20000,
+      "equatorialRadius": 6.9634E8,
+      "colorCode": "#FFD700",
+      "position": [
+        494903.5267777027,
+        493340.93688385317,
+        -26394.268821899226
+      ],
+      "id": "Sun",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.589,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.6854E7,
+      "emissivity": 0.95,
+      "mass": 1.899E27,
+      "velocity": [
+        -10335.452401172628,
+        8837.293512520793,
+        194.99730570539347
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/jupiter2k.jpg",
+      "angularVelocity": 1.758695336552126E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 1.566317893653253E26,
+      "rotationAxis": [
+        0.06966993497235811,
+        -0.031369078466521254,
+        0.9970767678955862
+      ],
+      "rotationAngle": 253.0935106811866,
+      "internalThermalEnergy": 1.3577850000000001E35,
+      "dissipationFunction": 10500,
+      "equatorialRadius": 7.1492E7,
+      "colorCode": "#F4A460",
+      "position": [
+        4.6913603401194116E11,
+        5.814362285294324E11,
+        -1.2915009436333853E10
+      ],
+      "id": "Jupiter",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.341,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 5.4364E7,
+      "emissivity": 0.95,
+      "mass": 5.685E26,
+      "velocity": [
+        8141.697206948652,
+        4209.455820740771,
+        -398.00114018043655
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/saturnmap.jpg",
+      "angularVelocity": 1.6378840578024865E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 7.889140771549523E25,
+      "rotationAxis": [
+        -0.29730556543581776,
+        -0.3180534784728976,
+        0.9002507348467864
+      ],
+      "rotationAngle": 191.92379879879047,
+      "internalThermalEnergy": 4.0647749999999997E34,
+      "dissipationFunction": 18000,
+      "equatorialRadius": 6.0268E7,
+      "colorCode": "#DAA520",
+      "position": [
+        6.528693580956897E11,
+        -1.3483354876083835E12,
+        -2.4637449678816867E9
+      ],
+      "id": "Saturn",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.122,
+      "bodyType": "ICE_GIANT",
+      "polarRadius": 2.4341E7,
+      "emissivity": 0.95,
+      "mass": 1.024E26,
+      "velocity": [
+        -2794.2950426691027,
+        4727.079540605033,
+        -32.96663750670116
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/neptune/neptune_current.jpg",
+      "angularVelocity": 1.0837861723760118E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 2.424021510466867E25,
+      "rotationAxis": [
+        -0.45383689688806106,
+        -0.005655915193342858,
+        0.8910668222116348
+      ],
+      "rotationAngle": 146.8467461500645,
+      "internalThermalEnergy": 7.3216E33,
+      "dissipationFunction": 4000,
+      "equatorialRadius": 2.4764E7,
+      "colorCode": "#4169E1",
+      "position": [
+        3.8376214960931133E12,
+        2.2486436794462803E12,
+        -1.34654321882028E11
+      ],
+      "id": "Neptune",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.104,
+      "bodyType": "ICE_GIANT",
+      "polarRadius": 2.4973E7,
+      "emissivity": 0.95,
+      "mass": 8.682E25,
+      "velocity": [
+        6654.983167326456,
+        -1489.1033442473586,
+        -91.54032742388956
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/uranus.JPG",
+      "angularVelocity": -1.0128419521786962E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 3.1116036363247177E25,
+      "rotationAxis": [
+        -0.8492133975349937,
+        -0.5136794746765634,
+        -0.12235196256326573
+      ],
+      "rotationAngle": 14.687790157856622,
+      "internalThermalEnergy": 6.207629999999999E33,
+      "dissipationFunction": 3000,
+      "equatorialRadius": 2.5559E7,
+      "colorCode": "#40E0D0",
+      "position": [
+        -4.970376739143272E11,
+        -2.81888274167801E12,
+        -4.012312294434509E9
+      ],
+      "id": "Uranus",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.14,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1.1733900000000002E7,
+      "emissivity": 0.95,
+      "mass": 4.1804E25,
+      "velocity": [
+        -24513.377881086468,
+        9054.364167849006,
+        909.3768952728391
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg",
+      "angularVelocity": 1.454441043328608E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 3.473960279313033E23,
+      "shownName": "uiukitty",
+      "rotationAxis": [
+        -0.2520764370467446,
+        -0.2879306848749276,
+        0.9238795325112867
+      ],
+      "rotationAngle": 105.65833333325348,
+      "internalThermalEnergy": 2.988986E33,
+      "dissipationFunction": 50,
+      "equatorialRadius": 1.1733900000000002E7,
+      "colorCode": "#ffaec9",
+      "position": [
+        5.9002591268760414E10,
+        1.5942105265897247E11,
+        -8.195108835158199E9
+      ],
+      "id": "HelloKitty",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.14,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 7733900.000000001,
+      "emissivity": 0.95,
+      "mass": 1.1804E25,
+      "velocity": [
+        -27516.0982873065,
+        9724.065745364505,
+        290.5859310964969
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg",
+      "angularVelocity": 1.454441043328608E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 1.5088868211662501E23,
+      "shownName": "uiulucky",
+      "rotationAxis": [
+        -0.30359847365528336,
+        -0.23296904558526324,
+        0.9238795325112867
+      ],
+      "rotationAngle": 281.22499999994443,
+      "internalThermalEnergy": 8.43986E32,
+      "dissipationFunction": 50,
+      "equatorialRadius": 7733900.000000001,
+      "colorCode": "#ffaec9",
+      "position": [
+        5.90319106003663E10,
+        1.597128380893814E11,
+        -8.096448811775819E9
+      ],
+      "id": "HelloKitty-1",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.299,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 6356800,
+      "emissivity": 0.95,
+      "mass": 5.972E24,
+      "velocity": [
+        27013.773449040502,
+        -11583.269051528627,
+        -0.4585447584840077
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/earth/earth2k.jpg",
+      "angularVelocity": 7.29408747908028E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.177415640028184E23,
+      "rotationAxis": [
+        -0.08030514683003721,
+        -0.38959747591742333,
+        0.9174774602960984
+      ],
+      "rotationAngle": 63.444500167114725,
+      "internalThermalEnergy": 4.26998E32,
+      "dissipationFunction": 12,
+      "equatorialRadius": 6378100,
+      "colorCode": "#4682B4",
+      "position": [
+        -5.8371167156488075E10,
+        -1.3994554550578284E11,
+        -203362.3673718279
+      ],
+      "id": "Earth",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.295,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 6051800,
+      "emissivity": 0.95,
+      "mass": 4.867E24,
+      "velocity": [
+        29358.823108195265,
+        18619.8714674731,
+        -1439.9015915271784
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/venusmap.jpg",
+      "angularVelocity": -2.9923691869737844E-7,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1566232585489837E23,
+      "rotationAxis": [
+        -0.03851681883556447,
+        -0.05556656621860573,
+        -0.9977117877350461
+      ],
+      "rotationAngle": 322.8175942120308,
+      "internalThermalEnergy": 3.479905E32,
+      "dissipationFunction": 150,
+      "equatorialRadius": 6051800,
+      "colorCode": "#EED2B3",
+      "position": [
+        5.822308853895758E10,
+        -9.194241166729611E10,
+        -4.616333637428752E9
+      ],
+      "id": "Venus",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.14,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3376200,
+      "emissivity": 0.95,
+      "mass": 6.417E23,
+      "velocity": [
+        21667.436450357276,
+        -10437.949868952806,
+        -751.3341431038874
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/marsmap1k.jpg",
+      "angularVelocity": 7.0879193144669E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 2.8016191910027144E22,
+      "rotationAxis": [
+        0.3012099144555767,
+        0.34010511159714846,
+        0.8908429157259743
+      ],
+      "rotationAngle": 167.2652696555976,
+      "internalThermalEnergy": 4.588155000000001E31,
+      "dissipationFunction": 92,
+      "equatorialRadius": 3396200,
+      "colorCode": "#A52A2A",
+      "position": [
+        -1.1805464502671048E11,
+        -1.957671857784181E11,
+        -1.1997106251927693E9
+      ],
+      "id": "Mars",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.025,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2439700,
+      "emissivity": 0.95,
+      "mass": 3.301E23,
+      "velocity": [
+        15385.94379071678,
+        44088.423025788776,
+        2189.041115585785
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/2k_mercury.jpg",
+      "angularVelocity": 1.2400172589167276E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 2.7242932340473977E22,
+      "rotationAxis": [
+        0.0904990515436703,
+        0.08102261384309575,
+        0.9925952134257593
+      ],
+      "rotationAngle": 154.08133831235222,
+      "internalThermalEnergy": 2.360215E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2439700,
+      "colorCode": "#8B8B83",
+      "position": [
+        5.056941008041814E10,
+        -3.0136265698712776E10,
+        -7.10229941396266E9
+      ],
+      "id": "Mercury",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.02,
+      "bodyType": "ICE",
+      "polarRadius": 2634100,
+      "emissivity": 0.95,
+      "mass": 1.4799999999999999E23,
+      "velocity": [
+        -5874.261938013392,
+        -1079.1556980638281,
+        -313.0802312069254
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/ganymede.jpg",
+      "angularVelocity": 1.0163808828292158E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.2387376069775884E22,
+      "rotationAxis": [
+        0.04700906124424317,
+        -0.02149235328830255,
+        0.9986632199651021
+      ],
+      "rotationAngle": 182.92860470534308,
+      "internalThermalEnergy": 1.0581999999999999E31,
+      "dissipationFunction": 200,
+      "equatorialRadius": 2634100,
+      "colorCode": "#DCDCDC",
+      "position": [
+        4.6816094103624695E11,
+        5.809969863399602E11,
+        -1.2878686358267536E10
+      ],
+      "id": "Ganymede",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.105,
+      "bodyType": "ICE",
+      "polarRadius": 2573400,
+      "emissivity": 0.95,
+      "mass": 1.345E23,
+      "velocity": [
+        10441.697444844467,
+        8867.930003845451,
+        1999.6675514843864
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/titan.png",
+      "angularVelocity": 4.560806031133923E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 8.767903380026361E21,
+      "rotationAxis": [
+        -0.33290594175345306,
+        -0.3074029144484274,
+        0.8914466232668445
+      ],
+      "rotationAngle": 206.71396467024186,
+      "internalThermalEnergy": 9.61675E30,
+      "dissipationFunction": 1500,
+      "equatorialRadius": 2575500,
+      "colorCode": "#D2B48C",
+      "position": [
+        6.538790076998788E11,
+        -1.3489403978388723E12,
+        -2.289773513738157E9
+      ],
+      "id": "Titan",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.01,
+      "bodyType": "ICE",
+      "polarRadius": 2410300,
+      "emissivity": 0.95,
+      "mass": 1.0800000000000001E23,
+      "velocity": [
+        -18329.036032633965,
+        7202.583320449039,
+        503.04661920719286
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/callisto.jpg",
+      "angularVelocity": 4.357484101290094E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 1.138071487916934E22,
+      "rotationAxis": [
+        0.047320657091244236,
+        -0.027241407791803555,
+        0.9985082178499953
+      ],
+      "rotationAngle": 181.44970739208884,
+      "internalThermalEnergy": 7.722000000000001E30,
+      "dissipationFunction": 300,
+      "equatorialRadius": 2410300,
+      "colorCode": "#708090",
+      "position": [
+        4.687694362771662E11,
+        5.832907635567651E11,
+        -1.2845125008396536E10
+      ],
+      "id": "Callisto",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.015,
+      "bodyType": "ICE",
+      "polarRadius": 1821600,
+      "emissivity": 0.95,
+      "mass": 8.93E22,
+      "velocity": [
+        5195.395269874635,
+        16317.773699469724,
+        -340.219241768732
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/io.jpg",
+      "angularVelocity": 4.110913067633149E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 6.337248788670505E21,
+      "rotationAxis": [
+        0.046991808036840964,
+        -0.028049711504656447,
+        0.9985013688833553
+      ],
+      "rotationAngle": 68.11428302236732,
+      "internalThermalEnergy": 6.38495E30,
+      "dissipationFunction": 50,
+      "equatorialRadius": 1821600,
+      "colorCode": "#FFD700",
+      "position": [
+        4.6931918652437244E11,
+        5.810544375728494E11,
+        -1.2934361081769194E10
+      ],
+      "id": "Io",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.024,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1735600,
+      "emissivity": 0.95,
+      "mass": 7.342E22,
+      "velocity": [
+        27229.852510097524,
+        -12557.385811588749,
+        31.6623722282778
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/earth/moon.png",
+      "angularVelocity": 2.6616665019555817E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 8.233415156865003E21,
+      "rotationAxis": [
+        0.07970227807547067,
+        0.06480330552815718,
+        0.9947100474320166
+      ],
+      "rotationAngle": 330.7317973305773,
+      "internalThermalEnergy": 5.24953E30,
+      "dissipationFunction": 30,
+      "equatorialRadius": 1738100,
+      "colorCode": "#C0C0C0",
+      "position": [
+        -5.874725647206497E10,
+        -1.400508208640011E11,
+        3.397974224283912E7
+      ],
+      "id": "Moon",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.01,
+      "bodyType": "ICE",
+      "polarRadius": 1560800,
+      "emissivity": 0.95,
+      "mass": 4.8E22,
+      "velocity": [
+        -20527.447186797574,
+        17960.755870535282,
+        815.6757652079832
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/europa.jpg",
+      "angularVelocity": 2.0479316295812558E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 4.4903164427870924E21,
+      "rotationAxis": [
+        0.04638077920273661,
+        -0.02577310893871592,
+        0.9985912928601872
+      ],
+      "rotationAngle": 24.70689007793009,
+      "internalThermalEnergy": 3.432E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1560800,
+      "colorCode": "#87CEEB",
+      "position": [
+        4.6957930500839935E11,
+        5.819431227333936E11,
+        -1.292313901812119E10
+      ],
+      "id": "Europa",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "ICE",
+      "polarRadius": 1353400,
+      "emissivity": 0.95,
+      "mass": 2.1400000000000002E22,
+      "velocity": [
+        -1614.9743106797746,
+        8894.57708201396,
+        -747.0715847263485
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/neptune/triton.jpg",
+      "angularVelocity": 1.2374009216680345E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3559551754533415E21,
+      "rotationAxis": [
+        -0.4742290544874459,
+        0.012566533631958044,
+        0.8803118118669203
+      ],
+      "rotationAngle": 97.56239010832375,
+      "internalThermalEnergy": 1.5301000000000001E30,
+      "dissipationFunction": 750,
+      "equatorialRadius": 1353400,
+      "colorCode": "#FFB6C1",
+      "position": [
+        3.8372830650012227E12,
+        2.248728417748857E12,
+        -1.3471866994495117E11
+      ],
+      "id": "Triton",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.04,
+      "bodyType": "ICE",
+      "polarRadius": 1163000,
+      "emissivity": 0.95,
+      "mass": 1.66E22,
+      "velocity": [
+        3563.8461737119674,
+        -1085.2081618594095,
+        -2887.6335104779823
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/2k_eris_fictional.jpg",
+      "angularVelocity": 2.8078012419471203E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 8.694291056844066E20,
+      "rotationAxis": [
+        0.4091955050799154,
+        0.5642441106162652,
+        0.717068770939896
+      ],
+      "rotationAngle": 348.8901222651547,
+      "internalThermalEnergy": 1.1869000000000001E30,
+      "dissipationFunction": 500,
+      "equatorialRadius": 1163000,
+      "colorCode": "#8B4513",
+      "position": [
+        -1.4703972501274429E12,
+        -6.176480064697004E12,
+        -4.021040480208297E12
+      ],
+      "id": "Eris",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.058,
+      "bodyType": "ICE",
+      "polarRadius": 1188300,
+      "emissivity": 0.95,
+      "mass": 1.309E22,
+      "velocity": [
+        5457.7152152887675,
+        -227.9463262207257,
+        -1560.3806961446367
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/pluto/pluto.jpg",
+      "angularVelocity": 1.1385948358608173E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0862092834674496E21,
+      "rotationAxis": [
+        -0.26407276378584005,
+        0.8812906302484885,
+        -0.39190866341882497
+      ],
+      "rotationAngle": 334.78850268774886,
+      "internalThermalEnergy": 9.35935E29,
+      "dissipationFunction": 150,
+      "equatorialRadius": 1188300,
+      "colorCode": "#708090",
+      "position": [
+        7.629482529586204E11,
+        -4.7711670026631455E12,
+        2.901039473370024E11
+      ],
+      "id": "Pluto",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.2,
+      "bodyType": "ICE",
+      "polarRadius": 497000,
+      "emissivity": 0.95,
+      "mass": 4.769999999999999E21,
+      "velocity": [
+        -1765.506150397095,
+        -118.9006634363522,
+        236.8411255049562
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/sedna.jpg",
+      "angularVelocity": 7.081017737724479E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 4.647869072444839E19,
+      "rotationAxis": [
+        0.4957371742284126,
+        -0.3054247300467157,
+        0.8129947037735973
+      ],
+      "rotationAngle": 159.86895488482327,
+      "internalThermalEnergy": 3.41055E29,
+      "dissipationFunction": 100,
+      "equatorialRadius": 497000,
+      "colorCode": "#FF7F50",
+      "position": [
+        -5.53200662022349E12,
+        7.605656128344997E13,
+        -1.2411373737259766E13
+      ],
+      "id": "Sedna",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.035,
+      "bodyType": "ICE",
+      "polarRadius": 498000,
+      "emissivity": 0.95,
+      "mass": 4.01E21,
+      "velocity": [
+        -4023.627393824422,
+        2929.865131863143,
+        1000.5980614643073
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/2k_haumea_fictional.jpg",
+      "angularVelocity": 1.864668004267446E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 3.733112955652907E20,
+      "rotationAxis": [
+        0.4010080531786667,
+        -0.249702645848626,
+        0.8813859143088522
+      ],
+      "rotationAngle": 156.98824786329945,
+      "internalThermalEnergy": 2.86715E29,
+      "dissipationFunction": 600,
+      "equatorialRadius": 870000,
+      "colorCode": "#FF69B4",
+      "position": [
+        1.8926800983009602E12,
+        4.9149544704124E12,
+        -2.253561196669485E12
+      ],
+      "id": "Haumea",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.025,
+      "bodyType": "ICE",
+      "polarRadius": 788400,
+      "emissivity": 0.95,
+      "mass": 3.42E21,
+      "velocity": [
+        4797.701148382917,
+        1633.9600158939713,
+        -372.564621689465
+      ],
+      "angularVelocity": 8.353095815119505E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 5.896745146168751E20,
+      "rotationAxis": [
+        -0.8475519203831073,
+        -0.513203242059466,
+        -0.13519679949821317
+      ],
+      "rotationAngle": 317.9340876023886,
+      "internalThermalEnergy": 2.4453E29,
+      "dissipationFunction": 1100,
+      "equatorialRadius": 788400,
+      "colorCode": "#98FB98",
+      "position": [
+        -4.9710330542191504E11,
+        -2.818883374892751E12,
+        -3.580993097112469E9
+      ],
+      "id": "Titania",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "ICE",
+      "polarRadius": 715000,
+      "emissivity": 0.95,
+      "mass": 3.1E21,
+      "velocity": [
+        -2915.9844223115133,
+        -2656.6884953563035,
+        1316.3594536512608
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/2k_makemake_fictional.jpg",
+      "angularVelocity": 3.2320912073969064E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 3.3323946646794096E20,
+      "rotationAxis": [
+        0.47645850646663845,
+        0.08959720698201443,
+        0.8746197071393957
+      ],
+      "rotationAngle": 41.6112962963069,
+      "internalThermalEnergy": 2.2165E29,
+      "dissipationFunction": 550,
+      "equatorialRadius": 715000,
+      "colorCode": "#B22222",
+      "position": [
+        -4.552049297514587E12,
+        4.782478309908796E12,
+        2.969701331560505E12
+      ],
+      "id": "Makemake",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.022,
+      "bodyType": "ICE",
+      "polarRadius": 761400,
+      "emissivity": 0.95,
+      "mass": 3.01E21,
+      "velocity": [
+        6187.735798078787,
+        -1531.0280041753153,
+        3023.3768100804623
+      ],
+      "angularVelocity": 5.401623127566694E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 6.019856609893233E20,
+      "rotationAxis": [
+        -0.8475519203831073,
+        -0.513203242059466,
+        -0.13519679949821317
+      ],
+      "rotationAngle": 311.19172299387225,
+      "internalThermalEnergy": 2.15215E29,
+      "dissipationFunction": 1050,
+      "equatorialRadius": 761400,
+      "colorCode": "#556B2F",
+      "position": [
+        -4.96740296493062E11,
+        -2.819383588104519E12,
+        -3.9731865737773404E9
+      ],
+      "id": "Oberon",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.02,
+      "bodyType": "ICE",
+      "polarRadius": 762000,
+      "emissivity": 0.95,
+      "mass": 2.31E21,
+      "velocity": [
+        11716.084752504803,
+        -3377.300125340893,
+        -1690.795443380693
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/rhea.jpg",
+      "angularVelocity": 1.6096071749984595E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 7.112067126636092E20,
+      "rotationAxis": [
+        -0.33291727158898227,
+        -0.30244697125871545,
+        0.8931360029996426
+      ],
+      "rotationAngle": 200.05625645563717,
+      "internalThermalEnergy": 1.65165E29,
+      "dissipationFunction": 1000,
+      "equatorialRadius": 764000,
+      "colorCode": "#F5F5F5",
+      "position": [
+        6.524239614692935E11,
+        -1.3485068292396367E12,
+        -2.6871207994608855E9
+      ],
+      "id": "Rhea",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.015,
+      "bodyType": "ICE",
+      "polarRadius": 734500,
+      "emissivity": 0.95,
+      "mass": 1.8E21,
+      "velocity": [
+        10831.600493004586,
+        2357.15316723415,
+        -887.5616497151867
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/iapetus2k.jpg",
+      "angularVelocity": 9.168070519336671E-7,
+      "exist": true,
+      "surfaceThermalEnergy": 7.812006396607796E20,
+      "rotationAxis": [
+        -0.33291727158898227,
+        -0.30244697125871545,
+        0.8931360029996426
+      ],
+      "rotationAngle": 113.9200737089329,
+      "internalThermalEnergy": 1.2869999999999999E29,
+      "dissipationFunction": 1200,
+      "equatorialRadius": 734500,
+      "colorCode": "#2F4F4F",
+      "position": [
+        6.509166860200123E11,
+        -1.3510231297704321E12,
+        -3.6200665843239174E9
+      ],
+      "id": "Iapetus",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.1,
+      "bodyType": "ICE",
+      "polarRadius": 650000,
+      "emissivity": 0.95,
+      "mass": 1.75E21,
+      "velocity": [
+        765.2557868898216,
+        -211.80968902026058,
+        264.8031070154204
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/gonggong.jpg",
+      "angularVelocity": 3.2465201860013577E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 7.138454779608035E19,
+      "rotationAxis": [
+        0.3225912542139368,
+        -0.857045545743113,
+        0.4017559149864116
+      ],
+      "rotationAngle": 43.40420386906988,
+      "internalThermalEnergy": 1.2512499999999998E29,
+      "dissipationFunction": 70,
+      "equatorialRadius": 650000,
+      "colorCode": "#8A2BE2",
+      "position": [
+        -5.142169040023695E13,
+        -7.753836633195456E13,
+        3.381958667336475E13
+      ],
+      "id": "Gonggong",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.02,
+      "bodyType": "ICE",
+      "polarRadius": 606000,
+      "emissivity": 0.95,
+      "mass": 1.52E21,
+      "velocity": [
+        5551.5323340577625,
+        -327.0275915623812,
+        -1736.9097951642875
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/pluto/charon.jpg",
+      "angularVelocity": 1.1385948358608173E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 2.6482337980471247E20,
+      "rotationAxis": [
+        -0.1325194864792132,
+        0.8326302055231809,
+        -0.5377411334031564
+      ],
+      "rotationAngle": 334.78850268774886,
+      "internalThermalEnergy": 1.0868E29,
+      "dissipationFunction": 100,
+      "equatorialRadius": 606000,
+      "colorCode": "#EEDC82",
+      "position": [
+        7.629659139826577E11,
+        -4.771160524179788E12,
+        2.9010962792839905E11
+      ],
+      "id": "Charon",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.023,
+      "bodyType": "ICE",
+      "polarRadius": 578900,
+      "emissivity": 0.95,
+      "mass": 1.29E21,
+      "velocity": [
+        5983.861999784191,
+        909.4937202112093,
+        -4996.224567224432
+      ],
+      "angularVelocity": 2.885795720890095E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 2.960302816516485E20,
+      "rotationAxis": [
+        -0.8475519203831073,
+        -0.513203242059466,
+        -0.13519679949821317
+      ],
+      "rotationAngle": 345.8151455026268,
+      "internalThermalEnergy": 9.2235E28,
+      "dissipationFunction": 980,
+      "equatorialRadius": 578900,
+      "colorCode": "#F0FFF0",
+      "position": [
+        -4.9713622027718646E11,
+        -2.8187413644074614E12,
+        -3.9295462437178187E9
+      ],
+      "id": "Ariel",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.02,
+      "bodyType": "ICE",
+      "polarRadius": 584700,
+      "emissivity": 0.95,
+      "mass": 1.27E21,
+      "velocity": [
+        8682.608991166711,
+        -5304.759298688288,
+        1714.6893080644388
+      ],
+      "angularVelocity": 1.7548757762169495E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 3.5355854223678525E20,
+      "rotationAxis": [
+        -0.8475519203831073,
+        -0.513203242059466,
+        -0.13519679949821317
+      ],
+      "rotationAngle": 20.563264156953032,
+      "internalThermalEnergy": 9.0805E28,
+      "dissipationFunction": 1000,
+      "equatorialRadius": 584700,
+      "colorCode": "#008080",
+      "position": [
+        -4.96956031225071E11,
+        -2.818954756524451E12,
+        -4.2540671506481256E9
+      ],
+      "id": "Umbriel",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.2,
+      "bodyType": "ICE",
+      "polarRadius": 300000,
+      "emissivity": 0.95,
+      "mass": 1.2E21,
+      "velocity": [
+        -1281.0773795650014,
+        -1276.5835717081,
+        264.3677485923727
+      ],
+      "angularVelocity": 4.691745301060025E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 1.6944320042767235E19,
+      "rotationAxis": [
+        -0.28703309457511517,
+        0.08507115917921057,
+        0.9541356824343896
+      ],
+      "rotationAngle": 222.9841397849558,
+      "internalThermalEnergy": 8.58E28,
+      "dissipationFunction": 75,
+      "equatorialRadius": 300000,
+      "colorCode": "#FFD700",
+      "position": [
+        -6.651102722789025E13,
+        3.759797281455928E13,
+        -7.786165860573795E12
+      ],
+      "id": "2015 TG387",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.025,
+      "bodyType": "ICE",
+      "polarRadius": 561400,
+      "emissivity": 0.95,
+      "mass": 1.095E21,
+      "velocity": [
+        9878.599476180638,
+        13341.056699869669,
+        3336.185506003578
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/dione-ciclops.jpg",
+      "angularVelocity": 2.6569986176993202E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 4.0153205355015366E20,
+      "rotationAxis": [
+        -0.33291727158898227,
+        -0.30244697125871545,
+        0.8931360029996426
+      ],
+      "rotationAngle": 61.51778102546617,
+      "internalThermalEnergy": 7.82925E28,
+      "dissipationFunction": 1000,
+      "equatorialRadius": 561400,
+      "colorCode": "#D3D3D3",
+      "position": [
+        6.532195230528511E11,
+        -1.3484414794850298E12,
+        -2.369188659780093E9
+      ],
+      "id": "Dione",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.045,
+      "bodyType": "ICE",
+      "polarRadius": 473000,
+      "emissivity": 0.95,
+      "mass": 9.39E20,
+      "velocity": [
+        -4893.026417217329,
+        -18649.53870138548,
+        320.00743041166305
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/2k_ceres_fictional.jpg",
+      "angularVelocity": 8.017866832020991E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 5.979247003179855E20,
+      "rotationAxis": [
+        0.18125154139764768,
+        0.030688943838677925,
+        0.982957815710849
+      ],
+      "rotationAngle": 276.28766997434616,
+      "internalThermalEnergy": 6.713849999999999E28,
+      "dissipationFunction": 450,
+      "equatorialRadius": 473000,
+      "colorCode": "#FF7F50",
+      "position": [
+        -3.655314932248722E11,
+        9.133015868340541E10,
+        7.025326374090541E10
+      ],
+      "id": "Ceres",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "ICE",
+      "polarRadius": 531100,
+      "emissivity": 0.95,
+      "mass": 6.18E20,
+      "velocity": [
+        -2625.7279792561058,
+        5489.950208705385,
+        -3742.6618631090437
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/tethys2k.jpg",
+      "angularVelocity": 3.853844841888203E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 3.568484721468934E20,
+      "rotationAxis": [
+        -0.33291727158898227,
+        -0.30244697125871545,
+        0.8931360029996426
+      ],
+      "rotationAngle": 108.72769828652909,
+      "internalThermalEnergy": 4.4187E28,
+      "dissipationFunction": 900,
+      "equatorialRadius": 531100,
+      "colorCode": "#AFEEEE",
+      "position": [
+        6.528725120692766E11,
+        -1.3480571331248838E12,
+        -2.366963627421396E9
+      ],
+      "id": "Tethys",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.038,
+      "bodyType": "ICE",
+      "polarRadius": 229000,
+      "emissivity": 0.95,
+      "mass": 2.59E20,
+      "velocity": [
+        17441.44292373338,
+        10711.641944562649,
+        -2442.481499422365
+      ],
+      "angularVelocity": 1.3613263228459452E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 2.0338288371893394E20,
+      "rotationAxis": [
+        0.056689411576380924,
+        -0.0025643529351201053,
+        0.9983885689996395
+      ],
+      "rotationAngle": 251.5629289904231,
+      "internalThermalEnergy": 1.85185E28,
+      "dissipationFunction": 420,
+      "equatorialRadius": 285000,
+      "colorCode": "#FFD700",
+      "position": [
+        1.8989608394096964E11,
+        -2.7149804768726663E11,
+        -1.4953953044765516E10
+      ],
+      "id": "Vesta",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.04,
+      "bodyType": "ICE",
+      "polarRadius": 263000,
+      "emissivity": 0.95,
+      "mass": 2.04E20,
+      "velocity": [
+        6755.376674959799,
+        -14788.932600237005,
+        9651.887242903125
+      ],
+      "angularVelocity": 9.307826976376603E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 1.9918018818747433E20,
+      "rotationAxis": [
+        0.05183556475149954,
+        -0.6077268942196551,
+        0.792452582978329
+      ],
+      "rotationAngle": 76.57611246216739,
+      "internalThermalEnergy": 1.4586E28,
+      "dissipationFunction": 400,
+      "equatorialRadius": 275000,
+      "colorCode": "#4169E1",
+      "position": [
+        -3.241000266923077E11,
+        -1.6737972819824207E11,
+        1.4280240675091052E11
+      ],
+      "id": "Pallas",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.02,
+      "bodyType": "ICE",
+      "polarRadius": 252100,
+      "emissivity": 0.95,
+      "mass": 1.08E20,
+      "velocity": [
+        18902.313492455054,
+        8001.654284885973,
+        4895.936226750912
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/enceladus.jpg",
+      "angularVelocity": 5.308178990250393E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 7.649002527948405E19,
+      "rotationAxis": [
+        -0.33291727158898227,
+        -0.30244697125871545,
+        0.8931360029996426
+      ],
+      "rotationAngle": 115.8607055961139,
+      "internalThermalEnergy": 7.722E27,
+      "dissipationFunction": 700,
+      "equatorialRadius": 252100,
+      "colorCode": "#FFFFFF",
+      "position": [
+        6.529637352947915E11,
+        -1.3485516626125781E12,
+        -2.5018210389188666E9
+      ],
+      "id": "Enceladus",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.036,
+      "bodyType": "ICE",
+      "polarRadius": 207000,
+      "emissivity": 0.95,
+      "mass": 8.67E19,
+      "velocity": [
+        -5925.623004979598,
+        14018.693802267326,
+        -172.72178394035612
+      ],
+      "angularVelocity": 5.260184605166756E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0696629651313397E20,
+      "rotationAxis": [
+        -0.11520338898492055,
+        0.030085198158853077,
+        0.9928862271268202
+      ],
+      "rotationAngle": 293.62236286923144,
+      "internalThermalEnergy": 6.19905E27,
+      "dissipationFunction": 380,
+      "equatorialRadius": 222000,
+      "colorCode": "#A9A9A9",
+      "position": [
+        4.6100751309580945E11,
+        2.3082917962470987E11,
+        3.3672218511727543E10
+      ],
+      "id": "Hygiea",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.018,
+      "bodyType": "ICE",
+      "polarRadius": 235800,
+      "emissivity": 0.95,
+      "mass": 6.6E19,
+      "velocity": [
+        5226.862213766699,
+        1509.6232594965174,
+        -5906.523136696058
+      ],
+      "angularVelocity": 5.146642049995074E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 5.530177911132977E19,
+      "rotationAxis": [
+        -0.8475519203831073,
+        -0.513203242059466,
+        -0.13519679949821317
+      ],
+      "rotationAngle": 275.1374144845719,
+      "internalThermalEnergy": 4.719E27,
+      "dissipationFunction": 960,
+      "equatorialRadius": 235800,
+      "colorCode": "#00FA9A",
+      "position": [
+        -4.9710659917266376E11,
+        -2.818793524068198E12,
+        -3.949164092281118E9
+      ],
+      "id": "Miranda",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.005,
+      "bodyType": "ICE",
+      "polarRadius": 11000,
+      "emissivity": 0.95,
+      "mass": 1.0659E16,
+      "velocity": [
+        19732.812521495765,
+        -10891.034676030751,
+        31.07638177443567
+      ],
+      "angularVelocity": 2.279688155687473E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 5.5629056724606726E17,
+      "rotationAxis": [
+        0.2791439997685013,
+        0.3212976377263106,
+        0.9049013511895844
+      ],
+      "rotationAngle": 247.05067920587743,
+      "internalThermalEnergy": 7.621184999999999E23,
+      "dissipationFunction": 100,
+      "equatorialRadius": 13000,
+      "colorCode": "#704241",
+      "position": [
+        -1.1805698941198323E11,
+        -1.9575864418610034E11,
+        -1.2018157775387697E9
+      ],
+      "id": "Phobos",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.005,
+      "bodyType": "ICE",
+      "polarRadius": 6100,
+      "emissivity": 0.95,
+      "mass": 1.4762E15,
+      "velocity": [
+        20379.81431309513,
+        -10203.807473090523,
+        -416.6981044665298
+      ],
+      "angularVelocity": 5.757882198450547E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.7888812326505072E17,
+      "rotationAxis": [
+        0.2791439997685013,
+        0.3212976377263106,
+        0.9049013511895844
+      ],
+      "rotationAngle": 314.65492214307983,
+      "internalThermalEnergy": 1.055483E23,
+      "dissipationFunction": 100,
+      "equatorialRadius": 7500,
+      "colorCode": "#A0522D",
+      "position": [
+        -1.1805238616062202E11,
+        -1.957454411526641E11,
+        -1.2078536689150715E9
+      ],
+      "id": "Deimos",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    }
+  ],
+  "enableDisassemble": true,
+  "tidalEffectFactor": 1,
+  "dimension": 3
+}

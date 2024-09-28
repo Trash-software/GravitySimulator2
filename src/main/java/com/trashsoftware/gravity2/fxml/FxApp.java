@@ -38,7 +38,6 @@ public class FxApp extends Application {
     private Stage primaryStage;
     private ControlBar controlBar;
     private ObjectListPanel objectListPanel;
-    private final List<ObjectPanel> objectInfoPanels = new ArrayList<>();
 
     public static void startApp(String[] args) {
         launch(args);
@@ -233,9 +232,6 @@ public class FxApp extends Application {
                 }
                 if (objectListPanel != null) {
                     objectListPanel.oneFrameSlow(textRefreshInterval);
-                }
-                for (ObjectPanel op : objectInfoPanels) {
-                    op.oneFrameSlow(textRefreshInterval);
                 }
             });
         }

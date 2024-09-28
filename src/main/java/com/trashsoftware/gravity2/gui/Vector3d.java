@@ -4,6 +4,9 @@ import com.jme3.math.Vector3f;
 
 public class Vector3d {
 
+    public static final Vector3d UNIT_X = new Vector3d(1, 0, 0);
+    public static final Vector3d UNIT_Y = new Vector3d(0, 1, 0);
+    public static final Vector3d UNIT_Z = new Vector3d(0, 0, 1);
     public double x, y, z;
 
     public Vector3d() {
@@ -14,6 +17,17 @@ public class Vector3d {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+    
+    public static Vector3d fromArray(double[] array) {
+        if (array.length != 3) {
+            throw new IllegalArgumentException("Array length must be 3, got " + array.length);
+        }
+        return new Vector3d(array[0], array[1], array[2]);
+    }
+    
+    public double[] toArray() {
+        return new double[]{x, y, z};
     }
 
     public void set(double x, double y, double z) {

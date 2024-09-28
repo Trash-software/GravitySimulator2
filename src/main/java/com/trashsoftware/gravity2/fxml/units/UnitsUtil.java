@@ -1,5 +1,7 @@
 package com.trashsoftware.gravity2.fxml.units;
 
+import com.trashsoftware.gravity2.presets.SystemPresets;
+
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -71,12 +73,12 @@ public class UnitsUtil {
 //        else if (m < 1e12) {
 //            return shortFmt.format(m / 1e6) + "k km";
 //        } 
-        else if (m < 1e12) {
-            return shortFmt.format(m / 1e9) + "M km";
-        }
+//        else if (m < 1e10) {
+//            return shortFmt.format(m / 1e9) + "M km";
+//        }
         double km = m / 1000;
         double sun = 696340 * 2;
-        double au = 149_598_262;
+        double au = SystemPresets.AU / 1e3;
         double ly = 9_460_730_472_580.8;
         if (km < sun * 1.5) {
             return stdFmt.format(km / sun) + " R☉";

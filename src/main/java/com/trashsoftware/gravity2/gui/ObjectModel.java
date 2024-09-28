@@ -25,7 +25,6 @@ import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
-import com.trashsoftware.gravity2.utils.ConicCalculator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +57,9 @@ public class ObjectModel {
     protected final Map<String, Node> orbitInfoNodes = new HashMap<>();
     protected final Map<String, BitmapText> orbitInfoTexts = new HashMap<>();
     protected Node orbitNode;
+
+    protected Geometry secondaryOrbit;
+    protected Node secondaryOrbitNode;
 
     protected Geometry trace;
     protected Geometry axis;
@@ -103,7 +105,7 @@ public class ObjectModel {
         Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
         sphere.setTextureMode(Sphere.TextureMode.Projected);
         initialRadius = object.getEquatorialRadius();
-        model = new Geometry(object.getName(), sphere);
+        model = new Geometry(object.getId(), sphere);
         // Create a material for the box
         Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
 
@@ -120,7 +122,7 @@ public class ObjectModel {
 
         // Create the text label
         labelText = new BitmapText(jmeApp.font);
-        labelText.setText(object.getName());
+        labelText.setText(object.getNameShowing());
         labelText.setColor(ColorRGBA.White);
 
         // Attach the text to a Node positioned above the object
@@ -138,7 +140,7 @@ public class ObjectModel {
         objectNode.attachChild(rotatingNode);
         objectNode.attachChild(labelNode);
 
-        System.out.println(object.getName() + " " + color);
+        System.out.println(object.getId() + " " + color);
 
         // Create a geometry, apply the mesh, and set the material
         path = new Geometry("Path", blank);
@@ -153,8 +155,15 @@ public class ObjectModel {
         orbit.setMaterial(matLine2);
         orbitNode = new Node("OrbitNode");
         orbitNode.attachChild(orbit);
-
         createApPeText();
+
+        // Create a geometry, apply the mesh, and set the material
+        secondaryOrbit = new Geometry("OrbitSecondary", blank);
+        Material matLine21 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        matLine21.setColor("Color", darkerColor);
+        secondaryOrbit.setMaterial(matLine21);
+        secondaryOrbitNode = new Node("OrbitNodeSecondary");
+        secondaryOrbitNode.attachChild(secondaryOrbit);
 
         axis = new Geometry("Axis", blank);
         Material matLine4 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -244,7 +253,7 @@ public class ObjectModel {
             try {
                 jmeApp.filterPostProcessor.removeFilter(bloom);
             } catch (RuntimeException e) {
-                System.err.println(object.getName() + " has rendering problem: bloom.");
+                System.err.println(object.getId() + " has rendering problem: bloom.");
                 e.printStackTrace(System.err);
             }
             bloom = null;
@@ -254,7 +263,7 @@ public class ObjectModel {
             try {
                 jmeApp.filterPostProcessor.removeFilter(plsf);
             } catch (RuntimeException e) {
-                System.err.println(object.getName() + " has rendering problem: plsf.");
+                System.err.println(object.getId() + " has rendering problem: plsf.");
                 e.printStackTrace(System.err);
             }
             plsf = null;
@@ -532,7 +541,7 @@ public class ObjectModel {
         if (wasShow != show) {
             if (show) {
                 if (hillSphereModel == null) {
-                    hillSphereModel = createTransparentSphere("Hill sphere " + object.getName(),
+                    hillSphereModel = createTransparentSphere("Hill sphere " + object.getId(),
                             0.1f);
                 }
                 objectNode.attachChild(hillSphereModel);
@@ -548,7 +557,7 @@ public class ObjectModel {
         if (wasShow != show) {
             if (show) {
                 if (rocheLimitModel == null) {
-                    rocheLimitModel = createTransparentSphere("Roche sphere " + object.getName(),
+                    rocheLimitModel = createTransparentSphere("Roche sphere " + object.getId(),
                             0.2f);
                 }
                 objectNode.attachChild(rocheLimitModel);
@@ -587,13 +596,27 @@ public class ObjectModel {
             double[] barycenter,
             OrbitalElements oe,
             int samples,
-            double childMassPercent
+            double childMassPercent,
+            boolean relativeToMaster
     ) {
-        Mesh mesh = orbit.getMesh();
-        if (mesh == null || mesh == ObjectModel.blank) {
-            mesh = new Mesh();
-            mesh.setMode(Mesh.Mode.LineStrip);
-            orbit.setMesh(mesh);
+        Mesh mesh;
+        Node node;
+        if (relativeToMaster) {
+            mesh = orbit.getMesh();
+            if (mesh == null || mesh == ObjectModel.blank) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.LineStrip);
+                orbit.setMesh(mesh);
+            }
+            node = orbitNode;
+        } else {
+            mesh = secondaryOrbit.getMesh();
+            if (mesh == null || mesh == ObjectModel.blank) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.LineStrip);
+                secondaryOrbit.setMesh(mesh);
+            }
+            node = secondaryOrbitNode;
         }
 
         Vector3f bc = jmeApp.panePosition(barycenter);
@@ -644,10 +667,10 @@ public class ObjectModel {
         combinedRotation.multLocal(rotateZ2).multLocal(rotateX).multLocal(rotateZ1);
 
         // Apply the combined rotation to the node
-        orbitNode.setLocalRotation(combinedRotation);
-        orbitNode.setLocalTranslation(bc);
+        node.setLocalRotation(combinedRotation);
+        node.setLocalTranslation(bc);
 
-        if (showApPe) {
+        if (relativeToMaster && showApPe) {
             double aph = oe.semiMajorAxis * (1 + oe.eccentricity);
             double per = oe.semiMajorAxis * (1 - oe.eccentricity);
 

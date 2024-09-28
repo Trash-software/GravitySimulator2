@@ -320,6 +320,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
                         new double[simulator.getDimension()],
                         1.0
                 );
+                spawning.setShownName(name);
+                spawning.forceSetBasics(mass, radius);
             }
 
             spawnPrompt.setText("");

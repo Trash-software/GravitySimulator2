@@ -10,6 +10,16 @@ import java.lang.reflect.*;
 
 public class JsonUtil {
     
+    public static String optString(JSONObject json, String key, String defaultValue) {
+        if (json.has(key)) {
+            String value = json.getString(key);
+            if ("null".equals(value)) return defaultValue;
+            return value;
+        } else {
+            return defaultValue;
+        }
+    }
+    
     public static <T> T jsonToObject(Class<T> clazz, JSONObject jsonObject) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<?>[] constructors = clazz.getDeclaredConstructors();
         Constructor<?> longest = constructors[0];
