@@ -7,6 +7,7 @@ import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.VectorOperations;
 import com.trashsoftware.gravity2.utils.Util;
 
+import java.util.Map;
 import java.util.Random;
 
 import static com.trashsoftware.gravity2.presets.SystemPresets.*;
@@ -143,15 +144,17 @@ public abstract class Preset {
             ObjectInfo[] infos = {
                     mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
             };
-            double[] distancesAu = {0.025, 0.04, 0.07, 0.1, 0.15, 0.25, 0.4, 0.7};
+            double[] distancesAu = {0.025, 0.04, 0.07, 0.12, 0.18, 0.25, 0.35, 0.5};
 
+            Map<ObjectInfo, String> names = Map.of(
+                    helloKitty, "uiukitty"
+            );
+            
             Random random = new Random();
 
             for (int i = 0; i < infos.length; i++) {
                 double ecc = random.nextDouble(0, 0.2);
-//                double inclination = random.nextDouble(0, 10);
                 double theta = random.nextDouble(0, Math.PI * 2);
-
                 double r = distancesAu[i] * AU;
                 double x = Math.cos(theta) * r;
                 double y = Math.sin(theta) * r;
@@ -165,6 +168,10 @@ public abstract class Preset {
                         new double[3],
                         1.0
                 );
+                String name = names.get(infos[i]);
+                if (name != null) {
+                    co.setShownName(name);
+                }
 
                 double[] vel = simulator.computeVelocityOfN(star, co, 1 - ecc, new double[]{0, 0, 1});
                 co.setVelocity(vel);

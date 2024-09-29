@@ -46,6 +46,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
     @FXML
     TextField createNameInput, createMassInput, createRadiusInput, speedMulInput;
     @FXML
+    TextField axisTiltInput, rotationPeriodInput;
+    @FXML
     ColorPicker colorPicker;
     @FXML
     ComboBox<SpawnPreset> spawnPresetBox;
@@ -117,6 +119,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 createNameInput.setText(newValue.value.name);
                 createMassInput.setText(String.valueOf(newValue.value.mass));
                 createRadiusInput.setText(String.valueOf(newValue.value.radius * 1e3));
+                axisTiltInput.setText(String.valueOf(newValue.value.tilt));
+                rotationPeriodInput.setText(String.valueOf(newValue.value.rotationPeriod));
             } else {
                 colorPicker.setDisable(false);
             }
@@ -323,6 +327,25 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 spawning.setShownName(name);
                 spawning.forceSetBasics(mass, radius);
             }
+
+            double period = 1e-8;
+            try {
+                period = Double.parseDouble(rotationPeriodInput.getText());
+            } catch (NumberFormatException e) {
+                e.printStackTrace(System.err);
+            }
+            
+            double axisTilt = 0.0;
+            try {
+                axisTilt = Double.parseDouble(axisTiltInput.getText());
+            } catch (NumberFormatException e) {
+                e.printStackTrace(System.err);
+            }
+            
+            // todo: parent plane
+            double[] axis = SystemPresets.randomAxisToZ(axisTilt);
+            double av = CelestialObject.angularVelocityOf(period * 24 * 60 * 60);
+            spawning.forcedSetRotation(axis, av);
 
             spawnPrompt.setText("");
             jmeApp.enterSpawningMode(spawning, speed);

@@ -544,7 +544,6 @@ public class SystemPresets {
                 eclipticPlaneNormal = rotateToXYPlane(eclipticPlaneNormal, parentEclipticNormal);
 
                 axisD = rotateToParentEclipticPlane(localAxis, parent.getRotationAxis());
-
             } else {
                 position = rotateToXYPlane(relPos, parentEclipticNormal);
                 velocity = rotateToXYPlane(relVel, parentEclipticNormal);
@@ -700,7 +699,7 @@ public class SystemPresets {
         return co;
     }
 
-    static double[] randomAxisToZ(double tiltAngle) {
+    public static double[] randomAxisToZ(double tiltAngle) {
         double randomAngle = Math.random() * 360; // Angle in degrees
 
         // Calculate the components of the random axis in the XY-plane
@@ -986,57 +985,7 @@ public class SystemPresets {
         // Apply the rotation in the opposite direction
         return VectorOperations.rotateVector(vector, rotationAxis, angle);
     }
-
-    public static Vector3f calculateRotationAxis(float i,
-                                                 float omega,
-                                                 float omegaBig,
-                                                 float tilt,
-                                                 Vector3f referencePlaneNormal) {
-        Vector3f axis;
-        if (referencePlaneNormal == null) {
-            axis = planetRotationAxis(i, omega, omegaBig, tilt);
-        } else {
-            axis = moonRotationAxis(i, omega, omegaBig, tilt, referencePlaneNormal);
-        }
-
-        return axis;
-    }
-
-    static double[] localRotationAxis(double tilt) {
-        double radTilt = Math.toRadians(tilt);
-        double[] axis = new double[]{0, 0, 1};
-        axis = VectorOperations.rotateVector(axis, new double[]{1, 0, 0}, radTilt);
-        return axis;
-    }
-
-    static Vector3f planetRotationAxis(float i,
-                                       float omega,
-                                       float omegaBig,
-                                       float tilt) {
-        // Step 1: Start with the axis in the orbital plane's coordinate system
-        Vector3f axis = new Vector3f(0, 0, 1);  // Pointing along the Z-axis (perpendicular to the plane)
-
-        // Step 2: Apply the tilt (rotate around the X-axis in the orbital plane)
-        Matrix3f tiltRotation = new Matrix3f();
-        tiltRotation.fromAngleAxis(tilt, Vector3f.UNIT_X);
-        axis = tiltRotation.mult(axis);
-
-        // Step 3: Rotate by -ω around Z-axis (argument of periapsis)
-        Matrix3f rotOmega = new Matrix3f();
-        rotOmega.fromAngleAxis(-omega, Vector3f.UNIT_Z);
-        axis = rotOmega.mult(axis);
-
-        // Step 4: Rotate by -i around X-axis (inclination)
-        Matrix3f rotInclination = new Matrix3f();
-        rotInclination.fromAngleAxis(-i, Vector3f.UNIT_X);
-        axis = rotInclination.mult(axis);
-
-        // Step 5: Rotate by -Ω around Z-axis (longitude of ascending node)
-        Matrix3f rotOmegaBig = new Matrix3f();
-        rotOmegaBig.fromAngleAxis(-omegaBig, Vector3f.UNIT_Z);
-        return rotOmegaBig.mult(axis);
-    }
-
+    
     static Vector3d calculateOrbitalPlaneNormal(double i, double omega, double omegaBig) {
         // Start with the unit vector (0, 0, 1) representing the normal to the orbital plane
         Vector3d normal = new Vector3d(0, 0, 1);
