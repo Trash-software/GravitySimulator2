@@ -91,10 +91,13 @@
             <GridPane hgap="10.0">
                 <Label text="%rotationAxisTilt"/>
                 <TextField fx:id="axisTiltInput" text="0.0" GridPane.columnIndex="1"/>
-                <Label text="%period" GridPane.rowIndex="1"/>
+                <Label text="%rotationPeriod" GridPane.rowIndex="1"/>
                 <TextField fx:id="rotationPeriodInput" text="1e-8"
                            GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                 <Label text="%earthDays" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                <Label text="%orbitPlane" GridPane.rowIndex="2"/>
+                <ComboBox fx:id="spawnPlaneBox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                
             </GridPane>
         </TitledPane>
 

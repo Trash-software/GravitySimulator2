@@ -7,6 +7,7 @@ import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
+import com.trashsoftware.gravity2.utils.OrbitPlane;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -47,6 +48,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
     TextField createNameInput, createMassInput, createRadiusInput, speedMulInput;
     @FXML
     TextField axisTiltInput, rotationPeriodInput;
+    @FXML
+    ComboBox<OrbitPlane> spawnPlaneBox;
     @FXML
     ColorPicker colorPicker;
     @FXML
@@ -125,6 +128,9 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 colorPicker.setDisable(false);
             }
         });
+        
+        spawnPlaneBox.getItems().addAll(OrbitPlane.values());
+        spawnPlaneBox.getSelectionModel().select(OrbitPlane.EQUATORIAL);
     }
 
     private void setInputsFields() {
@@ -341,14 +347,16 @@ public class ObjectListPanel extends AbstractObjectPanel {
             } catch (NumberFormatException e) {
                 e.printStackTrace(System.err);
             }
+
+            OrbitPlane orbitPlane = spawnPlaneBox.getValue();
+            if (orbitPlane == null) orbitPlane = OrbitPlane.EQUATORIAL;
             
-            // todo: parent plane
-            double[] axis = SystemPresets.randomAxisToZ(axisTilt);
+            double[] axis = new double[]{0, 0, 1};  // temp
             double av = CelestialObject.angularVelocityOf(period * 24 * 60 * 60);
             spawning.forcedSetRotation(axis, av);
 
             spawnPrompt.setText("");
-            jmeApp.enterSpawningMode(spawning, speed);
+            jmeApp.enterSpawningMode(spawning, speed, orbitPlane, axisTilt);
         }
     }
 

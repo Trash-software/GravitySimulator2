@@ -11,6 +11,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.utils.OrbitPlane;
 
 public class SpawningObject {
     
@@ -20,21 +21,38 @@ public class SpawningObject {
     protected double orbitSpeed;
     
     protected CelestialObject spawnRelative;
-    protected double[] planeNormal = new double[]{0, 0, 1};
+    protected OrbitPlane orbitPlane;
+    protected double axisTilt;
+    private double[] planeNormal = new double[]{0, 0, 1};
     
     protected TextLine primaryLine;
     protected TextLine secondaryLine;
     
-    SpawningObject(JmeApp jmeApp, ObjectModel model, double orbitSpeed) {
+    SpawningObject(JmeApp jmeApp, ObjectModel model, double orbitSpeed, 
+                   OrbitPlane orbitPlane, double axisTilt) {
         this.jmeApp = jmeApp;
         this.model = model;
         this.object = model.object;
         this.orbitSpeed = orbitSpeed;
+        this.axisTilt = axisTilt;
+        this.orbitPlane = orbitPlane;
 
         primaryLine = new TextLine(ColorRGBA.Yellow);
         secondaryLine = new TextLine(ColorRGBA.DarkGray);
     }
     
+    public void updatePlane(CelestialObject reference) {
+        switch (orbitPlane) {
+            case XY -> this.planeNormal = new double[]{0, 0, 1};
+            case EQUATORIAL -> this.planeNormal = reference.getRotationAxis();
+            case ECLIPTIC -> this.planeNormal = reference.getEclipticPlaneNormal();
+        }
+    }
+
+    public double[] getPlaneNormal() {
+        return planeNormal;
+    }
+
     public CelestialObject getSpawnRelative() {
         if (spawnRelative != null) {
             return spawnRelative;

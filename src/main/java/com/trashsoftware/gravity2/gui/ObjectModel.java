@@ -597,11 +597,11 @@ public class ObjectModel {
             OrbitalElements oe,
             int samples,
             double childMassPercent,
-            boolean relativeToMaster
+            boolean isPrimary
     ) {
         Mesh mesh;
         Node node;
-        if (relativeToMaster) {
+        if (isPrimary) {
             mesh = orbit.getMesh();
             if (mesh == null || mesh == ObjectModel.blank) {
                 mesh = new Mesh();
@@ -670,7 +670,7 @@ public class ObjectModel {
         node.setLocalRotation(combinedRotation);
         node.setLocalTranslation(bc);
 
-        if (relativeToMaster && showApPe) {
+        if (isPrimary && showApPe) {
             double aph = oe.semiMajorAxis * (1 + oe.eccentricity);
             double per = oe.semiMajorAxis * (1 - oe.eccentricity);
 
@@ -710,13 +710,27 @@ public class ObjectModel {
             double[] barycenter,
             OrbitalElements oe,
             int samples,
-            double childMassPercent) {
+            double childMassPercent,
+            boolean isPrimary) {
 
-        Mesh mesh = orbit.getMesh();
-        if (mesh == null || mesh == ObjectModel.blank) {
-            mesh = new Mesh();
-            mesh.setMode(Mesh.Mode.LineStrip);
-            orbit.setMesh(mesh);
+        Mesh mesh;
+        Node node;
+        if (isPrimary) {
+            mesh = orbit.getMesh();
+            if (mesh == null || mesh == ObjectModel.blank) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.LineStrip);
+                orbit.setMesh(mesh);
+            }
+            node = orbitNode;
+        } else {
+            mesh = secondaryOrbit.getMesh();
+            if (mesh == null || mesh == ObjectModel.blank) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.LineStrip);
+                secondaryOrbit.setMesh(mesh);
+            }
+            node = secondaryOrbitNode;
         }
 
         Vector3f bc = jmeApp.panePosition(barycenter);
@@ -729,7 +743,7 @@ public class ObjectModel {
         float i = (float) (FastMath.DEG_TO_RAD * oe.inclination);                 // Inclination
 
         Vector3f[] vertices = new Vector3f[samples + 1];
-        float hyperbolicLimit = 5.0f;  // Controls how far the orbit goes outward
+//        float hyperbolicLimit = 5.0f;  // Controls how far the orbit goes outward
 
         for (int j = 0; j < samples; j++) {
             float theta = -FastMath.PI + 2 * FastMath.PI * j / (samples - 1);  // Vary theta for hyperbolic orbit
@@ -770,10 +784,10 @@ public class ObjectModel {
         combinedRotation.multLocal(rotateZ2).multLocal(rotateX).multLocal(rotateZ1);
 
         // Apply the combined rotation to the node
-        orbitNode.setLocalRotation(combinedRotation);
-        orbitNode.setLocalTranslation(bc);
+        node.setLocalRotation(combinedRotation);
+        node.setLocalTranslation(bc);
 
-        if (showApPe) {
+        if (isPrimary && showApPe) {
 //            double aph = oe.semiMajorAxis * (1 + oe.eccentricity);
             double per = oe.semiMajorAxis * (1 - oe.eccentricity);
 

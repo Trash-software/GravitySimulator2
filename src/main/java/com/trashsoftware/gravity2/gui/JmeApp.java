@@ -24,6 +24,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
+import com.trashsoftware.gravity2.utils.OrbitPlane;
 import javafx.application.Platform;
 
 import java.util.*;
@@ -304,7 +305,8 @@ public class JmeApp extends SimpleApplication {
 //        simpleTest4();
 //        saturnRingTest();
 //        rocheEffectTest();
-        toyStarSystemTest();
+//        toyStarSystemTest();
+        harmonicSystemTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
@@ -675,8 +677,7 @@ public class JmeApp extends SimpleApplication {
         if (master == null) {
             return new Plane(Vector3f.UNIT_Z, 0);
         } else {
-            // todo: equatorial plane or ecliptic plane
-            Vector3f planeNormal = GuiUtils.fromDoubleArray(spawning.planeNormal).normalizeLocal();
+            Vector3f planeNormal = GuiUtils.fromDoubleArray(spawning.getPlaneNormal()).normalizeLocal();
             Vector3f point = panePosition(master.getPosition());
 
             gridPlaneNode.showAt(planeNormal, point, 20, 20, 20.0f);
@@ -698,12 +699,17 @@ public class JmeApp extends SimpleApplication {
         simulator.addObject(spawning.object);
         
         CelestialObject master = spawning.object.getHillMaster();
+        double[] axis = SystemPresets.randomAxisToZ(spawning.axisTilt);
         if (master != null) {
             double speed = spawning.orbitSpeed;
             double[] velocity = simulator.computeVelocityOfN(master, spawning.object, speed,
-                    spawning.planeNormal);
+                    spawning.getPlaneNormal());
             spawning.object.setVelocity(velocity);
+            
+            axis = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(axis, spawning.getPlaneNormal());
         }
+        
+        spawning.object.updateRotationAxis(axis);
 
         exitSpawningMode();
         reloadObjects();
@@ -867,10 +873,10 @@ public class JmeApp extends SimpleApplication {
                 spawning.object.setHillMaster(dominant);
                 if (focusing != null) {
                     spawning.spawnRelative = focusing;
-                    spawning.planeNormal = focusing.getRotationAxis();
+                    spawning.updatePlane(focusing);
                 } else {
                     spawning.spawnRelative = null;
-                    spawning.planeNormal = dominant.getRotationAxis();
+                    spawning.updatePlane(dominant);
                 }
             }
         }
@@ -1152,7 +1158,7 @@ public class JmeApp extends SimpleApplication {
 
             // velocity relative to parent system's barycenter movement
             double[] velocity = simulator.computeVelocityOfN(parent, child, spawning.orbitSpeed,
-                    spawning.planeNormal);
+                    spawning.getPlaneNormal());
             velocity = VectorOperations.subtract(velocity, parent.getVelocity());
 
             double[] position = VectorOperations.subtract(child.getPosition(),
@@ -1169,15 +1175,25 @@ public class JmeApp extends SimpleApplication {
                 if (eclipticOrbitOnly) {
                     spawning.model.orbit.setMesh(ObjectModel.blank);
                 } else {
-                    drawHyperbolicOrbit(spawning.model, barycenter, specs, child.getMass() / totalMass);
+                    drawHyperbolicOrbit(spawning.model, barycenter, specs, child.getMass() / totalMass, true);
                 }
             }
         }
     }
     
-    private void drawOrbitOf(CelestialObject object, AbstractObject parent, boolean relativeToMaster) {
+    private void hidePrimaryOrbit(CelestialObject object) {
+        ObjectModel om = modelMap.get(object);
+        om.orbit.setMesh(ObjectModel.blank);
+    }
+    
+    private void hideSecondaryOrbit(CelestialObject object) {
+        ObjectModel om = modelMap.get(object);
+        om.secondaryOrbit.setMesh(ObjectModel.blank);
+    }
+    
+    private void drawOrbitOf(CelestialObject object, AbstractObject parent, boolean isPrimary) {
         AbstractObject child;
-        if (relativeToMaster) {
+        if (isPrimary) {
             child = simulator.getHieraticalSystem(object);
         } else {
             child = object;
@@ -1198,20 +1214,16 @@ public class JmeApp extends SimpleApplication {
 
         ObjectModel om = modelMap.get(object);
         if (specs.isElliptical()) {
-            drawEllipticalOrbit(om, barycenter, specs, child.getMass() / totalMass, relativeToMaster);
+            drawEllipticalOrbit(om, barycenter, specs, child.getMass() / totalMass, isPrimary);
         } else {
             if (eclipticOrbitOnly) {
-                if (relativeToMaster) {
+                if (isPrimary) {
                     om.orbit.setMesh(ObjectModel.blank);
                 } else {
                     om.secondaryOrbit.setMesh(ObjectModel.blank);
                 }
             } else {
-                if (relativeToMaster) {
-                    drawHyperbolicOrbit(om, barycenter, specs, child.getMass() / totalMass);
-                } else {
-                    // todo
-                }
+                drawHyperbolicOrbit(om, barycenter, specs, child.getMass() / totalMass, isPrimary);
             }
         }
     }
@@ -1223,26 +1235,32 @@ public class JmeApp extends SimpleApplication {
             parent = object.getMaxGravityObject();
             if (parent != null) {
                 drawOrbitOf(object, parent, false);
+            } else {
+                hideSecondaryOrbit(object);
             }
+            hidePrimaryOrbit(object);
         } else {
             drawOrbitOf(object, parent, true);
             CelestialObject maxObj = object.getMaxGravityObject();
             if (maxObj != null && maxObj != parent) {
                 drawOrbitOf(object, maxObj, false);
+            } else {
+                hideSecondaryOrbit(object);
             }
         }
     }
 
     private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
-                                     double childMassPercent, boolean relativeToMaster) {
-        om.showEllipticOrbit(barycenter, oe, 360, childMassPercent, relativeToMaster);
+                                     double childMassPercent, boolean isPrimary) {
+        om.showEllipticOrbit(barycenter, oe, 360, childMassPercent, isPrimary);
     }
 
-    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, double childMassPercent) {
+    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
+                                     double childMassPercent, boolean isPrimary) {
         om.showHyperbolicOrbit(barycenter,
                 oe,
                 360,
-                childMassPercent);
+                childMassPercent, isPrimary);
     }
 
     private void drawRecentPaths() {
@@ -1697,6 +1715,10 @@ public class JmeApp extends SimpleApplication {
         scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
     }
 
+    private void harmonicSystemTest() {
+        scale = Preset.HARMONIC_SYSTEM.instantiate(simulator);
+    }
+
     private void solarSystemTest() {
         scale = Preset.SOLAR_SYSTEM.instantiate(simulator);
         scale *= 0.5;
@@ -1947,10 +1969,11 @@ public class JmeApp extends SimpleApplication {
         return spawning != null;
     }
 
-    public void enterSpawningMode(CelestialObject co, double orbitSpeed) {
+    public void enterSpawningMode(CelestialObject co, double orbitSpeed, 
+                                  OrbitPlane orbitPlane, double axisTilt) {
         enqueue(() -> {
             ObjectModel om = new ObjectModel(co, this);
-            spawning = new SpawningObject(this, om, orbitSpeed);
+            spawning = new SpawningObject(this, om, orbitSpeed, orbitPlane, axisTilt);
 
             rootNode.attachChild(spawning.primaryLine);
             rootNode.attachChild(spawning.secondaryLine);

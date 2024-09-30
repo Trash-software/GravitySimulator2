@@ -7,6 +7,8 @@ import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.physics.VectorOperations;
 import com.trashsoftware.gravity2.utils.Util;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -16,6 +18,8 @@ public abstract class Preset {
 
     public final String name;
     public final int nObjects;
+    
+    private static final Random defaultGenerator = new Random();
 
     protected Preset(String name, int nObjects) {
         this.name = name;
@@ -131,6 +135,36 @@ public abstract class Preset {
 
         return 30 / (a + b + c);
     }
+    
+    private static CelestialObject addPlanetRandomPosition(Simulator simulator, 
+                                                CelestialObject parent,
+                                                ObjectInfo info,
+                                                @Nullable String showName,
+                                                double apDistance,
+                                                double ecc, 
+                                                double inclinationRangeDeg) {
+        double theta = defaultGenerator.nextDouble(0, Math.PI * 2);
+        double x = Math.cos(theta) * apDistance;
+        double y = Math.sin(theta) * apDistance;
+        double inclination = Math.toRadians(defaultGenerator.nextDouble(-inclinationRangeDeg, inclinationRangeDeg));
+        double z = Math.sin(inclination) * apDistance;
+        double[] pos = new double[]{x, y, z};
+
+        CelestialObject co = SystemPresets.createObjectPreset(
+                simulator,
+                info,
+                pos,
+                new double[3],
+                1.0
+        );
+        if (showName != null) co.setShownName(showName);
+
+        double[] vel = simulator.computeVelocityOfN(parent, co, 1 - ecc, new double[]{0, 0, 1});
+        co.setVelocity(vel);
+        simulator.addObject(co);
+        
+        return co;
+    }
 
     public static Preset TOY_STAR_SYSTEM = new Preset("ToyStarSystem", 20) {
         @Override
@@ -144,40 +178,72 @@ public abstract class Preset {
             ObjectInfo[] infos = {
                     mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
             };
-            double[] distancesAu = {0.025, 0.04, 0.07, 0.12, 0.18, 0.25, 0.35, 0.5};
+            double[] distancesAu = {0.025, 0.04, 0.07, 0.12, 0.2, 0.28, 0.36, 0.5};
 
             Map<ObjectInfo, String> names = Map.of(
                     helloKitty, "uiukitty"
             );
-            
-            Random random = new Random();
 
             for (int i = 0; i < infos.length; i++) {
-                double ecc = random.nextDouble(0, 0.2);
-                double theta = random.nextDouble(0, Math.PI * 2);
-                double r = distancesAu[i] * AU;
-                double x = Math.cos(theta) * r;
-                double y = Math.sin(theta) * r;
-                double z = random.nextDouble(r * -0.05, r * 0.05);
-                double[] pos = new double[]{x, y, z};
-
-                CelestialObject co = SystemPresets.createObjectPreset(
-                        simulator,
+//                double ecc = random.nextDouble(0, 0.18);
+                double ecc = 0;
+                double ap = distancesAu[i] * AU;
+                
+                CelestialObject planet = Preset.addPlanetRandomPosition(simulator, 
+                        star,
                         infos[i],
-                        pos,
-                        new double[3],
-                        1.0
-                );
-                String name = names.get(infos[i]);
-                if (name != null) {
-                    co.setShownName(name);
-                }
-
-                double[] vel = simulator.computeVelocityOfN(star, co, 1 - ecc, new double[]{0, 0, 1});
-                co.setVelocity(vel);
-                simulator.addObject(co);
+                        names.get(infos[i]),
+                        ap,
+                        ecc,
+                        5);
             }
             
+            setTemperatureToSystem(simulator);
+
+            return 1e-9;
+        }
+    };
+
+    public static Preset HARMONIC_SYSTEM = new Preset("HarmonicSystem", 20) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star = SystemPresets.createMainSequenceStar(
+                    "Star",
+                    SOLAR_MASS * 0.25
+            );
+            simulator.addObject(star);
+
+            ObjectInfo[] infos = {
+                    mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
+            };
+            
+            double baseLine = 0.025;
+            double[] distancesAu = new double[infos.length];
+            for (int i = 0; i < infos.length; i++) {
+                double tSqr = Math.pow(2, i);
+                double a = Math.pow(tSqr, 2.0 / 3);
+                distancesAu[i] = baseLine * a;
+            }
+            System.out.println(Arrays.toString(distancesAu));
+
+            Map<ObjectInfo, String> names = Map.of(
+                    helloKitty, "uiukitty"
+            );
+
+            for (int i = 0; i < infos.length; i++) {
+//                double ecc = random.nextDouble(0, 0.18);
+                double ecc = 0;
+                double ap = distancesAu[i] * AU;
+
+                CelestialObject planet = Preset.addPlanetRandomPosition(simulator,
+                        star,
+                        infos[i],
+                        names.get(infos[i]),
+                        ap,
+                        ecc,
+                        5);
+            }
+
             setTemperatureToSystem(simulator);
 
             return 1e-9;
@@ -516,7 +582,7 @@ public abstract class Preset {
 
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
-            SIMPLE_THREE_BODY, TOY_STAR_SYSTEM,
+            SIMPLE_THREE_BODY, TOY_STAR_SYSTEM, HARMONIC_SYSTEM,
             RANDOM_STAR_SYSTEM, INFANT_STAR_SYSTEM,
             TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
             ELLIPSE_CLUSTER,
