@@ -149,6 +149,7 @@ public abstract class Preset {
         double inclination = Math.toRadians(defaultGenerator.nextDouble(-inclinationRangeDeg, inclinationRangeDeg));
         double z = Math.sin(inclination) * apDistance;
         double[] pos = new double[]{x, y, z};
+        pos = VectorOperations.add(pos, parent.getPosition());
 
         CelestialObject co = SystemPresets.createObjectPreset(
                 simulator,
@@ -176,7 +177,7 @@ public abstract class Preset {
             simulator.addObject(star);
 
             ObjectInfo[] infos = {
-                    mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
+                    mercury, venus, helloKitty, mars, pinkGasGiant, saturn, uranus, neptune
             };
             double[] distancesAu = {0.025, 0.04, 0.07, 0.12, 0.2, 0.28, 0.36, 0.5};
 
@@ -204,7 +205,7 @@ public abstract class Preset {
         }
     };
 
-    public static Preset HARMONIC_SYSTEM = new Preset("HarmonicSystem", 20) {
+    public static Preset HARMONIC_KITTY_SYSTEM = new Preset("HarmonicKittySystem", 10) {
         @Override
         public double instantiate(Simulator simulator) {
             CelestialObject star = SystemPresets.createMainSequenceStar(
@@ -214,8 +215,9 @@ public abstract class Preset {
             simulator.addObject(star);
 
             ObjectInfo[] infos = {
-                    mercury, venus, helloKitty, mars, jupiter, saturn, uranus, neptune
+                    mercury, superPinkGasGiant, venus, helloKitty, mars, pinkGasGiant, saturn, uranus, neptune
             };
+            String[] names = {null, "chuifengji", null, "uiukitty", null, "peppapig", null, null, null};
             
             double baseLine = 0.025;
             double[] distancesAu = new double[infos.length];
@@ -226,10 +228,6 @@ public abstract class Preset {
             }
             System.out.println(Arrays.toString(distancesAu));
 
-            Map<ObjectInfo, String> names = Map.of(
-                    helloKitty, "uiukitty"
-            );
-
             for (int i = 0; i < infos.length; i++) {
 //                double ecc = random.nextDouble(0, 0.18);
                 double ecc = 0;
@@ -238,10 +236,21 @@ public abstract class Preset {
                 CelestialObject planet = Preset.addPlanetRandomPosition(simulator,
                         star,
                         infos[i],
-                        names.get(infos[i]),
+                        names[i],
                         ap,
                         ecc,
-                        5);
+                        1);
+                
+                if ("uiukitty".equals(names[i])) {
+                    double hill = Simulator.hillRadius(planet, star, simulator.getG());
+                    CelestialObject moon = Preset.addPlanetRandomPosition(simulator,
+                            planet,
+                            smallHelloKitty,
+                            "uiulucky",
+                            hill * 0.33,
+                            0,
+                            20);
+                }
             }
 
             setTemperatureToSystem(simulator);
@@ -579,13 +588,53 @@ public abstract class Preset {
             return 5e-7;
         }
     };
+    
+    public static Preset ORBIT_TEST = new Preset("OrbitTest", 4) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star1 = SystemPresets.createMainSequenceStar("Star1", SOLAR_MASS);
+            simulator.addObject(star1);
+            
+            CelestialObject star2 = SystemPresets.createMainSequenceStar("Star2", SOLAR_MASS * 0.6);
+            star2.setPosition(new double[]{5e10, 0, 1e8});
+            star2.setVelocity(simulator.computeVelocityOfN(star1, star2, 1, star1.getRotationAxis()));
+            simulator.addObject(star2);
+            
+//            simulator.simulate(10, false);
+            
+            CelestialObject planet1 = Preset.addPlanetRandomPosition(simulator, 
+                    star1,
+                    earth,
+                    null,
+                    1e10,
+                    0, 
+                    0.1);
+
+            CelestialObject planet2 = createObjectPreset(simulator,
+                    jupiter, 
+                    new double[]{2e11, 0, 1e9},
+                    new double[3],
+                    1);
+            simulator.addObject(planet2);
+            planet2.setVelocity(simulator.computeVelocityOfN(
+                    Simulator.barycenterOf(3, star1, star2),
+                    star1.getMass() + star2.getMass(),
+                    new double[3],
+                    planet2,
+                    1,
+                    new double[]{0, 0, 1}
+            ));
+            
+            return 1e-10;
+        }
+    };
 
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
-            SIMPLE_THREE_BODY, TOY_STAR_SYSTEM, HARMONIC_SYSTEM,
+            SIMPLE_THREE_BODY, TOY_STAR_SYSTEM, HARMONIC_KITTY_SYSTEM,
             RANDOM_STAR_SYSTEM, INFANT_STAR_SYSTEM,
             TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
             ELLIPSE_CLUSTER,
-            PLUTO_CHARON
+            PLUTO_CHARON, ORBIT_TEST
     };
 }

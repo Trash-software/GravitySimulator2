@@ -103,7 +103,7 @@ public enum BodyType {
         double densityGcm3;
         if (massJup <= 1) {
             // For masses <= 1 Jupiter mass, use a quadratic interpolation
-            densityGcm3 = baseDensity + (jupiterDensity - baseDensity) * Math.pow(massJup, 1.5);
+            densityGcm3 = baseDensity + (jupiterDensity - baseDensity) * Math.pow(massJup, 0.7);
         } else {
             // For masses > 1 Jupiter mass, use a different curve to model the stronger compression
             densityGcm3 = jupiterDensity + (maxDensity - jupiterDensity) * Math.pow((massJup - 1.0) / (13.0 - 1.0), 2.5);
@@ -156,6 +156,7 @@ public enum BodyType {
     }
 
     public static void main(String[] args) {
+        System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 5));
         System.out.println(brownDwarfDensity(SystemPresets.JUPITER_MASS * 70.8));
         System.out.println(starDensity(SystemPresets.JUPITER_MASS * 70.8));
     }

@@ -68,6 +68,7 @@ public class SystemPresets {
     
     static {
         TEXTURES.put("HelloKitty", "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg");
+        TEXTURES.put("PinkGasGiant", "com/trashsoftware/gravity2/textures/custom/pink_gas_giant.jpg");
     }
 
     // Moon
@@ -326,16 +327,34 @@ public class SystemPresets {
     
     public static ObjectInfo helloKitty = new ObjectInfo(
             "HelloKitty", BodyType.TERRESTRIAL, EARTH_MASS * 1.8,
-            EARTH_RADIUS_KM * 1.23, EARTH_RADIUS_KM * 1.29, EARTH_RADIUS_KM * 1.2,
+            EARTH_RADIUS_KM * 1.24, EARTH_RADIUS_KM * 1.26, EARTH_RADIUS_KM * 1.2,
             0, 0, 0, 0, 0, 0, 22.5, 0.5, 
             "#ffaec9", 0.140, 50
+    );
+    public static ObjectInfo smallHelloKitty = new ObjectInfo(
+            "HelloKitty", BodyType.TERRESTRIAL, EARTH_MASS * 0.2,
+            EARTH_RADIUS_KM * 0.6, EARTH_RADIUS_KM * 0.61, EARTH_RADIUS_KM * 0.58,
+            0, 0, 0, 0, 0, 0, 5, 0.8,
+            "#ffaec9", 0.140, 50
+    );
+    public static ObjectInfo pinkGasGiant = new ObjectInfo(
+            "PinkGasGiant", BodyType.GAS_GIANT, JUPITER_MASS * 0.8,
+            JUPITER_RADIUS_KM * 0.97, JUPITER_RADIUS_KM * 0.99, JUPITER_RADIUS_KM * 0.93,
+            0, 0, 0, 0, 0, 0, 5, 0.4,
+            "#ffaec9", 0.5, 12000
+    );
+    public static ObjectInfo superPinkGasGiant = new ObjectInfo(
+            "PinkGasGiant", BodyType.GAS_GIANT, JUPITER_MASS * 5,
+            JUPITER_RADIUS_KM * 1.6, JUPITER_RADIUS_KM * 1.61, JUPITER_RADIUS_KM * 1.58,
+            0, 0, 0, 0, 0, 0, 3, 0.7,
+            "#ffaec9", 0.5, 12000
     );
 
     public static List<ObjectInfo> PRESET_OBJECTS = List.of(
             vega, siriusA,
             sun, 
             proximaCentauri,
-            helloKitty,
+            helloKitty, pinkGasGiant,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto,
             moon
     );

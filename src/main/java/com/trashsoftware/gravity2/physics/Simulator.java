@@ -1332,6 +1332,56 @@ public class Simulator {
 
         return velocity;
     }
+    
+    public FullOrbitSpec computeOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
+        AbstractObject child;
+        if (isPrimary) {
+            child = getHieraticalSystem(object);
+        } else {
+            child = object;
+        }
+
+        double[] barycenter = null;
+        double[] refPos = null;
+        double[] refVel = null;
+        double totalMass = 0;
+        HieraticalSystem parentSystem = getHieraticalSystem(parent);
+        if (parentSystem != null && parentSystem.nChildren() > 1) {
+            double distance = VectorOperations.distance(parent.getPosition(), child.getPosition());
+            double systemDeviation = VectorOperations.distance(parent.getPosition(), parentSystem.getPosition());
+            if (distance > systemDeviation) {
+                // seems like circling around the whole system
+                double[][] refPositionAndV = parentSystem.getBarycenterAndVelocityWithout(child, this);
+                if (refPositionAndV != null) {
+                    barycenter = parentSystem.getPosition();
+                    refPos = refPositionAndV[0];
+                    refVel = refPositionAndV[1];
+                    totalMass = parentSystem.getMass();
+                }
+            }
+        }
+
+        if (barycenter == null) {
+            barycenter = OrbitCalculator.calculateBarycenter(parent, child);
+            refPos = parent.getPosition();
+            refVel = parent.getVelocity();
+            totalMass = parent.getMass() + child.getMass();
+        }
+
+        // velocity relative to parent system's barycenter movement
+        double[] velocity = VectorOperations.subtract(child.getVelocity(),
+                refVel);
+        double[] position = VectorOperations.subtract(child.getPosition(),
+                refPos);
+        OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
+                velocity,
+                totalMass,
+                G);
+        return new FullOrbitSpec(specs,
+                child,
+                totalMass,
+                barycenter);
+    }
 
     private void updateBarycenter() {
         this.barycenter = barycenterOf(dimension, objects);
@@ -1377,14 +1427,7 @@ public class Simulator {
         CelestialObject gravityMaster = co.getGravityMaster();
         if (gravityMaster == null) return Double.MAX_VALUE;
 
-        double m1 = gravityMaster.mass;
-        double m2 = co.mass;
-        double[] barycenter = OrbitCalculator.calculateBarycenter(co, gravityMaster);
-        double[] v = VectorOperations.subtract(co.velocity, gravityMaster.velocity);
-        double[] ae = OrbitCalculator.computeBasic(co, barycenter, m1 + m2, v, G);
-        double inside = m2 / (3 * (m1 + m2));
-        double cbrt = Math.cbrt(inside);
-        return ae[0] * (1 - ae[1]) * cbrt;
+        return hillRadius(co, gravityMaster, G);
     }
 
     private double computeHillRadiusVsHillMaster(CelestialObject co) {
@@ -1404,6 +1447,17 @@ public class Simulator {
                 VectorOperations.subtract(co.getVelocity(), parentSystem.getVelocity()),
                 G);
         double inside = m / (3 * (M + m));
+        double cbrt = Math.cbrt(inside);
+        return ae[0] * (1 - ae[1]) * cbrt;
+    }
+    
+    public static double hillRadius(CelestialObject target, CelestialObject master, double G) {
+        double m1 = master.mass;
+        double m2 = target.mass;
+        double[] barycenter = OrbitCalculator.calculateBarycenter(target, master);
+        double[] v = VectorOperations.subtract(target.velocity, master.velocity);
+        double[] ae = OrbitCalculator.computeBasic(target, barycenter, m1 + m2, v, G);
+        double inside = m2 / (3 * (m1 + m2));
         double cbrt = Math.cbrt(inside);
         return ae[0] * (1 - ae[1]) * cbrt;
     }

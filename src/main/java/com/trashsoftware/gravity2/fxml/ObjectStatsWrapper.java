@@ -524,26 +524,29 @@ public class ObjectStatsWrapper extends HBox {
             rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
 
 //            double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
-            double[] velocity = VectorOperations.subtract(system.getVelocity(), parent.getVelocity());
-            double[] position = VectorOperations.subtract(system.getPosition(), parent.getPosition());
-
-            if (level >= 2) {
-                // moons
-                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
-                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
-                position = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(position, parent.getRotationAxis());
-                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
-                velocity = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(velocity, parent.getRotationAxis());
-            } else {
-                // planets
-                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
-                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
-                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
-            }
-            orbitalElements = OrbitCalculator.computeOrbitSpecs3d(position,
-                    velocity,
-                    system.getMass() + parent.getMass(),
-                    simulator.getG());
+//            double[] velocity = VectorOperations.subtract(system.getVelocity(), parent.getVelocity());
+//            double[] position = VectorOperations.subtract(system.getPosition(), parent.getPosition());
+//
+//            if (level >= 2) {
+//                // moons
+//                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
+//                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
+//                position = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(position, parent.getRotationAxis());
+//                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
+//                velocity = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(velocity, parent.getRotationAxis());
+//            } else {
+//                // planets
+//                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
+//                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
+//                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
+//            }
+            // todo: inclination, etc. relative to parent
+            FullOrbitSpec fos = simulator.computeOrbitOf(object, parent, true);
+            orbitalElements = fos.elements;
+//            orbitalElements = OrbitCalculator.computeOrbitSpecs3d(position,
+//                    velocity,
+//                    system.getMass() + parent.getMass(),
+//                    simulator.getG());
 
             if (isOrbiting != orbitalElements.isElliptical()) {
                 System.out.println(object.getId() + " has marginal orbit with ecc: " +

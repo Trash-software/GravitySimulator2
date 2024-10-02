@@ -12,7 +12,6 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.*;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FXAAFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.*;
 import com.jme3.shadow.DirectionalLightShadowFilter;
@@ -307,6 +306,7 @@ public class JmeApp extends SimpleApplication {
 //        rocheEffectTest();
 //        toyStarSystemTest();
         harmonicSystemTest();
+//        orbitTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
@@ -1191,30 +1191,55 @@ public class JmeApp extends SimpleApplication {
         om.secondaryOrbit.setMesh(ObjectModel.blank);
     }
     
-    private void drawOrbitOf(CelestialObject object, AbstractObject parent, boolean isPrimary) {
-        AbstractObject child;
-        if (isPrimary) {
-            child = simulator.getHieraticalSystem(object);
-        } else {
-            child = object;
-        }
-
-        double[] barycenter = OrbitCalculator.calculateBarycenter(parent, child);
-
-        // velocity relative to parent system's barycenter movement
-        double[] velocity = VectorOperations.subtract(child.getVelocity(),
-                parent.getVelocity());
-        double[] position = VectorOperations.subtract(child.getPosition(),
-                parent.getPosition());
-        double totalMass = parent.getMass() + child.getMass();
-        OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
-                velocity,
-                totalMass,
-                simulator.getG());
+    private void drawOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
+//        AbstractObject child;
+//        if (isPrimary) {
+//            child = simulator.getHieraticalSystem(object);
+//        } else {
+//            child = object;
+//        }
+//        
+//        double[] barycenter = null;
+//        double[] refPos = null;
+//        double[] refVel = null;
+//        double totalMass = 0;
+//        HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
+//        if (parentSystem != null && parentSystem.nChildren() > 1) {
+//            double distance = VectorOperations.distance(parent.getPosition(), child.getPosition());
+//            double systemDeviation = VectorOperations.distance(parent.getPosition(), parentSystem.getPosition());
+//            if (distance > systemDeviation) {
+//                // seems like circling around the whole system
+//                double[][] refPositionAndV = parentSystem.getBarycenterAndVelocityWithout(child, simulator);
+//                if (refPositionAndV != null) {
+//                    barycenter = parentSystem.getPosition();
+//                    refPos = refPositionAndV[0];
+//                    refVel = refPositionAndV[1];
+//                    totalMass = parentSystem.getMass();
+//                }
+//            }
+//        }
+//        
+//        if (barycenter == null) {
+//            barycenter = OrbitCalculator.calculateBarycenter(parent, child);
+//            refPos = parent.getPosition();
+//            refVel = parent.getVelocity();
+//            totalMass = parent.getMass() + child.getMass();
+//        }
+//
+//        // velocity relative to parent system's barycenter movement
+//        double[] velocity = VectorOperations.subtract(child.getVelocity(),
+//                refVel);
+//        double[] position = VectorOperations.subtract(child.getPosition(),
+//                refPos);
+//        OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
+//                velocity,
+//                totalMass,
+//                simulator.getG());
+        FullOrbitSpec specs = simulator.computeOrbitOf(object, parent, isPrimary);
 
         ObjectModel om = modelMap.get(object);
-        if (specs.isElliptical()) {
-            drawEllipticalOrbit(om, barycenter, specs, child.getMass() / totalMass, isPrimary);
+        if (specs.elements.isElliptical()) {
+            drawEllipticalOrbit(om, specs.barycenter, specs.elements, specs.child.getMass() / specs.massInvolved, isPrimary);
         } else {
             if (eclipticOrbitOnly) {
                 if (isPrimary) {
@@ -1223,7 +1248,7 @@ public class JmeApp extends SimpleApplication {
                     om.secondaryOrbit.setMesh(ObjectModel.blank);
                 }
             } else {
-                drawHyperbolicOrbit(om, barycenter, specs, child.getMass() / totalMass, isPrimary);
+                drawHyperbolicOrbit(om, specs.barycenter, specs.elements, specs.child.getMass() / specs.massInvolved, isPrimary);
             }
         }
     }
@@ -1252,7 +1277,11 @@ public class JmeApp extends SimpleApplication {
 
     private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
                                      double childMassPercent, boolean isPrimary) {
-        om.showEllipticOrbit(barycenter, oe, 360, childMassPercent, isPrimary);
+        om.showEllipticOrbit(barycenter, 
+                oe, 
+                360, 
+                childMassPercent, 
+                isPrimary);
     }
 
     private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
@@ -1260,7 +1289,8 @@ public class JmeApp extends SimpleApplication {
         om.showHyperbolicOrbit(barycenter,
                 oe,
                 360,
-                childMassPercent, isPrimary);
+                childMassPercent, 
+                isPrimary);
     }
 
     private void drawRecentPaths() {
@@ -1716,7 +1746,11 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void harmonicSystemTest() {
-        scale = Preset.HARMONIC_SYSTEM.instantiate(simulator);
+        scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
+    }
+    
+    private void orbitTest() {
+        scale = Preset.ORBIT_TEST.instantiate(simulator);
     }
 
     private void solarSystemTest() {

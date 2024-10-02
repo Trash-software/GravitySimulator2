@@ -97,6 +97,26 @@ public class HieraticalSystem implements AbstractObject {
         result.sort((a, b) -> Double.compare(b.getMass(), a.getMass()));
         return result;
     }
+    
+    public double[][] getBarycenterAndVelocityWithout(AbstractObject child, Simulator simulator) {
+//        if (isObject()) throw new IllegalArgumentException();
+        if (isObject()) return null;
+
+        double remMass = systemMass - child.getMass();
+        assert remMass > 0;
+        double[] remBarycenter = barycenter.clone();
+        double[] remV = barycenterV.clone();
+        double[] childPos = child.getPosition();
+        double[] childV = child.getVelocity();
+        
+        int dim = master.position.length;
+        // Compute the barycenterAB using the formula
+        for (int i = 0; i < dim; i++) {
+            remBarycenter[i] = (systemMass * barycenter[i] - child.getMass() * childPos[i]) / remMass;
+            remV[i] = (systemMass * barycenterV[i] - child.getMass() * childV[i]) / remMass;
+        }
+        return new double[][]{remBarycenter, remV};
+    }
 
     public double bindingEnergyOf(AbstractObject child, Simulator simulator) {
         // assume "child" is a child of this system and is not the only of the system
