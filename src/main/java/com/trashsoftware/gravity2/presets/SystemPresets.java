@@ -344,8 +344,8 @@ public class SystemPresets {
             "#ffaec9", 0.5, 12000
     );
     public static ObjectInfo superPinkGasGiant = new ObjectInfo(
-            "PinkGasGiant", BodyType.GAS_GIANT, JUPITER_MASS * 5,
-            JUPITER_RADIUS_KM * 1.6, JUPITER_RADIUS_KM * 1.61, JUPITER_RADIUS_KM * 1.58,
+            "PinkGasGiant", BodyType.GAS_GIANT, JUPITER_MASS * 3,
+            JUPITER_RADIUS_KM * 1.43, JUPITER_RADIUS_KM * 1.42, JUPITER_RADIUS_KM * 1.4,
             0, 0, 0, 0, 0, 0, 3, 0.7,
             "#ffaec9", 0.5, 12000
     );
@@ -509,8 +509,8 @@ public class SystemPresets {
                 position,
                 velocity,
                 randomAxisToZ(objectInfo.tilt),
-                1 * scale,
-                1e3 * scale);
+                scale,
+                1e3 * Math.cbrt(scale));
     }
 
     static void addObject3d(Simulator simulator,

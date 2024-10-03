@@ -203,6 +203,38 @@ public class VectorOperations {
 
         return result;
     }
+    
+    public static double latitudeOf(double[] axis, double[] pointRelToCenter) {
+        // Step 2: Normalize the axis of rotation (if not already normalized)
+        double[] normalizedAxis = normalize(axis);
+
+        // Step 3: Compute the dot product of the vector v and the normalized axis
+        double dotProduct = dotProduct(pointRelToCenter, normalizedAxis);
+
+        // Step 4: Compute the magnitude of the vector v (distance from the center to the point)
+        double magnitudeV = magnitude(pointRelToCenter);
+
+        // Step 5: Compute the latitude using the arcsin of the ratio of the dot product to the magnitude
+        double sinLatitude = dotProduct / magnitudeV;
+        return Math.asin(sinLatitude);  // Latitude in radian
+    }
+
+    // Method to compute the north vector at a point on the sphere
+    public static double[] computeNorthVector(double[] axis, double[] pointRelToCenter) {
+        // Step 2: Normalize the axis of rotation
+        double[] normalizedAxis = normalize(axis);
+
+        // Step 3: Project the axis onto the tangent plane at the point
+        double dotProduct = dotProduct(pointRelToCenter, normalizedAxis);
+        double magnitudeV = magnitude(pointRelToCenter);
+        double[] projectedAxis = new double[3];
+        for (int i = 0; i < 3; i++) {
+            projectedAxis[i] = normalizedAxis[i] - (dotProduct / (magnitudeV * magnitudeV)) * pointRelToCenter[i];
+        }
+
+        // Step 4: Normalize the projected axis to get the north vector
+        return normalize(projectedAxis);
+    }
 
     public static void main(String[] args) {
 //        double[] v = new double[]{1, 2, 3};

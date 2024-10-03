@@ -909,6 +909,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double getDensity() {
         return mass / getVolume();
     }
+    
+    public double getOblateness() {
+        double eqr = getEquatorialRadius();
+        return (eqr - getPolarRadius()) / eqr;
+    }
 
     public double getInternalThermalEnergy() {
         return internalThermalEnergy;

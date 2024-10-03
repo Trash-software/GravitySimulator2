@@ -305,12 +305,12 @@ public class JmeApp extends SimpleApplication {
 //        saturnRingTest();
 //        rocheEffectTest();
 //        toyStarSystemTest();
-        harmonicSystemTest();
+//        harmonicSystemTest();
 //        orbitTest();
 //        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
-//        tidalTest();
+        tidalTest();
 //        ellipseClusterTest();
 //        subStarTest();
 //        infantStarSystemTest();
@@ -1728,13 +1728,13 @@ public class JmeApp extends SimpleApplication {
         CelestialObject moon = SystemPresets.createObjectPreset(
                 simulator,
                 SystemPresets.mars,
-                new double[]{2e8, 0, 1e5},
+                new double[]{5e8, 0, 1e7},
                 new double[3],
                 scale
         );
         moon.forcedSetRotation(moon.getRotationAxis(), 1e-3);
         simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(jupiter, moon, -0.99, new double[]{0, 0, 1});
+        double[] vel = simulator.computeVelocityOfN(jupiter, moon, 0.99, new double[]{0, 0, 1});
 //        vel[2] = VectorOperations.magnitude(vel) * 0.1;
         moon.setVelocity(vel);
 

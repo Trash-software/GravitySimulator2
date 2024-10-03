@@ -1583,9 +1583,9 @@ public class Simulator {
         double tidalBrakingAngularVel = tidalBrakingVelocity(primary,
                 secondary,
                 dt) * tidalEffectFactor * timeStep;
-        double tidalSpeedChange = tidalSpeedChange(primary,
-                secondary,
-                dt) * tidalEffectFactor * timeStep;
+//        double tidalSpeedChange = tidalSpeedChange(primary,
+//                secondary,
+//                dt) * tidalEffectFactor * timeStep;
 
         double w = (primary.angularVelocity - orbitAngularVel);
 
@@ -1638,13 +1638,38 @@ public class Simulator {
 //        System.out.println(primary.name + " " + Arrays.toString(primary.rotationAxis) + " " + Arrays.toString(newAxis));
 
         if (secondary.mass < primary.mass) {
-            double w2 = (primary.angularVelocity * sign - orbitAngularVel);
-            double speedChange = -tidalSpeedChange * w2 * 5e6;
-//            System.out.println(primary.name + " " + primary.angularVelocity * sign + " " + orbitAngularVel);
-//            System.out.println(speedChange);
-            double[] velChange = VectorOperations.scale(VectorOperations.normalize(relVel),
-                    speedChange);
-            VectorOperations.addInPlace(secondary.velocity, velChange);
+            // todo: different equator, polar radius
+            double t = primary.getAverageRadius() / dt;
+            double[] bulgePos = VectorOperations.scale(relPos, t);  // bulge pos relative to primary's center
+            double[] nextBulgePos = VectorOperations.rotateVector(bulgePos, 
+                    primary.getRotationAxis(), 
+                    primary.angularVelocity);
+            double[] nextBulgePosSky = VectorOperations.scale(nextBulgePos, 1 / t);  // todo: equator, polar
+            double[] nextSecondaryPos = VectorOperations.add(relPos, secondary.getVelocity());
+            double[] forceDirection = VectorOperations.subtract(nextBulgePosSky, nextSecondaryPos);
+            double strength = -tidalSpeedChange(primary, secondary, dt) * tidalEffectFactor * timeStep * 5e3;
+            double[] tidalAcc = VectorOperations.scale(VectorOperations.normalize(forceDirection), strength);
+            VectorOperations.addInPlace(secondary.velocity, tidalAcc);
+            
+            // pull to the equator
+            double latitude = VectorOperations.latitudeOf(primary.getRotationAxis(), relPos);
+            int latSign = latitude < 0 ? -1 : 1;
+            latitude = Math.abs(latitude);
+            double towardsEquatorStrength = Math.sin(latitude) * strength * primary.getOblateness() * 5e2;
+            double[] towardsEquator = VectorOperations.scale(
+                    VectorOperations.computeNorthVector(primary.getRotationAxis(), relPos), -latSign);
+//            double[] towardsEquator = VectorOperations.scale(primary.getRotationAxis(), -1);
+            towardsEquator = VectorOperations.scale(towardsEquator, towardsEquatorStrength);
+//            System.out.println(Math.toDegrees(latSign * latitude) + " " + Arrays.toString(towardsEquator));
+            VectorOperations.addInPlace(secondary.velocity, towardsEquator);
+
+//            double w2 = (primary.angularVelocity * sign - orbitAngularVel);
+//            double speedChange = -tidalSpeedChange * w2 * 5e6;
+////            System.out.println(primary.name + " " + primary.angularVelocity * sign + " " + orbitAngularVel);
+////            System.out.println(speedChange);
+//            double[] velChange = VectorOperations.scale(VectorOperations.normalize(relVel),
+//                    speedChange);
+//            VectorOperations.addInPlace(secondary.velocity, velChange);
         }
 
         double newPrimaryRotKE = primary.rotationalKineticEnergy();
