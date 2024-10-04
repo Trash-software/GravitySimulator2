@@ -92,11 +92,13 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
 
     @Override
     public String angleDegreeMinuteSecond(double deg) {
+        int sign = deg < 0 ? -1 : 1;
+        deg *= sign;
         int d = (int) deg;
         int seconds = (int) Math.round((deg - d) * 3600);
         int min = seconds / 60;
         int sec = seconds % 60;
+        return String.format("%d°%d'%d\"", d * sign, min, sec);
 //        return String.format("%d°%d′%d″", d, min, sec);
-        return String.format("%d°%d'%d\"", d, min, sec);
     }
 }

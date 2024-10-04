@@ -74,6 +74,7 @@ public class JmeApp extends SimpleApplication {
     private GridPlane gridPlaneNode;
     private CompassNode compassNode;
     private GuiTextNode lonLatTextNode;
+    private Node telescopeAimingNode;
     private boolean showLabel = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
@@ -192,7 +193,7 @@ public class JmeApp extends SimpleApplication {
         rootNode.addLight(ambientLight);
         rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
     }
-    
+
     private void updateAmbientLight() {
         boolean hasLight = false;
         if (renderLight) {
@@ -203,7 +204,7 @@ public class JmeApp extends SimpleApplication {
                 }
             }
         }
-        
+
         if (hasLight) {
             ambientLight.setColor(ColorRGBA.White.mult(0.02f));
         } else {
@@ -228,6 +229,34 @@ public class JmeApp extends SimpleApplication {
 
         gridPlaneNode = new GridPlane(this);
         gridPlaneNode.setLocalTranslation(0, 0, 0);
+        
+        initTelescopeAimingNode();
+        telescopeAimingNode.setLocalTranslation(screenWidth / 2f, screenHeight / 2f, 0);
+    }
+    
+    private void initTelescopeAimingNode() {
+        telescopeAimingNode = new Node();
+        
+        float w = 15f;
+        float h = 12f;
+        float len = 5f;
+        
+        ColorRGBA color = ColorRGBA.Gray;
+        // top left
+        telescopeAimingNode.attachChild(createLine(new Vector3f(-w, h, 0), new Vector3f(-w + len, h, 0), color));
+        telescopeAimingNode.attachChild(createLine(new Vector3f(-w, h, 0), new Vector3f(-w, h - len, 0), color));
+
+        // bot left
+        telescopeAimingNode.attachChild(createLine(new Vector3f(-w, -h, 0), new Vector3f(-w + len, -h, 0), color));
+        telescopeAimingNode.attachChild(createLine(new Vector3f(-w, -h, 0), new Vector3f(-w, -h + len, 0), color));
+
+        // top right
+        telescopeAimingNode.attachChild(createLine(new Vector3f(w, h, 0), new Vector3f(w - len, h, 0), color));
+        telescopeAimingNode.attachChild(createLine(new Vector3f(w, h, 0), new Vector3f(w, h - len, 0), color));
+
+        // bot right
+        telescopeAimingNode.attachChild(createLine(new Vector3f(w, -h, 0), new Vector3f(w - len, -h, 0), color));
+        telescopeAimingNode.attachChild(createLine(new Vector3f(w, -h, 0), new Vector3f(w, -h + len, 0), color));
     }
 
     private void updateAxisMarks() {
@@ -257,14 +286,19 @@ public class JmeApp extends SimpleApplication {
 
             String lon = uc.longitude(firstPersonStar.getGeologicalLongitude());
             String lat = uc.latitude(firstPersonStar.getLatitude());
+            String azimuth = uc.angleDegreeMinuteSecond360(firstPersonStar.getCompassAzimuth());
+            String lookAlt = uc.angleDegreeMinuteSecond(firstPersonStar.getLookAltitudeDeg());
 
             lonLatTextNode.setText(String.format("""
-                            Longitude: %s
-                            Latitude: %s
+                            Position: %s; %s
                             Altitude: %s
-                            FOV: %s""",
-                    lon, lat, uc.distance(firstPersonStar.getAltitude()),
-                    uc.angleDegreeDecimal(cam.getFov())));
+                            View: %s; %s
+                            FOV: %s
+                            Magnification: %sx""",
+                    lat, lon, uc.distance(firstPersonStar.getAltitude()),
+                    azimuth, lookAlt,
+                    uc.angleDegreeDecimal(cam.getFov()),
+                    uc.generalNumber(45.0 / cam.getFov())));
         }
     }
 
@@ -307,10 +341,10 @@ public class JmeApp extends SimpleApplication {
 //        toyStarSystemTest();
 //        harmonicSystemTest();
 //        orbitTest();
-//        solarSystemTest();
+        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        smallSolarSystemTest();
-        tidalTest();
+//        tidalTest();
 //        ellipseClusterTest();
 //        subStarTest();
 //        infantStarSystemTest();
@@ -419,14 +453,25 @@ public class JmeApp extends SimpleApplication {
         return 30.0 / radius;
     }
 
-    private void adjustFov(float delta) {
-        float fov = cam.getFov();
-        float newFov = FastMath.clamp(fov + delta, 5, 175f);
+    private void adjustFov(float targetFov) {
+//        float fov = cam.getFov();
+        targetFov = FastMath.clamp(targetFov, 0, 175f);
+//        System.out.println("targetFov: " + targetFov);
 
-        cam.setFrustumPerspective(newFov,
+        float near = 0.1f;  // refers to #setCamera1stPerson
+        float far = 1e8f;
+
+        if (targetFov < 5.0f) {
+            near = 1f;
+//            float times = targetFov / 5.0f;
+//            near *= times;  // In telescope mode, give up near
+//            far *= times;
+        }
+
+        cam.setFrustumPerspective(targetFov,
                 (float) cam.getWidth() / cam.getHeight(),
-                cam.getFrustumNear(),
-                cam.getFrustumFar());
+                near,
+                far);
     }
 
     private void setCamera1stPerson() {
@@ -439,6 +484,7 @@ public class JmeApp extends SimpleApplication {
         rootNode.detachChild(gridPlaneNode);
         guiNode.attachChild(compassNode);
         guiNode.attachChild(lonLatTextNode);
+        guiNode.attachChild(telescopeAimingNode);
     }
 
     private void setCamera3rdPerson() {
@@ -451,6 +497,7 @@ public class JmeApp extends SimpleApplication {
         rootNode.attachChild(gridPlaneNode);
         guiNode.detachChild(compassNode);
         guiNode.detachChild(lonLatTextNode);
+        guiNode.detachChild(telescopeAimingNode);
     }
 
     private void setupMouses() {
@@ -591,18 +638,19 @@ public class JmeApp extends SimpleApplication {
                     }
 //                    cam.lookAt(lookAtPoint, worldUp);
                 } else {
+                    float senseMul = cam.getFov() / 45f;
                     if (name.equals("MouseMoveX-")) {
                         // Move the camera horizontally when dragging the left button
-                        firstPersonStar.azimuthChange(-value * azimuthSensitivity);
+                        firstPersonStar.azimuthChange(-value * azimuthSensitivity * senseMul);
                     } else if (name.equals("MouseMoveX+")) {
                         // Move the camera horizontally when dragging the left button
-                        firstPersonStar.azimuthChange(value * azimuthSensitivity);
+                        firstPersonStar.azimuthChange(value * azimuthSensitivity * senseMul);
                     } else if (name.equals("MouseMoveY-")) {
                         // Move the camera vertically when dragging the left button
-                        firstPersonStar.lookingAltitudeChange(value * altitudeAngleSensitivity);
+                        firstPersonStar.lookingAltitudeChange(value * altitudeAngleSensitivity * senseMul);
                     } else if (name.equals("MouseMoveY+")) {
                         // Move the camera vertically when dragging the left button
-                        firstPersonStar.lookingAltitudeChange(-value * altitudeAngleSensitivity);
+                        firstPersonStar.lookingAltitudeChange(-value * altitudeAngleSensitivity * senseMul);
                     }
 //                    Vector3f sightPos = firstPersonStar.getSightLocalPos();
 //                    firstPersonStar.sightPoint.setLocalTranslation(sightPos);
@@ -643,10 +691,24 @@ public class JmeApp extends SimpleApplication {
                     zoomOutAction();
                 }
             } else {
-                if (name.equals("ZoomIn")) {
-                    adjustFov(-5f);
-                } else if (name.equals("ZoomOut")) {
-                    adjustFov(5f);
+                float fov = cam.getFov();
+                if (fov >= 10) {
+                    if (name.equals("ZoomIn")) {
+                        adjustFov(fov - 5f);
+                    } else if (name.equals("ZoomOut")) {
+                        adjustFov(fov + 5f);
+                    }
+                } else {
+//                    float deltaFov = fov * 0.5f;
+                    if (name.equals("ZoomIn")) {
+                        adjustFov(fov * 0.8f);
+                    } else if (name.equals("ZoomOut")) {
+                        float targetFov = fov / 0.8f;
+                        if (targetFov > 5.1) {
+                            targetFov = 10;
+                        }
+                        adjustFov(targetFov);
+                    }
                 }
             }
         }
@@ -695,9 +757,9 @@ public class JmeApp extends SimpleApplication {
             double temperature = CelestialObject.approxSurfaceTemperatureOf(spawning.object, sources);
             spawning.object.forceSetSurfaceTemperature(temperature);
         }
-        
+
         simulator.addObject(spawning.object);
-        
+
         CelestialObject master = spawning.object.getHillMaster();
         double[] axis = SystemPresets.randomAxisToZ(spawning.axisTilt);
         if (master != null) {
@@ -705,10 +767,10 @@ public class JmeApp extends SimpleApplication {
             double[] velocity = simulator.computeVelocityOfN(master, spawning.object, speed,
                     spawning.getPlaneNormal());
             spawning.object.setVelocity(velocity);
-            
+
             axis = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(axis, spawning.getPlaneNormal());
         }
-        
+
         spawning.object.updateRotationAxis(axis);
 
         exitSpawningMode();
@@ -799,6 +861,8 @@ public class JmeApp extends SimpleApplication {
 
             getFxApp().getControlBar().setLand();
 
+            screenCenter.set(0, 0, 0);
+            centerRelToFocus.set(0, 0, 0);
             if (focusing != null) {
                 getFxApp().getControlBar().clearFocusAction();
             }
@@ -842,27 +906,9 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void moveCameraWithFirstPerson() {
+//        System.out.println(screenCenter + " === " + centerRelToFocus);
         firstPersonStar.updateCamera(cam);
-//        Vector3f camPos = firstPersonStar.cameraNode.getWorldTranslation();
-//        System.out.println(camPos);
-//        cam.setLocation(camPos);
-//        cam.lookAtDirection(firstPersonStar.getLookingDirection(cam), 
-//                firstPersonStar.getUpVector());
-
-//        Vector3f centerPos = firstPersonStar.objectModel.rotatingNode.getWorldTranslation();
-//        Vector3f realUp = camPos.subtract(centerPos).normalize();
-
-//        cam.lookAt(firstPersonStar.sightPoint.getWorldTranslation(), firstPersonStar.getUpVector());
     }
-
-//    private void moveCameraWithLookAtPoint(Vector3f oldLookAt, Vector3f newLookAt) {
-//        float dt = cam.getLocation().distance(oldLookAt);
-//
-//        Vector3f direction = cam.getDirection();
-//        Vector3f newLocation = newLookAt.subtract(direction.mult(dt));
-//        cam.setLocation(newLocation);
-//        cam.lookAt(newLookAt, worldUp);
-//    }
 
     private void computeSpawningMaster() {
         HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
@@ -1180,17 +1226,17 @@ public class JmeApp extends SimpleApplication {
             }
         }
     }
-    
+
     private void hidePrimaryOrbit(CelestialObject object) {
         ObjectModel om = modelMap.get(object);
         om.orbit.setMesh(ObjectModel.blank);
     }
-    
+
     private void hideSecondaryOrbit(CelestialObject object) {
         ObjectModel om = modelMap.get(object);
         om.secondaryOrbit.setMesh(ObjectModel.blank);
     }
-    
+
     private void drawOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
 //        AbstractObject child;
 //        if (isPrimary) {
@@ -1255,7 +1301,7 @@ public class JmeApp extends SimpleApplication {
 
     private void drawOrbitOf(CelestialObject object) {
         CelestialObject parent = object.getHillMaster();
-        
+
         if (parent == null) {
             parent = object.getMaxGravityObject();
             if (parent != null) {
@@ -1275,21 +1321,21 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
+    private void drawEllipticalOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe,
                                      double childMassPercent, boolean isPrimary) {
-        om.showEllipticOrbit(barycenter, 
-                oe, 
-                360, 
-                childMassPercent, 
+        om.showEllipticOrbit(barycenter,
+                oe,
+                360,
+                childMassPercent,
                 isPrimary);
     }
 
-    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe, 
+    private void drawHyperbolicOrbit(ObjectModel om, double[] barycenter, OrbitalElements oe,
                                      double childMassPercent, boolean isPrimary) {
         om.showHyperbolicOrbit(barycenter,
                 oe,
                 360,
-                childMassPercent, 
+                childMassPercent,
                 isPrimary);
     }
 
@@ -1553,7 +1599,7 @@ public class JmeApp extends SimpleApplication {
                 om.setShowLabel(false);
             }
         }
-        
+
         updateCurvesShowing();
     }
 
@@ -1740,7 +1786,7 @@ public class JmeApp extends SimpleApplication {
 
         scale = 1e-7f;
     }
-    
+
     private void toyStarSystemTest() {
         scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
     }
@@ -1748,7 +1794,7 @@ public class JmeApp extends SimpleApplication {
     private void harmonicSystemTest() {
         scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
     }
-    
+
     private void orbitTest() {
         scale = Preset.ORBIT_TEST.instantiate(simulator);
     }
@@ -1788,11 +1834,11 @@ public class JmeApp extends SimpleApplication {
         scale = Preset.RANDOM_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
     }
-    
+
     private void infantStarSystemTest() {
         scale = Preset.INFANT_STAR_SYSTEM.instantiate(simulator);
         simulator.setEnableDisassemble(false);
-        
+
         getFxApp().getControlBar().highPerformanceMode(true);
     }
 
@@ -1940,15 +1986,15 @@ public class JmeApp extends SimpleApplication {
             updateCurvesShowing();
         });
     }
-    
+
     public void setRenderLight(boolean renderLight) {
         enqueue(() -> {
             this.renderLight = renderLight;
-            
+
             for (ObjectModel om : modelMap.values()) {
                 om.setRenderLight(renderLight);
             }
-            
+
             updateAmbientLight();
         });
     }
@@ -2003,7 +2049,7 @@ public class JmeApp extends SimpleApplication {
         return spawning != null;
     }
 
-    public void enterSpawningMode(CelestialObject co, double orbitSpeed, 
+    public void enterSpawningMode(CelestialObject co, double orbitSpeed,
                                   OrbitPlane orbitPlane, double axisTilt) {
         enqueue(() -> {
             ObjectModel om = new ObjectModel(co, this);
@@ -2015,14 +2061,14 @@ public class JmeApp extends SimpleApplication {
             reloadObjects();
         });
     }
-    
+
     private void exitSpawningMode() {
         if (spawning != null) {
             detachObjectModel(spawning.model);
 //                rootNode.detachChild(spawning.model.objectNode);
 //                rootNode.detachChild(spawning.model.orbitNode);
-                rootNode.detachChild(spawning.primaryLine);
-                rootNode.detachChild(spawning.secondaryLine);
+            rootNode.detachChild(spawning.primaryLine);
+            rootNode.detachChild(spawning.secondaryLine);
 //                spawning.model.removeEmissionLight();
 //                spawning.model.setShowApPe(false);
 

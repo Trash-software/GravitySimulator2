@@ -205,18 +205,16 @@ public class ObjectModel {
                 jmeApp.getViewPort().addProcessor(plsr);
 
                 // Add shadow filter for softer shadows
-                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-                plsf.setLight(emissionLight);
-                plsf.setEnabled(true);
+//                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+//                plsf.setLight(emissionLight);
+//                plsf.setEnabled(true);
+//                jmeApp.filterPostProcessor.addFilter(plsf);
 
                 // Add bloom effect to enhance the star's glow
                 bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
                 bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
 //            bloom.setBlurScale(10.0f);
-
                 jmeApp.filterPostProcessor.addFilter(bloom);
-                
-                jmeApp.filterPostProcessor.addFilter(plsf);
                 
                 model.setShadowMode(RenderQueue.ShadowMode.Off);
                 

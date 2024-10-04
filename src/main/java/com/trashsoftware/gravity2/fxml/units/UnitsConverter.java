@@ -33,6 +33,13 @@ public interface UnitsConverter {
     
     String angleDegreeMinuteSecond(double deg);
     
+    default String angleDegreeMinuteSecond360(double deg) {
+        if (deg < 0) {
+            deg += 360;
+        }
+        return angleDegreeMinuteSecond(deg);
+    }
+    
     default String longitude(double deg) {
         if (deg == 0) return angleDegreeMinuteSecond(deg);
         String suffix = " E";

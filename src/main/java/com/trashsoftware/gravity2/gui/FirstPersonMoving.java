@@ -202,6 +202,14 @@ public class FirstPersonMoving {
         return latitude;
     }
 
+    public double getCompassAzimuth() {
+        return compassAzimuth;
+    }
+
+    public double getLookAltitudeDeg() {
+        return lookAltitudeDeg;
+    }
+
     public double getGeologicalLongitude() {
         double lon = longitude + 180;
         if (lon > 180) {
