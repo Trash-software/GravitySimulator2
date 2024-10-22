@@ -1,5 +1,7 @@
 package com.trashsoftware.gravity2.gui;
 
+import com.jme3.effect.ParticleEmitter;
+import com.jme3.effect.ParticleMesh;
 import com.jme3.font.BitmapText;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
@@ -24,7 +26,14 @@ import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.HieraticalSystem;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
+import com.trashsoftware.gravity2.physics.VectorOperations;
+import com.trashsoftware.gravity2.physics.status.Comet;
+import com.trashsoftware.gravity2.physics.status.CometTailParams;
+import com.trashsoftware.gravity2.physics.status.Star;
+import com.trashsoftware.gravity2.physics.status.Status;
+import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -82,6 +91,9 @@ public class ObjectModel {
     protected BloomFilter bloom;
     protected PointLightShadowFilter plsf;
 //    protected FilterPostProcessor fpp;
+    
+    ParticleEmitter cometDustTail;
+    Map<CelestialObject, ParticleEmitter> cometIonTails;
 
     protected Quaternion tiltRotation;
     protected double initialRadius;
@@ -181,48 +193,199 @@ public class ObjectModel {
         trace.setMaterial(matLine3);
     }
     
+    private void initCometTails(Comet comet) {
+        cometDustTail = new ParticleEmitter("DustTail-" + object.getId(),
+                ParticleMesh.Type.Triangle, 300);
+        Material dustTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
+        dustTailMat.setTexture("Texture", 
+                jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail.png"));
+        cometDustTail.setMaterial(dustTailMat);
+        cometDustTail.setImagesX(1);
+        cometDustTail.setImagesY(3);
+
+        cometDustTail.setStartColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f));
+        cometDustTail.setEndColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 0.0f));
+        cometDustTail.getParticleInfluencer().setVelocityVariation(0.1f);
+        cometDustTail.setFacingVelocity(true);
+        
+        objectNode.attachChild(cometDustTail);
+        
+        cometIonTails = new HashMap<>();
+        for (var entry : comet.getIonTails().entrySet()) {
+//            CometTailParams ctp = entry.getValue();
+            
+            ParticleEmitter ionTail = new ParticleEmitter("IonTail-" + object.getId() + "+" + entry.getKey().getId(),
+                    ParticleMesh.Type.Triangle, 200);
+            Material ionTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
+            ionTailMat.setTexture("Texture", 
+                    jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail.png"));
+            ionTail.setMaterial(ionTailMat);
+            ionTail.setImagesX(1);
+            ionTail.setImagesY(3);
+
+            // Set the particle properties for the gas tail (bluish color, small size)
+            ionTail.setStartColor(new ColorRGBA(0.3f, 0.5f, 1.0f, 1.0f)); // Bluish ion tail
+            ionTail.setEndColor(new ColorRGBA(0.3f, 0.5f, 1.0f, 0.0f));   // Fades out
+            ionTail.setFacingVelocity(true);
+            ionTail.setRotateSpeed(0);
+//            ionTail.setStartSize(1.0f); // Tail particle size
+//            ionTail.setEndSize(0.5f);
+//            ionTail.setLowLife(1.0f);  // Short lifetime for fast ionized particles
+//            ionTail.setHighLife(2.0f);
+//            ionTail.setParticlesPerSec(50);
+//            ionTail.setGravity(0, 0, 0); // No gravity influence on ion particles
+
+            ionTail.getParticleInfluencer().setVelocityVariation(0.01f);
+
+//            // Compute the direction of the tail (from comet to star, normalized)
+//            Vector3f tailDirection = GuiUtils.fromDoubleArray(ctp.initDirection);
+//            ionTail.getParticleInfluencer().setInitialVelocity(tailDirection.mult(-100f)); // Fast solar wind speed
+//            ionTail.getParticleInfluencer().setVelocityVariation(0.2f);
+            
+            cometIonTails.put(entry.getKey(), ionTail);
+            objectNode.attachChild(ionTail);
+        }
+    }
+    
+    private void adjustCometTails(Comet comet) {
+        float scaleF = (float) jmeApp.getScale();
+        float speedF = (float) jmeApp.getSimulationSpeed();
+        
+        Vector3f focusMove = jmeApp.getLastFrameScreenMovement().toVector3f();
+        
+        CometTailParams dust = comet.getDustTail();
+        float density1 = (float) (dust.tailDensity / 1e5);
+        
+        Vector3f initVel1 = GuiUtils.fromDoubleArray(dust.velocity)
+                .mult(speedF * scaleF * -5);
+        initVel1.subtractLocal(focusMove);
+        initVel1.multLocal(jmeApp.getFrameRate());
+        
+        float velMag1 = initVel1.length();
+        float life1 = (float) (dust.tailLength * scaleF / velMag1);
+
+        float particleRate1 = density1 / life1;
+//        System.out.println(particleRate1 + " life: " + life1);
+        particleRate1 = FastMath.clamp(particleRate1, 10, 100);
+
+        cometDustTail.setParticlesPerSec(particleRate1);
+        cometDustTail.setLowLife(life1 * 0.5f);
+        cometDustTail.setHighLife(life1);
+        cometDustTail.setStartSize((float) (comet.co.getAverageRadius() * scaleF * 2000f));
+        cometDustTail.setEndSize((float) (comet.co.getAverageRadius() * scaleF * 10000f));
+        cometDustTail.getParticleInfluencer().setInitialVelocity(initVel1);
+        
+        for (var entry : comet.getIonTails().entrySet()) {
+            CometTailParams ctp = entry.getValue();
+            ParticleEmitter ionTail = cometIonTails.get(entry.getKey());
+            
+            float density = (float) (ctp.tailDensity / 3e5);
+
+            Vector3f initVel = GuiUtils.fromDoubleArray(ctp.velocity)
+                    .mult(speedF * scaleF * jmeApp.getFrameRate() * -5);
+            float velMag = initVel.length();
+            float life = (float) (ctp.tailLength * scaleF / velMag);
+            
+//            float life = (float) (ctp.tailLength / 1e12 / speedF);
+            
+            float particleRate = density / life;
+            particleRate = FastMath.clamp(particleRate, 10, 100);
+            
+//            ionTail.setNumParticles((int) density);
+            ionTail.setParticlesPerSec(particleRate);
+            ionTail.setLowLife(life * 0.5f);
+            ionTail.setHighLife(life);
+            ionTail.setStartSize((float) (comet.co.getAverageRadius() * scaleF * 2000));
+            ionTail.setEndSize((float) (comet.co.getAverageRadius() * scaleF * 2000));
+//            ionTail.set
+
+            // Compute the direction of the tail (from comet to star, normalized)
+//            Vector3f tailDirection = GuiUtils.fromDoubleArray(ctp.initDirection);
+//            Vector3f initVel = GuiUtils.fromDoubleArray(ctp.velocity)
+//                    .mult(speedF)
+//                    .mult(scaleF * jmeApp.getFrameRate() * -30);
+            ionTail.getParticleInfluencer().setInitialVelocity(initVel); // Fast solar wind speed
+
+//            System.out.println(initVel + " " + density + " " + life);
+            
+        }
+    }
+    
+    private void removeCometTails() {
+        if (cometDustTail != null) {
+            objectNode.detachChild(cometDustTail);
+        }
+        if (cometIonTails != null) {
+            for (ParticleEmitter pe : cometIonTails.values()) {
+                objectNode.detachChild(pe);
+            }
+        }
+    }
+    
+    private void updateCometTail(Comet comet) {
+        if (cometDustTail == null) {
+            initCometTails(comet);
+        }
+        adjustCometTails(comet);
+    }
+    
     private void updateLightSource() {
         Material mat = model.getMaterial();
-        boolean emitting = object.isEmittingLight();
+        Status status = object.getStatus();
+//        boolean emitting = object.isEmittingLight();
         boolean changed = false;
-        if (emitting && renderLight) {
-            if (emissionLight == null) {
-                mat.setFloat("Shininess", 128);
+        if (renderLight) {
+//            if (bloom == null) {
+//                bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+//                bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
+////                bloom.setBlurScale(10.0f);
+//                jmeApp.filterPostProcessor.addFilter(bloom);
+//            }
+            
+            if (status instanceof Star star) {
+                if (emissionLight == null) {
+                    mat.setFloat("Shininess", 128);
 
-                emissionLight = new PointLight();
-                jmeApp.getRootNode().addLight(emissionLight);
+                    emissionLight = new PointLight();
+                    jmeApp.getRootNode().addLight(emissionLight);
 
-                surfaceLight = new AmbientLight();
+                    surfaceLight = new AmbientLight();
 //                surfaceLight.setColor(lightColor);
-                model.addLight(surfaceLight);
+                    model.addLight(surfaceLight);
 
-                // Add shadow renderer
-                plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
-                        1024);
-                plsr.setLight(emissionLight);
-                plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-                plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-                jmeApp.getViewPort().addProcessor(plsr);
+                    // Add shadow renderer
+                    plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
+                            1024);
+                    plsr.setLight(emissionLight);
+//                    plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+                    plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+                    jmeApp.getViewPort().addProcessor(plsr);
 
-                // Add shadow filter for softer shadows
+                    // Add shadow filter for softer shadows
 //                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
 //                plsf.setLight(emissionLight);
 //                plsf.setEnabled(true);
 //                jmeApp.filterPostProcessor.addFilter(plsf);
 
-                // Add bloom effect to enhance the star's glow
-                bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-                bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
-//            bloom.setBlurScale(10.0f);
-                jmeApp.filterPostProcessor.addFilter(bloom);
-                
-                model.setShadowMode(RenderQueue.ShadowMode.Off);
-                
-                adjustPointLight();
-                changed = true;
+                    // Add bloom effect to enhance the star's glow
+                    bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+//                    bloom.setBloomIntensity(3f); // Adjust intensity for more or less glow
+//                    bloom.setExposurePower(5f);
+//                    bloom.setExposureCutOff(0.1f);
+//                    bloom.setDownSamplingFactor(2f);
+                    jmeApp.filterPostProcessor.addFilter(bloom);
+
+                    model.setShadowMode(RenderQueue.ShadowMode.Off);
+
+                    adjustPointLight(star);
+                    changed = true;
+                }
+            } else {
+                changed = removeEmissionLight() || removeEffectLights();
+                model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             }
         } else {
-            changed = removeEmissionLight();
+            changed = removeEmissionLight() || removeEffectLights();
             model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         }
         if (changed) {
@@ -247,16 +410,16 @@ public class ObjectModel {
             plsr = null;
             changed = true;
         }
-        if (bloom != null) {
-            try {
-                jmeApp.filterPostProcessor.removeFilter(bloom);
-            } catch (RuntimeException e) {
-                System.err.println(object.getId() + " has rendering problem: bloom.");
-                e.printStackTrace(System.err);
-            }
-            bloom = null;
-            changed = true;
-        }
+//        if (bloom != null) {
+//            try {
+//                jmeApp.filterPostProcessor.removeFilter(bloom);
+//            } catch (RuntimeException e) {
+//                System.err.println(object.getId() + " has rendering problem: bloom.");
+//                e.printStackTrace(System.err);
+//            }
+//            bloom = null;
+//            changed = true;
+//        }
         if (plsf != null) {
             try {
                 jmeApp.filterPostProcessor.removeFilter(plsf);
@@ -268,6 +431,63 @@ public class ObjectModel {
             changed = true;
         }
         return changed;
+    }
+    
+    private boolean removeEffectLights() {
+        boolean changed = false;
+        if (bloom != null) {
+            try {
+                jmeApp.filterPostProcessor.removeFilter(bloom);
+            } catch (RuntimeException e) {
+                System.err.println(object.getId() + " has rendering problem: bloom.");
+                e.printStackTrace(System.err);
+            }
+            bloom = null;
+            changed = true;
+        }
+        return changed;
+    }
+
+    private void updateEmissionColor(ColorRGBA lightColor) {
+        emissionLight.setColor(lightColor);
+        model.getMaterial().setColor("GlowColor", lightColor);
+        surfaceLight.setColor(lightColor);
+    }
+
+    private void adjustPointLight(Star star) {
+        double scale = jmeApp.getScale();
+        double luminosity = object.getLuminosity();
+
+        if (object.getLightColorCode() != null) {
+            ColorRGBA lightColor = GuiUtils.stringToColor(object.getLightColorCode());
+            updateEmissionColor(lightColor);
+        } else {
+            double colorTemp = star.getEmissionColorTemperature();
+            if (colorTemp != displayingEmitLightColorTemp) {
+                displayingEmitLightColorTemp = colorTemp;
+                ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
+                updateEmissionColor(lightColor);
+            }
+        }
+
+        double radius = Math.pow(scale, 2) * luminosity * 2e-2;
+        emissionLight.setRadius((float) radius);
+        
+//        if (bloom != null) {
+//            float sizeFactor = (float) (scale * 2e8);
+//            sizeFactor = FastMath.clamp(sizeFactor, 0.2f, 2.0f);
+////            bloom.setExposurePower(3.0f * sizeFactor);
+////            bloom.setExposureCutOff(0.1f);
+////            bloom.setBloomIntensity(2.0f * sizeFactor);
+////            bloom.setBlurScale(1.0f * sizeFactor);
+//            Material material = model.getMaterial();
+//            ColorRGBA glowColor =  material.getParamValue("GlowColor");
+//            material.setColor("GlowColor", glowColor.mult(sizeFactor));
+//            float dsFactor = 2.0f / sizeFactor;
+//            bloom.setDownSamplingFactor(dsFactor);
+//            System.out.println("Bloom size " + sizeFactor);
+////            bloom.setDownSamplingFactor(sizeFactor);
+//        }
     }
 
     private void createApPeText() {
@@ -304,40 +524,6 @@ public class ObjectModel {
         mesh.updateCounts();
 
         axis.setMesh(mesh);
-    }
-
-//    private void updateSphereMesh() {
-//        // todo: test memory leak
-//        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
-//        sphere.setTextureMode(Sphere.TextureMode.Projected);
-//        model.setMesh(sphere);
-////        lastUsedObjectRadius = object.getEquatorialRadius();
-//    }
-    
-    private void updateEmissionColor(ColorRGBA lightColor) {
-        emissionLight.setColor(lightColor);
-        model.getMaterial().setColor("GlowColor", lightColor);
-        surfaceLight.setColor(lightColor);
-    }
-
-    private void adjustPointLight() {
-        double luminosity = object.getLuminosity();
-        
-        if (object.getLightColorCode() != null) {
-            ColorRGBA lightColor = GuiUtils.stringToColor(object.getLightColorCode());
-            updateEmissionColor(lightColor);
-        } else {
-            double colorTemp = object.getEmissionColorTemperature();
-            if (colorTemp != displayingEmitLightColorTemp) {
-                displayingEmitLightColorTemp = colorTemp;
-                ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
-                updateEmissionColor(lightColor);
-            }
-            
-        }
-        
-        double radius = Math.pow(jmeApp.getScale(), 2) * luminosity * 2e-2;
-        emissionLight.setRadius((float) radius);
     }
 
     private Geometry createTransparentSphere(String name, float opacity) {
@@ -412,13 +598,20 @@ public class ObjectModel {
         if (object.getAngularVelocity() != 0) {
             rotateModel();
         }
-        if (object.isEmittingLight() && renderLight) {
+        if (renderLight && object.getStatus() instanceof Star star) {
             if (emissionLight == null) {
                 updateLightSource();
             }
             emissionLight.setPosition(xyz);
-            adjustPointLight();
+            adjustPointLight(star);
 //            System.out.println(object.getName() + " " + emissionLight.getPosition() + " " + emissionLight.getRadius());
+        }
+        if (object.getStatus() instanceof Comet comet) {
+            updateCometTail(comet);
+        } else {
+            if (cometDustTail != null) {
+                removeCometTails();
+            }
         }
         if (showHillSphere) {
             adjustHillSphereScale((float) scale);

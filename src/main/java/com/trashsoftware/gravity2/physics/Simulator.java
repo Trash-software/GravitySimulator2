@@ -1,5 +1,7 @@
 package com.trashsoftware.gravity2.physics;
 
+import com.trashsoftware.gravity2.physics.status.Comet;
+import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.Util;
 import org.json.JSONArray;
@@ -269,7 +271,9 @@ public class Simulator {
                 co.updateRotation(performedTimeSteps);
             }
             updateTidal(performedTimeSteps);
+            updateIndependentStatus();  // pre update
             performTemperatureChange(performedTimeSteps);
+            updateDependentStatus(performedTimeSteps);  // post update
         }
 
         return result;
@@ -1521,6 +1525,33 @@ public class Simulator {
 
         return new double[][]{L1, L2, L3, L4, L5};
     }
+    
+    void updateIndependentStatus() {
+        for (CelestialObject co : objects) {
+            co.updateStatus(true);
+        }
+    }
+
+    void updateDependentStatus(double timeStep) {
+        List<Star> sources = getAllLightSources();
+        for (CelestialObject co : objects) {
+            co.updateStatus(false);  // majorly setup for the comets
+            if (co.getStatus() instanceof Comet comet) {
+                double lossRate = co.vapor(comet, timeStep, sources);
+                comet.updateTails(this, sources, lossRate);
+            }
+        }
+    }
+    
+    public List<Star> getAllLightSources() {
+        List<Star> result = new ArrayList<>();
+        for (CelestialObject co : objects) {
+            if (co.getStatus() instanceof Star star) {
+                result.add(star);
+            }
+        }
+        return result;
+    }
 
     protected void performTemperatureChange(double timeStep) {
         int iteration = (int) Math.min(32, timeStep);
@@ -1528,7 +1559,7 @@ public class Simulator {
 
         for (int i = 0; i < iteration; i++) {
             for (CelestialObject co : objects) {
-                double luminosity = co.updateLuminosity();
+                double luminosity = co.getLuminosity();
                 if (luminosity > 0) {
                     // is a light source
                     double[] sourcePos = co.getPosition().clone();

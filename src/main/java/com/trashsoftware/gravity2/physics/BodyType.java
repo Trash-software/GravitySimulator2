@@ -4,7 +4,7 @@ import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.Util;
 
 public enum BodyType {
-    ICE(1500, 1, 900, false),
+    ICE(1500, 0.5, 900, false),
     TERRESTRIAL(900, 0.5, 2000, false),
     ICE_GIANT(13500, 5e3, 1.0, true),
     GAS_GIANT(14300, 1e4, 0.16, true),
@@ -27,7 +27,8 @@ public enum BodyType {
     }
 
     public static BodyType simpleInfer(double mass) {
-        if (mass <= SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
+        if (mass <= SystemPresets.MOON_MASS * 0.5) return ICE;
+        else if (mass <= SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
         else if (mass <= SystemPresets.JUPITER_MASS * 13) return GAS_GIANT;
         else if (mass <= SystemPresets.JUPITER_MASS * 80) return BROWN_DWARF;
         else return STAR;

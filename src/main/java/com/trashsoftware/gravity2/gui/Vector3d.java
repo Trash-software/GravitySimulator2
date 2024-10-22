@@ -4,6 +4,7 @@ import com.jme3.math.Vector3f;
 
 public class Vector3d {
 
+    public static final Vector3d ZERO = new Vector3d(0, 0, 0);
     public static final Vector3d UNIT_X = new Vector3d(1, 0, 0);
     public static final Vector3d UNIT_Y = new Vector3d(0, 1, 0);
     public static final Vector3d UNIT_Z = new Vector3d(0, 0, 1);
@@ -35,6 +36,14 @@ public class Vector3d {
         this.y = y;
         this.z = z;
     }
+    
+    public void set(double[] array) {
+        set(array[0], array[1], array[2]);
+    }
+    
+    public void set(Vector3d another) {
+        set(another.x, another.y, another.z);
+    }
 
     public Vector3d addLocal(Vector3f vector3f) {
         x += vector3f.x;
@@ -48,6 +57,21 @@ public class Vector3d {
                 x + other.x,
                 y + other.y,
                 z + other.z
+        );
+    }
+
+    public Vector3d subtractLocal(Vector3f vector3f) {
+        x -= vector3f.x;
+        y -= vector3f.y;
+        z -= vector3f.z;
+        return this;
+    }
+
+    public Vector3d subtract(Vector3d other) {
+        return new Vector3d(
+                x - other.x,
+                y - other.y,
+                z - other.z
         );
     }
 
@@ -104,6 +128,10 @@ public class Vector3d {
                 (float) y,
                 (float) z
         );
+    }
+
+    public static Vector3d fromVector3f(Vector3f v3f) {
+        return new Vector3d(v3f.x, v3f.y, v3f.z);
     }
 
     @Override

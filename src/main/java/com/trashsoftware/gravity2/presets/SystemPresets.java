@@ -6,6 +6,7 @@ import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.Matrix3d;
 import com.trashsoftware.gravity2.gui.Vector3d;
 import com.trashsoftware.gravity2.physics.*;
+import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.*;
@@ -48,8 +49,14 @@ public class SystemPresets {
         TEXTURES.put("Rhea", "com/trashsoftware/gravity2/textures/saturn/rhea.jpg");
         TEXTURES.put("Tethys", "com/trashsoftware/gravity2/textures/saturn/tethys2k.jpg");
         TEXTURES.put("Titan", "com/trashsoftware/gravity2/textures/saturn/titan.png");
+        TEXTURES.put("Mimas", "com/trashsoftware/gravity2/textures/saturn/Mimas.jpg");
 
-        TEXTURES.put("Uranus", "com/trashsoftware/gravity2/textures/uranus.JPG");
+        TEXTURES.put("Uranus", "com/trashsoftware/gravity2/textures/uranus/uranus.JPG");
+        TEXTURES.put("Ariel", "com/trashsoftware/gravity2/textures/uranus/Ariel.jpg");
+        TEXTURES.put("Miranda", "com/trashsoftware/gravity2/textures/uranus/Miranda.png");
+        TEXTURES.put("Oberon", "com/trashsoftware/gravity2/textures/uranus/Oberonmap1.png");
+        TEXTURES.put("Titania", "com/trashsoftware/gravity2/textures/uranus/Titaniamap.png");
+        TEXTURES.put("Umbriel", "com/trashsoftware/gravity2/textures/uranus/Umbriel.png");
 
         TEXTURES.put("Neptune", "com/trashsoftware/gravity2/textures/neptune/neptune_current.jpg");
         TEXTURES.put("Triton", "com/trashsoftware/gravity2/textures/neptune/triton.jpg");
@@ -109,6 +116,10 @@ public class SystemPresets {
     public static ObjectInfo titan = new ObjectInfo(
             "Titan", BodyType.ICE, 1.345e23, 2576, 2575.5, 2573.4, 1222000, 0.0288, 186.585, 0.348, 168.199, 132.8, 0.3, 15.945,
             "#D2B48C", 0.105, 1500
+    );
+    public static ObjectInfo mimas = new ObjectInfo(
+            "Mimas", BodyType.ICE, 3.751e19, 198.2, 198.2, 198.2, 185539, 0.0202, 0, 1.574, 0, 0, 0.0, 0.942,
+            "#F5F5F5", 0.020, 1000
     );
     public static ObjectInfo rhea = new ObjectInfo(
             "Rhea", BodyType.ICE, 2.31e21, 763.8, 764, 762, 527040, 0.001, 252.13, 0.345, 34.333, 75.9, 0.0, 4.518,
@@ -179,7 +190,7 @@ public class SystemPresets {
             "#B22222", 0.030, 550
     );
     public static ObjectInfo ceres = new ObjectInfo(
-            "Ceres", BodyType.ICE, 9.39e20, 473, 473, 473, 413700000, 0.075, 73.597, 10.593, 80.39, 5.8, 0.0, 9.07,
+            "Ceres", BodyType.TERRESTRIAL, 9.39e20, 473, 473, 473, 413700000, 0.075, 73.597, 10.593, 80.39, 5.8, 0.0, 9.07,
             "#FF7F50", 0.045, 450
     );
 
@@ -207,15 +218,15 @@ public class SystemPresets {
 
     // Asteroids
     public static ObjectInfo pallas = new ObjectInfo(
-            "Pallas", BodyType.ICE, 2.04e20, 273, 275, 263, 414500000, 0.231, 310.07, 34.837, 173.085, 83.6, 3.0, 7.813,
+            "Pallas", BodyType.TERRESTRIAL, 2.04e20, 273, 275, 263, 414500000, 0.231, 310.07, 34.837, 173.085, 83.6, 3.0, 7.813,
             "#4169E1", 0.040, 400
     );
     public static ObjectInfo vesta = new ObjectInfo(
-            "Vesta", BodyType.ICE, 2.59e20, 262.7, 285, 229, 353400000, 0.089, 151.198, 7.140, 103.851, 42.3, 4.0, 5.342,
+            "Vesta", BodyType.TERRESTRIAL, 2.59e20, 262.7, 285, 229, 353400000, 0.089, 151.198, 7.140, 103.851, 42.3, 4.0, 5.342,
             "#FFD700", 0.038, 420
     );
     public static ObjectInfo hygiea = new ObjectInfo(
-            "Hygiea", BodyType.ICE, 8.67e19, 216, 222, 207, 470300000, 0.117, 312.5, 3.841, 283.2, 147.2, 3.0, 13.825,
+            "Hygiea", BodyType.TERRESTRIAL, 8.67e19, 216, 222, 207, 470300000, 0.117, 312.5, 3.841, 283.2, 147.2, 3.0, 13.825,
             "#A9A9A9", 0.036, 380
     );
 
@@ -225,7 +236,7 @@ public class SystemPresets {
             "#8B8B83", 0.025, 100
     );
     public static ObjectInfo venus = new ObjectInfo(
-            "Venus", BodyType.TERRESTRIAL, 4.867e24, 6051.8, 6051.8, 6051.8, 108209475, 0.0067, 54.852, 3.394, 76.68, 131.1, 177.36, -243.025,
+            "Venus", BodyType.TERRESTRIAL, 4.867e24, 6051.8, 6051.8, 6051.8, 108209475, 0.0067, 54.852, 3.394, 76.68, 131.1, 177.36, 243.025,
             "#EED2B3", 0.295, 150
     );
     public static ObjectInfo earth = new ObjectInfo(
@@ -242,10 +253,10 @@ public class SystemPresets {
     );
     public static ObjectInfo saturn = new ObjectInfo(
             "Saturn", BodyType.GAS_GIANT, 5.685e26, 58232, 60268, 54364, 1426666422, 0.0565, 336.013, 2.484, 113.665, 205.4, 26.73, 0.444,
-            "#DAA520", 0.341, 18000, titan, rhea, iapetus, dione, tethys, enceladus
+            "#DAA520", 0.341, 18000, titan, rhea, iapetus, dione, tethys, enceladus, mimas
     );
     public static ObjectInfo uranus = new ObjectInfo(
-            "Uranus", BodyType.ICE_GIANT, 8.682e25, 25362, 25559, 24973, 2870658186L, 0.0457, 96.998857, 0.769, 74.006, 88.7, 97.77, -0.718,
+            "Uranus", BodyType.ICE_GIANT, 8.682e25, 25362, 25559, 24973, 2870658186L, 0.0457, 96.998857, 0.769, 74.006, 88.7, 97.77, 0.718,
             "#40E0D0", 0.104, 3000, titania, oberon, umbriel, ariel, miranda
     );
     public static ObjectInfo neptune = new ObjectInfo(
@@ -372,7 +383,6 @@ public class SystemPresets {
 
         double mean = neptune.semiMajorAxis * 1.5 * 1e3;
         double std = mean * 0.25;
-
         addComets(simulator, sun, 80, mean, std);
 
         return 0.005 * 1e-7;
@@ -482,13 +492,16 @@ public class SystemPresets {
     }
 
     static void setTemperatureToSystem(Simulator simulator) {
-        List<CelestialObject> sources = new ArrayList<>();
+        List<Star> sources = new ArrayList<>();
         for (CelestialObject co : simulator.getObjects()) {
-            if (co.isEmittingLight()) sources.add(co);
+//            if (co.isEmittingLight()) sources.add(co);
+            if (co.getStatus() instanceof Star star) {
+                sources.add(star);
+            }
         }
         if (sources.isEmpty()) return;
         for (CelestialObject co : simulator.getObjects()) {
-            if (!sources.contains(co)) {
+            if (!(co.getStatus() instanceof Star)) {
                 double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
                 co.forceSetSurfaceTemperature(temp);
             }

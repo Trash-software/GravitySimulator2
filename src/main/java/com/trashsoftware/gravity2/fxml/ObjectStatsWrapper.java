@@ -3,6 +3,8 @@ package com.trashsoftware.gravity2.fxml;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.*;
+import com.trashsoftware.gravity2.physics.status.Comet;
+import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -359,8 +361,8 @@ public class ObjectStatsWrapper extends HBox {
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
-
-        if (object.isEmittingLight()) {
+        
+        if (object.getStatus() instanceof Star star) {
             if (!hasStarPaneExpanded) {
                 initStarPane();
                 hasStarPaneExpanded = true;
@@ -370,7 +372,7 @@ public class ObjectStatsWrapper extends HBox {
             starPane.setManaged(true);
             planetPane.setVisible(false);
             planetPane.setManaged(false);
-            starRelated(simulator, uc);
+            starRelated(simulator, star, uc);
         } else {
             if (!hasPlanetPaneExpanded) {
                 initPlanetPane();
@@ -385,9 +387,9 @@ public class ObjectStatsWrapper extends HBox {
         }
     }
 
-    private void starRelated(Simulator simulator, UnitsConverter uc) {
-        double luminosity = object.getLuminosity();
-        double colorTemp = object.getEmissionColorTemperature();
+    private void starRelated(Simulator simulator, Star star, UnitsConverter uc) {
+        double luminosity = star.getLuminosity();
+        double colorTemp = star.getEmissionColorTemperature();
 
         luminosityLabel.setText(uc.luminosity(luminosity));
         colorTempLabel.setText(String.format("%.0fK", colorTemp));
@@ -609,7 +611,11 @@ public class ObjectStatsWrapper extends HBox {
     private String objectType() {
         BodyType bodyType = object.getBodyType();
         if (bodyType == BodyType.STAR) {
-            return starType(object.getEmissionColorTemperature());
+            if (object.getStatus() instanceof Star star) {
+                return starType(star.getEmissionColorTemperature());
+            } else {
+                return "";  // should not happen
+            }
         } else if (bodyType == BodyType.BROWN_DWARF) {
             return strings.getString("brownDwarf");
         } else if (bodyType == BodyType.GAS_GIANT) {
@@ -617,17 +623,21 @@ public class ObjectStatsWrapper extends HBox {
         } else if (bodyType == BodyType.ICE_GIANT) {
             return strings.getString("iceGiant");
         } else {
-            int level = object.getLevelFromStar();
-            if (level == 0) {
-                return "";  // should not happen
-            } else if (level == 1) {
-                if (object.getMass() > SystemPresets.MOON_MASS) {
-                    return strings.getString("terrestrialPlanet");
-                } else {
-                    return strings.getString("smallPlanet");
-                }
+            if (object.getStatus() instanceof Comet) {
+                return strings.getString("comet");
             } else {
-                return strings.getString("levelMoon");
+                int level = object.getLevelFromStar();
+                if (level == 0) {
+                    return "";  // should not happen
+                } else if (level == 1) {
+                    if (object.getMass() > SystemPresets.MOON_MASS) {
+                        return strings.getString("terrestrialPlanet");
+                    } else {
+                        return strings.getString("smallPlanet");
+                    }
+                } else {
+                    return strings.getString("levelMoon");
+                }
             }
         }
     }

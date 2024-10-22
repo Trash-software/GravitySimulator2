@@ -1,6 +1,9 @@
 package com.trashsoftware.gravity2.physics;
 
 import com.trashsoftware.gravity2.gui.GuiUtils;
+import com.trashsoftware.gravity2.physics.status.Comet;
+import com.trashsoftware.gravity2.physics.status.Star;
+import com.trashsoftware.gravity2.physics.status.Status;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.JsonUtil;
 import com.trashsoftware.gravity2.utils.Util;
@@ -14,6 +17,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     public static final double REF_HEAT_CAPACITY = 14300.0;
     public static final double STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
+    public static final double BOLTZMANN_CONSTANT = 1.380649e-23;
+    public static final double PROTON_MASS = 1.6726e-27;
 
     protected double[] position;
     protected double[] velocity;
@@ -29,6 +34,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected double surfaceThermalEnergy;
     protected String id;
     protected String shownName;
+    
+    protected Status status;
 
     private boolean exist = true;
 
@@ -53,7 +60,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected transient double hillRadius;
     protected transient double possibleRocheLimit;
     protected transient double approxRocheLimit;
-    protected transient double lastLuminosity;
+//    protected transient double lastLuminosity;
 
     CelestialObject(String id,
                     BodyType bodyType,
@@ -91,7 +98,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
         approxRocheLimit = Simulator.computeRocheLimitSolid(this);
         
-        updateLuminosity();
+//        updateLuminosity();
+        updateStatus(true);
     }
 
     public static CelestialObject create2d(String name,
@@ -467,6 +475,14 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         surfaceThermalEnergy -= emission * timeStep;
         surfaceThermalEnergy = Math.max(0, surfaceThermalEnergy);
     }
+    
+    public double vapor(Comet comet, double timeStep, List<Star> lightSources) {
+        // todo
+        double sa = getSurfaceArea();
+        double mlr = comet.massLossRate(getSurfaceTemperature(sa), sa);
+//        this.mass -= mlr * timeStep;
+        return mlr;
+    }
 
     /**
      * The following two emission does not relate to nuclear reaction
@@ -480,35 +496,61 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return thermalEmission(getSurfaceTemperature(surfaceArea), surfaceArea);
     }
 
+    public Status getStatus() {
+        return status;
+    }
+    
+    public double getLuminosity() {
+        if (status instanceof Star star) return star.getLuminosity();
+        return 0;
+    }
+
     public boolean isEmittingLight() {
         return getLuminosity() > 0;
     }
     
-    protected double updateLuminosity() {
+    protected void updateStatus(boolean updateStars) {
         if (getMass() < SystemPresets.JUPITER_MASS * 80) {
-            lastLuminosity = 0;
-        } else {
+            if (bodyType == BodyType.ICE) {
+                if (getSurfaceTemperature() > 150) {
+                    // todo: sublimation temperature
+                    
+                    if (status instanceof Comet comet) {
+                        
+                    } else {
+                        status = new Comet(this);
+                    }
+                } else {
+                    status = null;
+                }
+            } else {
+                status = null;
+            }
+        } else if (updateStars) {
             // todo: assume is main sequence
             double ratio = Math.pow(getMass() / SystemPresets.SOLAR_MASS, 3.5);
-            lastLuminosity = ratio * SystemPresets.SOLAR_LUMINOSITY;
+            double luminosity = ratio * SystemPresets.SOLAR_LUMINOSITY;
+            if (status instanceof Star star) {
+                star.setLuminosity(luminosity);
+            } else {
+                status = new Star(this, luminosity);
+            }
         }
-        return lastLuminosity;
-    }
-
-    public double getLuminosity() {
-        return lastLuminosity;
-    }
-
-    public double getEmissionColorTemperature() {
-        double lumin = getLuminosity();
-        if (lumin == 0) return 0;
-        double radius = getAverageRadius();
-        return computeEmissionColorTemperature(lumin, radius);
     }
     
-    public static double computeEmissionColorTemperature(double luminosity, double radius) {
-        double divisor = 4 * Math.PI * radius * radius * STEFAN_BOLTZMANN_CONSTANT;
-        return Math.pow(luminosity / divisor, 0.25);
+//    protected double updateLuminosity() {
+//        if (getMass() < SystemPresets.JUPITER_MASS * 80) {
+//            lastLuminosity = 0;
+//        } else {
+//            // todo: assume is main sequence
+//            double ratio = Math.pow(getMass() / SystemPresets.SOLAR_MASS, 3.5);
+//            lastLuminosity = ratio * SystemPresets.SOLAR_LUMINOSITY;
+//        }
+//        return lastLuminosity;
+//    }
+    
+    public double orbitSpeedOfN(double G, double n) {
+        return Math.sqrt(n * G * getMass() / getAverageRadius());
     }
 
     public BodyType getBodyType() {
@@ -1023,11 +1065,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
 
     public static double approxSurfaceTemperatureOf(CelestialObject co,
-                                                    List<CelestialObject> sources) {
+                                                    List<Star> sources) {
         double albedo = co.estimateAlbedo();
         double totalFi = 0;
-        for (CelestialObject source : sources) {
-            double distance = VectorOperations.distance(source.getPosition(), co.getPosition());
+        for (Star source : sources) {
+            double distance = VectorOperations.distance(source.co.getPosition(), co.getPosition());
             double fIncident = fIncident(source.getLuminosity(), distance);
             totalFi += fIncident;
         }

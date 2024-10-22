@@ -21,6 +21,7 @@ import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.physics.*;
+import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.OrbitPlane;
@@ -56,8 +57,10 @@ public class JmeApp extends SimpleApplication {
     protected boolean playing = true;
     private boolean locked = false;
     protected double scale = 1.0;
+    private final Vector3d screenCenterAutoMove = new Vector3d();
+    private final Vector3d refOffsetAutoMove = new Vector3d();
     private final Vector3d screenCenter = new Vector3d();  // must be double, otherwise the distance object will jump
-    private double refOffsetX, refOffsetY, refOffsetZ;
+    private final Vector3d refOffset = new Vector3d();
     //    private double focusingLastX, focusingLastY, focusingLastZ;
     private final Vector3f centerRelToFocus = new Vector3f();
 
@@ -229,18 +232,18 @@ public class JmeApp extends SimpleApplication {
 
         gridPlaneNode = new GridPlane(this);
         gridPlaneNode.setLocalTranslation(0, 0, 0);
-        
+
         initTelescopeAimingNode();
         telescopeAimingNode.setLocalTranslation(screenWidth / 2f, screenHeight / 2f, 0);
     }
-    
+
     private void initTelescopeAimingNode() {
         telescopeAimingNode = new Node();
-        
+
         float w = 15f;
         float h = 12f;
         float len = 5f;
-        
+
         ColorRGBA color = ColorRGBA.Gray;
         // top left
         telescopeAimingNode.attachChild(createLine(new Vector3f(-w, h, 0), new Vector3f(-w + len, h, 0), color));
@@ -343,6 +346,7 @@ public class JmeApp extends SimpleApplication {
 //        orbitTest();
         solarSystemTest();
 //        solarSystemWithCometsTest();
+//        cometTest();
 //        smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
@@ -750,10 +754,11 @@ public class JmeApp extends SimpleApplication {
 
     private void spawn() {
         if (!spawning.object.isEmittingLight()) {
-            List<CelestialObject> sources = new ArrayList<>();
-            for (CelestialObject co : simulator.getObjects()) {
-                if (co.isEmittingLight()) sources.add(co);
-            }
+//            List<CelestialObject> sources = new ArrayList<>();
+//            for (CelestialObject co : simulator.getObjects()) {
+//                if (co.isEmittingLight()) sources.add(co);
+//            }
+            List<Star> sources = simulator.getAllLightSources();
             double temperature = CelestialObject.approxSurfaceTemperatureOf(spawning.object, sources);
             spawning.object.forceSetSurfaceTemperature(temperature);
         }
@@ -874,15 +879,20 @@ public class JmeApp extends SimpleApplication {
             System.out.println("Focused on " + object.getId());
 
             focusing = object;
-            double focusingLastX = focusing.getX() - refOffsetX;
-            double focusingLastY = focusing.getY() - refOffsetY;
-            double focusingLastZ = focusing.getZ() - refOffsetZ;
+            Vector3d focusingRef = new Vector3d(focusing.getX(), focusing.getY(), focusing.getZ());
+            focusingRef = focusingRef.subtract(refOffset);
+
+//            double focusingLastX = focusing.getX() - refOffsetX;
+//            double focusingLastY = focusing.getY() - refOffsetY;
+//            double focusingLastZ = focusing.getZ() - refOffsetZ;
 
             centerRelToFocus.set(0, 0, 0);
 
-            screenCenter.setX(focusingLastX * scale);
-            screenCenter.setY(focusingLastY * scale);
-            screenCenter.setZ(focusingLastZ * scale);
+            screenCenter.set(focusingRef.mult(scale));
+
+//            screenCenter.setX(focusingLastX * scale);
+//            screenCenter.setY(focusingLastY * scale);
+//            screenCenter.setZ(focusingLastZ * scale);
 
             updateCurvesShowing();
 
@@ -892,22 +902,23 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void moveScreenWithFocus() {
-        double focusingLastX = focusing.getX() - refOffsetX;
-        double focusingLastY = focusing.getY() - refOffsetY;
-        double focusingLastZ = focusing.getZ() - refOffsetZ;
+        Vector3d focusingRef = new Vector3d(focusing.getX(), focusing.getY(), focusing.getZ());
+        focusingRef = focusingRef.subtract(refOffset);
 
-        screenCenter.setX((focusingLastX * scale) + centerRelToFocus.x);
-        screenCenter.setY((focusingLastY * scale) + centerRelToFocus.y);
-        screenCenter.setZ((focusingLastZ * scale) + centerRelToFocus.z);
-
-//        System.out.println(screenCenter);
-//        cam.setLocation(cam.getLocation().add(delta));
-//        lookAtPoint.addLocal(delta);
+        Vector3d newCenter = focusingRef.mult(scale).add(Vector3d.fromVector3f(centerRelToFocus));
+        screenCenterAutoMove.set(newCenter.subtract(screenCenter));
+        screenCenter.set(newCenter);
     }
 
     private void moveCameraWithFirstPerson() {
 //        System.out.println(screenCenter + " === " + centerRelToFocus);
         firstPersonStar.updateCamera(cam);
+    }
+
+    public Vector3d getLastFrameScreenMovement() {
+//        if (focusing == null) return Vector3d.ZERO;
+//        System.out.println(screenCenterAutoMove + ", " + refOffsetAutoMove);
+        return screenCenterAutoMove.add(refOffsetAutoMove.mult(scale));
     }
 
     private void computeSpawningMaster() {
@@ -936,27 +947,27 @@ public class JmeApp extends SimpleApplication {
     }
 
     public float paneX(double realX) {
-        return (float) ((realX - refOffsetX) * scale - screenCenter.x);
+        return (float) ((realX - refOffset.x) * scale - screenCenter.x);
     }
 
     public float paneY(double realY) {
-        return (float) ((realY - refOffsetY) * scale - screenCenter.y);
+        return (float) ((realY - refOffset.y) * scale - screenCenter.y);
     }
 
     public float paneZ(double realZ) {
-        return (float) ((realZ - refOffsetZ) * scale - screenCenter.z);
+        return (float) ((realZ - refOffset.z) * scale - screenCenter.z);
     }
 
     public double realXFromPane(float paneX) {
-        return (paneX + screenCenter.x) / scale + refOffsetX;
+        return (paneX + screenCenter.x) / scale + refOffset.x;
     }
 
     public double realYFromPane(float paneY) {
-        return (paneY + screenCenter.y) / scale + refOffsetY;
+        return (paneY + screenCenter.y) / scale + refOffset.y;
     }
 
     public double realZFromPane(float paneZ) {
-        return (paneZ + screenCenter.z) / scale + refOffsetZ;
+        return (paneZ + screenCenter.z) / scale + refOffset.z;
     }
 
     public Vector3f panePosition(double[] realPos) {
@@ -980,24 +991,28 @@ public class JmeApp extends SimpleApplication {
         RefFrame refFrame = getRefFrame();
         if (firstPersonStar != null) {
             double[] pos = firstPersonStar.getObject().getPosition();
-            refOffsetX = pos[0];
-            refOffsetY = pos[1];
-            refOffsetZ = pos[2];
+            Vector3d newRef = Vector3d.fromArray(pos);
+            refOffsetAutoMove.set(newRef.subtract(refOffset));
+            refOffset.set(newRef);
+            return;
         } else {
             if (refFrame == RefFrame.SYSTEM) {
                 double[] barycenter = simulator.barycenter();
-                refOffsetX = barycenter[0];
-                refOffsetY = barycenter[1];
-                refOffsetZ = barycenter[2];
+                Vector3d newRef = Vector3d.fromArray(barycenter);
+                refOffsetAutoMove.set(newRef.subtract(refOffset));
+                refOffset.set(newRef);
+                return;
             } else if (refFrame == RefFrame.TARGET) {
                 if (focusing != null) {
                     double[] pos = focusing.getPosition();
-                    refOffsetX = pos[0];
-                    refOffsetY = pos[1];
-                    refOffsetZ = pos[2];
+                    Vector3d newRef = Vector3d.fromArray(pos);
+                    refOffsetAutoMove.set(newRef.subtract(refOffset));
+                    refOffset.set(newRef);
+                    return;
                 }
             }
         }
+        refOffsetAutoMove.set(0, 0, 0);
     }
 
     private void updateBarycentersNodes() {
@@ -1397,9 +1412,9 @@ public class JmeApp extends SimpleApplication {
                 }
 
                 if (centerPath != null) {
-                    offset[0] = temp[0] - refOffsetX;
-                    offset[1] = temp[1] - refOffsetY;
-                    offset[2] = temp[2] - refOffsetZ;
+                    offset[0] = temp[0] - refOffset.x;
+                    offset[1] = temp[1] - refOffset.y;
+                    offset[2] = temp[2] - refOffset.z;
                 }
 
                 if (index == numPoints) break;
@@ -1477,9 +1492,9 @@ public class JmeApp extends SimpleApplication {
                 }
 
                 if (centerPath != null) {
-                    offset[0] = temp[0] - refOffsetX;
-                    offset[1] = temp[1] - refOffsetY;
-                    offset[2] = temp[2] - refOffsetZ;
+                    offset[0] = temp[0] - refOffset.x;
+                    offset[1] = temp[1] - refOffset.y;
+                    offset[2] = temp[2] - refOffset.z;
                 }
 
                 Vector3f vector3f = new Vector3f(
@@ -1821,6 +1836,11 @@ public class JmeApp extends SimpleApplication {
         scale *= 0.5;
     }
 
+    private void cometTest() {
+        scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
+//        simulator.addObject();
+    }
+
     private void ellipseClusterTest() {
         scale = Preset.ELLIPSE_CLUSTER.instantiate(simulator);
         simulator.setEnableDisassemble(false);
@@ -1930,6 +1950,7 @@ public class JmeApp extends SimpleApplication {
     public void clearFocus() {
         enqueue(() -> {
             focusing = null;
+            screenCenterAutoMove.set(0, 0, 0);
             updateCurvesShowing();
         });
     }
@@ -2125,6 +2146,10 @@ public class JmeApp extends SimpleApplication {
                 it.remove();
             }
         }
+    }
+
+    public float getFrameRate() {
+        return getTimer().getFrameRate();
     }
 
     public enum RefFrame {
