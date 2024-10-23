@@ -25,6 +25,7 @@ import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
+import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.CelestialObject;
 import com.trashsoftware.gravity2.physics.HieraticalSystem;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
@@ -198,14 +199,14 @@ public class ObjectModel {
                 ParticleMesh.Type.Triangle, 300);
         Material dustTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
         dustTailMat.setTexture("Texture", 
-                jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail.png"));
+                jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail_mirror.png"));
         cometDustTail.setMaterial(dustTailMat);
         cometDustTail.setImagesX(1);
         cometDustTail.setImagesY(3);
 
         cometDustTail.setStartColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f));
         cometDustTail.setEndColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 0.0f));
-        cometDustTail.getParticleInfluencer().setVelocityVariation(0.1f);
+        cometDustTail.getParticleInfluencer().setVelocityVariation(0.05f);
         cometDustTail.setFacingVelocity(true);
         
         objectNode.attachChild(cometDustTail);
@@ -218,7 +219,7 @@ public class ObjectModel {
                     ParticleMesh.Type.Triangle, 200);
             Material ionTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
             ionTailMat.setTexture("Texture", 
-                    jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail.png"));
+                    jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail_mirror.png"));
             ionTail.setMaterial(ionTailMat);
             ionTail.setImagesX(1);
             ionTail.setImagesY(3);
@@ -249,64 +250,76 @@ public class ObjectModel {
     
     private void adjustCometTails(Comet comet) {
         float scaleF = (float) jmeApp.getScale();
-        float speedF = (float) jmeApp.getSimulationSpeed();
+//        float speedF = (float) jmeApp.getSimulationSpeed();
         
         Vector3f focusMove = jmeApp.getLastFrameScreenMovement().toVector3f();
         
         CometTailParams dust = comet.getDustTail();
-        float density1 = (float) (dust.tailDensity / 1e5);
+        float timeStepF = (float) dust.timeSteps;
+//        float density1 = (float) (dust.tailDensity / 1e5);
         
         Vector3f initVel1 = GuiUtils.fromDoubleArray(dust.velocity)
-                .mult(speedF * scaleF * -5);
+                .mult(timeStepF * scaleF * -1);
         initVel1.subtractLocal(focusMove);
         initVel1.multLocal(jmeApp.getFrameRate());
         
         float velMag1 = initVel1.length();
-        float life1 = (float) (dust.tailLength * scaleF / velMag1);
+        float dustTailLen = (float) (dust.tailLength * scaleF);
+        float life1 = dustTailLen / velMag1;
 
-        float particleRate1 = density1 / life1;
+        float particleRate1 = cometDustTail.getMaxNumParticles() / life1;
 //        System.out.println(particleRate1 + " life: " + life1);
-        particleRate1 = FastMath.clamp(particleRate1, 10, 100);
+        particleRate1 = FastMath.clamp(particleRate1, 5, 50);
+        
+        float dustSize = (float) (comet.co.getAverageRadius() * scaleF * 100f);
+        float dustSize2 = dustTailLen / 100f;
+        dustSize = Math.max(dustSize, dustSize2);
 
         cometDustTail.setParticlesPerSec(particleRate1);
         cometDustTail.setLowLife(life1 * 0.5f);
         cometDustTail.setHighLife(life1);
-        cometDustTail.setStartSize((float) (comet.co.getAverageRadius() * scaleF * 2000f));
-        cometDustTail.setEndSize((float) (comet.co.getAverageRadius() * scaleF * 10000f));
+        cometDustTail.setStartSize(dustSize);
+        cometDustTail.setEndSize(dustSize * 5);
         cometDustTail.getParticleInfluencer().setInitialVelocity(initVel1);
         
         for (var entry : comet.getIonTails().entrySet()) {
             CometTailParams ctp = entry.getValue();
             ParticleEmitter ionTail = cometIonTails.get(entry.getKey());
             
-            float density = (float) (ctp.tailDensity / 3e5);
+//            float density = (float) (ctp.tailDensity / 3e5);
 
             Vector3f initVel = GuiUtils.fromDoubleArray(ctp.velocity)
-                    .mult(speedF * scaleF * jmeApp.getFrameRate() * -5);
+                    .mult(timeStepF * scaleF * -1);
+            initVel.subtractLocal(focusMove);
+            initVel.multLocal(jmeApp.getFrameRate());
+            
             float velMag = initVel.length();
-            float life = (float) (ctp.tailLength * scaleF / velMag);
+            float ionTailLen = (float) (ctp.tailLength * scaleF);
+            float life = ionTailLen / velMag;
             
-//            float life = (float) (ctp.tailLength / 1e12 / speedF);
-            
-            float particleRate = density / life;
-            particleRate = FastMath.clamp(particleRate, 10, 100);
+            float particleRate = ionTail.getMaxNumParticles() / life;
+            particleRate = FastMath.clamp(particleRate, 5, 50);
+
+            float ionSize = (float) (comet.co.getAverageRadius() * scaleF * 20f);
+            float ionSize2 = ionTailLen / 300f;
+            ionSize = Math.max(ionSize, ionSize2);
             
 //            ionTail.setNumParticles((int) density);
             ionTail.setParticlesPerSec(particleRate);
             ionTail.setLowLife(life * 0.5f);
             ionTail.setHighLife(life);
-            ionTail.setStartSize((float) (comet.co.getAverageRadius() * scaleF * 2000));
-            ionTail.setEndSize((float) (comet.co.getAverageRadius() * scaleF * 2000));
+            ionTail.setStartSize(ionSize);
+            ionTail.setEndSize(ionSize);
 //            ionTail.set
 
             // Compute the direction of the tail (from comet to star, normalized)
-//            Vector3f tailDirection = GuiUtils.fromDoubleArray(ctp.initDirection);
-//            Vector3f initVel = GuiUtils.fromDoubleArray(ctp.velocity)
-//                    .mult(speedF)
-//                    .mult(scaleF * jmeApp.getFrameRate() * -30);
             ionTail.getParticleInfluencer().setInitialVelocity(initVel); // Fast solar wind speed
 
 //            System.out.println(initVel + " " + density + " " + life);
+//            System.out.println("Dust tail len: " + UnitsUtil.adaptiveDistance(comet.getDustTail().tailLength) + 
+//                    ", ion tail len: " + UnitsUtil.adaptiveDistance(ctp.tailLength) + 
+//                    ", ion tail speed: " + UnitsUtil.adaptiveSpeed(VectorOperations.magnitude(ctp.velocity)) + 
+//                    ", timeStep: " + ctp.timeSteps);
             
         }
     }

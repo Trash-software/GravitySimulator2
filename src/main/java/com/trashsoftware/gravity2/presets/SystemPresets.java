@@ -86,11 +86,11 @@ public class SystemPresets {
 
     // Moons of Mars
     public static ObjectInfo phobos = new ObjectInfo(
-            "Phobos", BodyType.ICE, 1.0659e16, 11.1, 13, 11, 9376, 0.0151, 150.057, 1.093, 49.247, 23.51, 0.0, 0.319,
+            "Phobos", BodyType.TERRESTRIAL, 1.0659e16, 11.1, 13, 11, 9376, 0.0151, 150.057, 1.093, 49.247, 23.51, 0.0, 0.319,
             "#704241", 0.005, 100
     );
     public static ObjectInfo deimos = new ObjectInfo(
-            "Deimos", BodyType.ICE, 1.4762e15, 6.2, 7.5, 6.1, 23460, 0.00033, 260.73, 0.93, 49.29, 176.12, 0.0, 1.263,
+            "Deimos", BodyType.TERRESTRIAL, 1.4762e15, 6.2, 7.5, 6.1, 23460, 0.00033, 260.73, 0.93, 49.29, 176.12, 0.0, 1.263,
             "#A0522D", 0.005, 100
     );
 

@@ -258,6 +258,19 @@ public class Simulator {
 
         updateBarycenter();
 
+        if (!highPerformanceMode) {
+            for (CelestialObject co : objects) {
+                co.updateRotation(performedTimeSteps);
+            }
+            updateTidal(performedTimeSteps);
+            updateIndependentStatus();  // pre update
+            performTemperatureChange(performedTimeSteps);
+            // post update
+            if (updateDependentStatus(performedTimeSteps)) {
+                changeHappen = true;
+            }
+        }
+
         boolean changed = changeHappen || objects.size() != nObj;
         if (changed) {
             keepOrder();
@@ -266,14 +279,6 @@ public class Simulator {
 
         if (!highPerformanceMode) {
             updateMasters();
-
-            for (CelestialObject co : objects) {
-                co.updateRotation(performedTimeSteps);
-            }
-            updateTidal(performedTimeSteps);
-            updateIndependentStatus();  // pre update
-            performTemperatureChange(performedTimeSteps);
-            updateDependentStatus(performedTimeSteps);  // post update
         }
 
         return result;
@@ -1336,7 +1341,7 @@ public class Simulator {
 
         return velocity;
     }
-    
+
     public FullOrbitSpec computeOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
         AbstractObject child;
         if (isPrimary) {
@@ -1454,7 +1459,7 @@ public class Simulator {
         double cbrt = Math.cbrt(inside);
         return ae[0] * (1 - ae[1]) * cbrt;
     }
-    
+
     public static double hillRadius(CelestialObject target, CelestialObject master, double G) {
         double m1 = master.mass;
         double m2 = target.mass;
@@ -1525,24 +1530,33 @@ public class Simulator {
 
         return new double[][]{L1, L2, L3, L4, L5};
     }
-    
+
     void updateIndependentStatus() {
         for (CelestialObject co : objects) {
             co.updateStatus(true);
         }
     }
 
-    void updateDependentStatus(double timeStep) {
+    boolean updateDependentStatus(double timeStep) {
+        boolean changed = false;
         List<Star> sources = getAllLightSources();
-        for (CelestialObject co : objects) {
+        int n = objects.size();
+        for (int i = n - 1; i >= 0; i--) {
+            CelestialObject co = objects.get(i);
             co.updateStatus(false);  // majorly setup for the comets
             if (co.getStatus() instanceof Comet comet) {
                 double lossRate = co.vapor(comet, timeStep, sources);
-                comet.updateTails(this, sources, lossRate);
+                if (co.getMass() <= 0) {
+                    objects.remove(i);
+                    changed = true;
+                    continue;
+                }
+                comet.updateTails(this, sources, lossRate, timeStep);
             }
         }
+        return changed;
     }
-    
+
     public List<Star> getAllLightSources() {
         List<Star> result = new ArrayList<>();
         for (CelestialObject co : objects) {
@@ -1672,8 +1686,8 @@ public class Simulator {
             // todo: different equator, polar radius
             double t = primary.getAverageRadius() / dt;
             double[] bulgePos = VectorOperations.scale(relPos, t);  // bulge pos relative to primary's center
-            double[] nextBulgePos = VectorOperations.rotateVector(bulgePos, 
-                    primary.getRotationAxis(), 
+            double[] nextBulgePos = VectorOperations.rotateVector(bulgePos,
+                    primary.getRotationAxis(),
                     primary.angularVelocity);
             double[] nextBulgePosSky = VectorOperations.scale(nextBulgePos, 1 / t);  // todo: equator, polar
             double[] nextSecondaryPos = VectorOperations.add(relPos, secondary.getVelocity());
@@ -1681,7 +1695,7 @@ public class Simulator {
             double strength = -tidalSpeedChange(primary, secondary, dt) * tidalEffectFactor * timeStep * 5e3;
             double[] tidalAcc = VectorOperations.scale(VectorOperations.normalize(forceDirection), strength);
             VectorOperations.addInPlace(secondary.velocity, tidalAcc);
-            
+
             // pull to the equator
             double latitude = VectorOperations.latitudeOf(primary.getRotationAxis(), relPos);
             int latSign = latitude < 0 ? -1 : 1;

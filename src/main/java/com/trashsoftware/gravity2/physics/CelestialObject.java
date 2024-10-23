@@ -19,6 +19,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public static final double STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
     public static final double BOLTZMANN_CONSTANT = 1.380649e-23;
     public static final double PROTON_MASS = 1.6726e-27;
+    public static final double WATER_MOLE_MASS = 3e-26;
 
     protected double[] position;
     protected double[] velocity;
@@ -477,11 +478,25 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
     
     public double vapor(Comet comet, double timeStep, List<Star> lightSources) {
-        // todo
-        double sa = getSurfaceArea();
-        double mlr = comet.massLossRate(getSurfaceTemperature(sa), sa);
-//        this.mass -= mlr * timeStep;
-        return mlr;
+        int iteration = (int) Math.min(16, timeStep);
+        double each = timeStep / iteration;
+        
+        double totalMlr = 0;
+
+        for (int i = 0; i < iteration; i++) {
+            double sa = getSurfaceArea();
+            double mlr = comet.massLossRate(getSurfaceTemperature(sa), sa);
+            double density = getDensity();
+            double massLoss = mlr * each;
+            this.mass -= massLoss;
+            if (this.mass <= 0) return mlr;
+            setRadiusByVolume(this.mass / density);
+            totalMlr += mlr;
+            
+            this.surfaceThermalEnergy -= massLoss * 2.83e6;  // vapor heat loss
+        }
+        
+        return totalMlr / iteration;
     }
 
     /**
