@@ -66,6 +66,8 @@ public class ObjectListPanel extends AbstractObjectPanel {
         setCheckBoxes();
         setInputsFields();
         setMenu();
+        
+        colorPicker.setValue(Color.DARKGRAY);
     }
 
     @Override

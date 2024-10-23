@@ -35,7 +35,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected double surfaceThermalEnergy;
     protected String id;
     protected String shownName;
-    
+
     protected Status status;
 
     private boolean exist = true;
@@ -98,7 +98,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         possibleRocheLimit = Simulator.computeMaxRocheLimit(this);
 //        approxRocheLimit = Simulator.computeRocheLimitLiquid(this);
         approxRocheLimit = Simulator.computeRocheLimitSolid(this);
-        
+
 //        updateLuminosity();
         updateStatus(true);
     }
@@ -251,7 +251,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 texturePath,
                 0
         );
-        
+
         co.shownName = JsonUtil.optString(json, "shownName", null);
 
         co.exist = json.getBoolean("exist");
@@ -318,7 +318,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        material.setDiffuseColor(color);
 //        model.setMaterial(material);
 //    }
-    
+
     public void setShownName(String shownName) {
         this.shownName = shownName;
     }
@@ -326,20 +326,20 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public String getShownName() {
         return shownName;
     }
-    
+
     public String getNameShowing() {
         if (shownName != null) return shownName;
         else return id;
     }
-    
+
     public void forceSetBasics(double mass, double avgRadius) {
         double internalTemp = getBodyAverageTemperature();
-        
+
         double adjustRatio = avgRadius / getAverageRadius();
         this.mass = mass;
         equatorialRadius *= adjustRatio;
         polarRadius *= adjustRatio;
-        
+
         internalThermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, internalTemp);
     }
 
@@ -476,11 +476,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         surfaceThermalEnergy -= emission * timeStep;
         surfaceThermalEnergy = Math.max(0, surfaceThermalEnergy);
     }
-    
+
     public double vapor(Comet comet, double timeStep, List<Star> lightSources) {
         int iteration = (int) Math.min(16, timeStep);
         double each = timeStep / iteration;
-        
+
         double totalMlr = 0;
 
         for (int i = 0; i < iteration; i++) {
@@ -489,13 +489,18 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             double density = getDensity();
             double massLoss = mlr * each;
             this.mass -= massLoss;
-            if (this.mass <= 0) return mlr;
+            if (this.mass <= 0) {
+                this.mass = 0;
+                return mlr;
+            }
             setRadiusByVolume(this.mass / density);
             totalMlr += mlr;
-            
-            this.surfaceThermalEnergy -= massLoss * 2.83e6;  // vapor heat loss
+
+            double heatLoss = massLoss * 2.83e6;
+            heatLoss = Math.min(heatLoss, this.surfaceThermalEnergy * 0.5);
+            this.surfaceThermalEnergy -= heatLoss;  // vapor heat loss
         }
-        
+
         return totalMlr / iteration;
     }
 
@@ -514,7 +519,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public Status getStatus() {
         return status;
     }
-    
+
     public double getLuminosity() {
         if (status instanceof Star star) return star.getLuminosity();
         return 0;
@@ -523,15 +528,15 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public boolean isEmittingLight() {
         return getLuminosity() > 0;
     }
-    
+
     protected void updateStatus(boolean updateStars) {
         if (getMass() < SystemPresets.JUPITER_MASS * 80) {
             if (bodyType == BodyType.ICE) {
                 if (getSurfaceTemperature() > 150) {
                     // todo: sublimation temperature
-                    
+
                     if (status instanceof Comet comet) {
-                        
+
                     } else {
                         status = new Comet(this);
                     }
@@ -552,7 +557,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
             }
         }
     }
-    
+
 //    protected double updateLuminosity() {
 //        if (getMass() < SystemPresets.JUPITER_MASS * 80) {
 //            lastLuminosity = 0;
@@ -563,7 +568,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        }
 //        return lastLuminosity;
 //    }
-    
+
     public double orbitSpeedOfN(double G, double n) {
         return Math.sqrt(n * G * getMass() / getAverageRadius());
     }
@@ -966,7 +971,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     public double getDensity() {
         return mass / getVolume();
     }
-    
+
     public double getOblateness() {
         double eqr = getEquatorialRadius();
         return (eqr - getPolarRadius()) / eqr;

@@ -206,7 +206,7 @@ public class ObjectModel {
 
         cometDustTail.setStartColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f));
         cometDustTail.setEndColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 0.0f));
-        cometDustTail.getParticleInfluencer().setVelocityVariation(0.05f);
+        cometDustTail.getParticleInfluencer().setVelocityVariation(0.1f);
         cometDustTail.setFacingVelocity(true);
         
         objectNode.attachChild(cometDustTail);
@@ -271,15 +271,15 @@ public class ObjectModel {
 //        System.out.println(particleRate1 + " life: " + life1);
         particleRate1 = FastMath.clamp(particleRate1, 5, 50);
         
-        float dustSize = (float) (comet.co.getAverageRadius() * scaleF * 100f);
-        float dustSize2 = dustTailLen / 100f;
+        float dustSize = (float) (comet.co.getAverageRadius() * scaleF * 50f);
+        float dustSize2 = dustTailLen / 200f;
         dustSize = Math.max(dustSize, dustSize2);
 
         cometDustTail.setParticlesPerSec(particleRate1);
         cometDustTail.setLowLife(life1 * 0.5f);
         cometDustTail.setHighLife(life1);
         cometDustTail.setStartSize(dustSize);
-        cometDustTail.setEndSize(dustSize * 5);
+        cometDustTail.setEndSize(dustSize * 20);
         cometDustTail.getParticleInfluencer().setInitialVelocity(initVel1);
         
         for (var entry : comet.getIonTails().entrySet()) {
@@ -300,8 +300,8 @@ public class ObjectModel {
             float particleRate = ionTail.getMaxNumParticles() / life;
             particleRate = FastMath.clamp(particleRate, 5, 50);
 
-            float ionSize = (float) (comet.co.getAverageRadius() * scaleF * 20f);
-            float ionSize2 = ionTailLen / 300f;
+            float ionSize = (float) (comet.co.getAverageRadius() * scaleF * 10f);
+            float ionSize2 = ionTailLen / 500f;
             ionSize = Math.max(ionSize, ionSize2);
             
 //            ionTail.setNumParticles((int) density);
@@ -340,6 +340,17 @@ public class ObjectModel {
             initCometTails(comet);
         }
         adjustCometTails(comet);
+    }
+    
+    public void clearEffects() {
+        if (cometDustTail != null) {
+            cometDustTail.killAllParticles();
+        }
+        if (cometIonTails != null) {
+            for (ParticleEmitter pe : cometIonTails.values()) {
+                pe.killAllParticles();
+            }
+        }
     }
     
     private void updateLightSource() {

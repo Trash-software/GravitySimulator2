@@ -342,9 +342,9 @@ public class JmeApp extends SimpleApplication {
 //        saturnRingTest();
 //        rocheEffectTest();
 //        toyStarSystemTest();
-//        harmonicSystemTest();
+        harmonicSystemTest();
 //        orbitTest();
-        solarSystemTest();
+//        solarSystemTest();
 //        solarSystemWithCometsTest();
 //        cometTest();
 //        smallSolarSystemTest();
@@ -380,6 +380,12 @@ public class JmeApp extends SimpleApplication {
         // left its paths continues alive
         if (om.emissionLight != null) {
             om.removeEmissionLight();
+        }
+    }
+    
+    void clearParticleEffects() {
+        for (ObjectModel om : modelMap.values()) {
+            om.clearEffects();
         }
     }
 
@@ -853,6 +859,7 @@ public class JmeApp extends SimpleApplication {
             System.out.println("New scale: " + scale);
 
             setCamera1stPerson();
+            clearParticleEffects();
 
             if (om.firstPersonMoving == null) {
                 om.firstPersonMoving = new FirstPersonMoving(om, 3e5);

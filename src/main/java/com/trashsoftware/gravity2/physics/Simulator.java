@@ -1547,6 +1547,7 @@ public class Simulator {
             if (co.getStatus() instanceof Comet comet) {
                 double lossRate = co.vapor(comet, timeStep, sources);
                 if (co.getMass() <= 0) {
+                    System.out.println(co.getId() + " has vaporized");
                     objects.remove(i);
                     changed = true;
                     continue;

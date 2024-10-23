@@ -62,15 +62,16 @@ public class Comet extends Status {
             
             double ionRate = massLossRate * getVolatileFraction();
             double density = Math.sqrt(ionRate);
-            double windSpeed = star.getStellarWindSpeed(simulator.getG());
+            double windSpeed = star.getStellarWindSpeed();
             
             double length = Math.sqrt(ionRate) * windSpeed * 1e3;
-            System.out.println("Wind: " + UnitsUtil.adaptiveSpeed(windSpeed) + 
-                    ", ion tail length: " + UnitsUtil.adaptiveDistance(length));
+//            System.out.println("Wind: " + UnitsUtil.adaptiveSpeed(windSpeed) + 
+//                    ", ion tail length: " + UnitsUtil.adaptiveDistance(length));
             double[] windVel = VectorOperations.scale(windUnitDir, windSpeed);
             windSum = VectorOperations.add(windSum, windVel);
             
             double[] ionTailVel = VectorOperations.add(windVel, cometVelToParent);
+//            double[] ionTailVel = windVel;
             
             length = Math.min(length, SystemPresets.AU);
             
@@ -90,7 +91,7 @@ public class Comet extends Status {
         double density1 = Math.sqrt(dustRate);
         double length1 = Math.sqrt(dustRate) * 1e8;
 
-        System.out.println("dust tail length:" + UnitsUtil.adaptiveDistance(length1));
+//        System.out.println("dust tail length:" + UnitsUtil.adaptiveDistance(length1));
         
         double[] dustVel = VectorOperations.scale(windSum, 0.25);
         dustVel = VectorOperations.add(dustVel, VectorOperations.scale(cometVelToParent, 0.8));

@@ -33,7 +33,7 @@ public class Star extends Status {
         return computeCoronaTemperature(effTemp);
     }
 
-    public double getStellarWindSpeed(double G) {
+    public double getStellarWindSpeed() {
         double coronaTemp = getCoronaTemperature();
         if (coronaTemp == 0) return 0;
         return Math.sqrt(CelestialObject.BOLTZMANN_CONSTANT * coronaTemp / CelestialObject.PROTON_MASS) * 7.5;
