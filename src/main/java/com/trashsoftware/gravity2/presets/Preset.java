@@ -222,16 +222,16 @@ public abstract class Preset {
         public double instantiate(Simulator simulator) {
             CelestialObject star = SystemPresets.createMainSequenceStar(
                     "Star",
-                    SOLAR_MASS * 0.25
+                    SOLAR_MASS * 0.12
             );
             simulator.addObject(star);
 
             ObjectInfo[] infos = {
-                    mercury, superPinkGasGiant, venus, helloKitty, mars, pinkGasGiant, saturn, uranus, neptune
+                    mercury, pinkGasGiant, venus, helloKitty, superPinkGasGiant
             };
-            String[] names = {null, "chuifengji", null, "uiukitty", null, "peppapig", null, null, null};
+            String[] names = {null, "chuifengji", null, "uiukitty", "peppapig"};
 
-            double baseLine = 0.018;
+            double baseLine = 0.012;
             double[] periods = new double[infos.length];
             for (int i = 0; i < infos.length; i++) {
                 periods[i] = Math.pow(2, i);

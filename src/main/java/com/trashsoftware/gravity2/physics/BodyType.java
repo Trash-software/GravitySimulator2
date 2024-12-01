@@ -155,9 +155,19 @@ public enum BodyType {
         }
         throw new IllegalArgumentException();
     }
+    
+    private double inferAvgRadius(double mass) {
+        double density = massiveObjectDensity(mass);
+        double volume = mass / density;
+
+        return Math.pow(3 * volume / (4 * Math.PI), 1.0 / 3);
+    }
 
     public static void main(String[] args) {
-        System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 5));
+        var a = simpleInfer(SystemPresets.JUPITER_MASS * 12.5);
+        System.out.println(a.inferAvgRadius(SystemPresets.JUPITER_MASS * 12.5) / SystemPresets.JUPITER_RADIUS_KM / 1000);
+        
+        System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 12.5));
         System.out.println(brownDwarfDensity(SystemPresets.JUPITER_MASS * 70.8));
         System.out.println(starDensity(SystemPresets.JUPITER_MASS * 70.8));
     }

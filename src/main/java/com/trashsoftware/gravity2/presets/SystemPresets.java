@@ -76,6 +76,7 @@ public class SystemPresets {
     static {
         TEXTURES.put("HelloKitty", "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg");
         TEXTURES.put("PinkGasGiant", "com/trashsoftware/gravity2/textures/custom/pink_gas_giant.jpg");
+        TEXTURES.put("PinkGasGiantStormy", "com/trashsoftware/gravity2/textures/custom/pink_gas_giant_stormy.jpg");
     }
 
     // Moon
@@ -355,8 +356,8 @@ public class SystemPresets {
             "#ffaec9", 0.5, 12000
     );
     public static ObjectInfo superPinkGasGiant = new ObjectInfo(
-            "PinkGasGiant", BodyType.GAS_GIANT, JUPITER_MASS * 3,
-            JUPITER_RADIUS_KM * 1.43, JUPITER_RADIUS_KM * 1.42, JUPITER_RADIUS_KM * 1.4,
+            "PinkGasGiantStormy", BodyType.GAS_GIANT, JUPITER_MASS * 12.5,
+            JUPITER_RADIUS_KM * 1.44, JUPITER_RADIUS_KM * 1.46, JUPITER_RADIUS_KM * 1.42,
             0, 0, 0, 0, 0, 0, 3, 0.7,
             "#ffaec9", 0.5, 12000
     );
@@ -365,7 +366,7 @@ public class SystemPresets {
             vega, siriusA,
             sun, 
             proximaCentauri,
-            helloKitty, pinkGasGiant,
+            helloKitty, pinkGasGiant, superPinkGasGiant,
             mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto,
             moon
     );
