@@ -8,6 +8,7 @@ import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;

@@ -222,7 +222,7 @@ public abstract class Preset {
         public double instantiate(Simulator simulator) {
             CelestialObject star = SystemPresets.createMainSequenceStar(
                     "Star",
-                    SOLAR_MASS * 0.12
+                    SOLAR_MASS * 0.25
             );
             simulator.addObject(star);
 
@@ -231,7 +231,7 @@ public abstract class Preset {
             };
             String[] names = {null, "chuifengji", null, "uiukitty", "peppapig"};
 
-            double baseLine = 0.012;
+            double baseLine = 0.025;
             double[] periods = new double[infos.length];
             for (int i = 0; i < infos.length; i++) {
                 periods[i] = Math.pow(2, i);

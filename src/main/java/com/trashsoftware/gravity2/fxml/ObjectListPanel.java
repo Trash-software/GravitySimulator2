@@ -36,7 +36,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     @FXML
     ComboBox<FxApp.UnitMethod> unitsMethodBox;
     @FXML
-    CheckMenuItem gravityContourMenu, effPotentialContourMenu;
+    CheckMenuItem habitableZoneMenu, gravityContourMenu, effPotentialContourMenu;
     @FXML
     Label spawnPrompt, spawnMassText, spawnRadiusText, spawnDensityText;
     @FXML
@@ -100,6 +100,9 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 speedMulInput.setText(String.valueOf(speedMul));
             }
         });
+        
+        habitableZoneMenu.selectedProperty().addListener((observable, oldValue, newValue) -> 
+                fxApp.getJmeApp().setHabitableZone(newValue));
     }
 
     private void setComboBoxes() {

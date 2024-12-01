@@ -378,7 +378,7 @@ public class JmeApp extends SimpleApplication {
         om.setShowApPe(false);
 
         // left its paths continues alive
-        if (om.emissionLight != null) {
+        if (om.lightModel != null) {
             om.removeEmissionLight();
         }
     }
@@ -2044,6 +2044,19 @@ public class JmeApp extends SimpleApplication {
             for (CelestialObject object : simulator.getObjects()) {
                 ObjectModel om = modelMap.get(object);
                 om.setShowHillSphere(show);
+            }
+        });
+    }
+
+    public void setHabitableZone(boolean show) {
+        enqueue(() -> {
+            for (CelestialObject object : simulator.getObjects()) {
+                ObjectModel om = modelMap.get(object);
+                if (object.getStatus() instanceof Star) {
+                    om.setShowHabitableZone(show);
+                } else {
+                    om.setShowHabitableZone(false);
+                }
             }
         });
     }

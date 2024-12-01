@@ -80,7 +80,7 @@ public class ObjectModel {
     private boolean showRocheLimit = false;
     final int samples;
 
-    protected PointLight emissionLight;
+//    protected PointLight emissionLight;
     protected AmbientLight surfaceLight;
 
     protected Vector3f rotationAxis;
@@ -88,8 +88,8 @@ public class ObjectModel {
     protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
 
-    protected PointLightShadowRenderer plsr;
-    protected BloomFilter bloom;
+//    protected PointLightShadowRenderer plsr;
+//    protected BloomFilter bloom;
     protected PointLightShadowFilter plsf;
 //    protected FilterPostProcessor fpp;
     
@@ -99,6 +99,8 @@ public class ObjectModel {
     protected Quaternion tiltRotation;
     protected double initialRadius;
     protected double displayingEmitLightColorTemp;
+    
+    protected LightSourceModel lightModel;
 
     public ObjectModel(CelestialObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
@@ -367,43 +369,55 @@ public class ObjectModel {
 //            }
             
             if (status instanceof Star star) {
-                if (emissionLight == null) {
-                    mat.setFloat("Shininess", 128);
-
-                    emissionLight = new PointLight();
-                    jmeApp.getRootNode().addLight(emissionLight);
+                if (lightModel == null) {
+                    lightModel = new LightSourceModel();
+                    lightModel.addThisTo(jmeApp);
 
                     surfaceLight = new AmbientLight();
-//                surfaceLight.setColor(lightColor);
                     model.addLight(surfaceLight);
 
-                    // Add shadow renderer
-                    plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
-                            1024);
-                    plsr.setLight(emissionLight);
-//                    plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-                    plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-                    jmeApp.getViewPort().addProcessor(plsr);
-
-                    // Add shadow filter for softer shadows
-//                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-//                plsf.setLight(emissionLight);
-//                plsf.setEnabled(true);
-//                jmeApp.filterPostProcessor.addFilter(plsf);
-
-                    // Add bloom effect to enhance the star's glow
-                    bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-//                    bloom.setBloomIntensity(3f); // Adjust intensity for more or less glow
-//                    bloom.setExposurePower(5f);
-//                    bloom.setExposureCutOff(0.1f);
-//                    bloom.setDownSamplingFactor(2f);
-                    jmeApp.filterPostProcessor.addFilter(bloom);
-
                     model.setShadowMode(RenderQueue.ShadowMode.Off);
-
                     adjustPointLight(star);
                     changed = true;
                 }
+                
+//                if (emissionLight == null) {
+//                    mat.setFloat("Shininess", 128);
+//
+//                    emissionLight = new PointLight();
+//                    jmeApp.getRootNode().addLight(emissionLight);
+//
+//                    surfaceLight = new AmbientLight();
+////                surfaceLight.setColor(lightColor);
+//                    model.addLight(surfaceLight);
+//
+//                    // Add shadow renderer
+//                    plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
+//                            1024);
+//                    plsr.setLight(emissionLight);
+////                    plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+//                    plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+//                    jmeApp.getViewPort().addProcessor(plsr);
+//
+//                    // Add shadow filter for softer shadows
+////                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
+////                plsf.setLight(emissionLight);
+////                plsf.setEnabled(true);
+////                jmeApp.filterPostProcessor.addFilter(plsf);
+//
+//                    // Add bloom effect to enhance the star's glow
+//                    bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+////                    bloom.setBloomIntensity(3f); // Adjust intensity for more or less glow
+////                    bloom.setExposurePower(5f);
+////                    bloom.setExposureCutOff(0.1f);
+////                    bloom.setDownSamplingFactor(2f);
+//                    jmeApp.filterPostProcessor.addFilter(bloom);
+//
+//                    model.setShadowMode(RenderQueue.ShadowMode.Off);
+//
+//                    adjustPointLight(star);
+//                    changed = true;
+//                }
             } else {
                 changed = removeEmissionLight() || removeEffectLights();
                 model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -419,21 +433,27 @@ public class ObjectModel {
     
     protected boolean removeEmissionLight() {
         boolean changed = false;
-        if (emissionLight != null) {
-            jmeApp.getRootNode().removeLight(emissionLight);
-            emissionLight = null;
-            changed = true;
+        
+        if (lightModel != null) {
+            changed = lightModel.removeThisFrom(jmeApp, object.getId());
+            lightModel = null;
         }
+        
+//        if (emissionLight != null) {
+//            jmeApp.getRootNode().removeLight(emissionLight);
+//            emissionLight = null;
+//            changed = true;
+//        }
         if (surfaceLight != null) {
             model.removeLight(surfaceLight);
             surfaceLight = null;
             changed = true;
         }
-        if (plsr != null) {
-            jmeApp.getViewPort().removeProcessor(plsr);
-            plsr = null;
-            changed = true;
-        }
+//        if (plsr != null) {
+//            jmeApp.getViewPort().removeProcessor(plsr);
+//            plsr = null;
+//            changed = true;
+//        }
 //        if (bloom != null) {
 //            try {
 //                jmeApp.filterPostProcessor.removeFilter(bloom);
@@ -458,22 +478,11 @@ public class ObjectModel {
     }
     
     private boolean removeEffectLights() {
-        boolean changed = false;
-        if (bloom != null) {
-            try {
-                jmeApp.filterPostProcessor.removeFilter(bloom);
-            } catch (RuntimeException e) {
-                System.err.println(object.getId() + " has rendering problem: bloom.");
-                e.printStackTrace(System.err);
-            }
-            bloom = null;
-            changed = true;
-        }
-        return changed;
+        return lightModel != null && lightModel.removeEffectLights(jmeApp, object.getId());
     }
 
     private void updateEmissionColor(ColorRGBA lightColor) {
-        emissionLight.setColor(lightColor);
+        lightModel.emissionLight.setColor(lightColor);
         model.getMaterial().setColor("GlowColor", lightColor);
         surfaceLight.setColor(lightColor);
     }
@@ -495,23 +504,7 @@ public class ObjectModel {
         }
 
         double radius = Math.pow(scale, 2) * luminosity * 2e-2;
-        emissionLight.setRadius((float) radius);
-        
-//        if (bloom != null) {
-//            float sizeFactor = (float) (scale * 2e8);
-//            sizeFactor = FastMath.clamp(sizeFactor, 0.2f, 2.0f);
-////            bloom.setExposurePower(3.0f * sizeFactor);
-////            bloom.setExposureCutOff(0.1f);
-////            bloom.setBloomIntensity(2.0f * sizeFactor);
-////            bloom.setBlurScale(1.0f * sizeFactor);
-//            Material material = model.getMaterial();
-//            ColorRGBA glowColor =  material.getParamValue("GlowColor");
-//            material.setColor("GlowColor", glowColor.mult(sizeFactor));
-//            float dsFactor = 2.0f / sizeFactor;
-//            bloom.setDownSamplingFactor(dsFactor);
-//            System.out.println("Bloom size " + sizeFactor);
-////            bloom.setDownSamplingFactor(sizeFactor);
-//        }
+        lightModel.emissionLight.setRadius((float) radius);
     }
 
     private void createApPeText() {
@@ -550,7 +543,7 @@ public class ObjectModel {
         axis.setMesh(mesh);
     }
 
-    private Geometry createTransparentSphere(String name, float opacity) {
+    private Geometry createTransparentSphere(String name, ColorRGBA baseColor, float opacity) {
         // Create a sphere mesh
         Sphere sphereMesh = new Sphere(32, 64, (float) object.getEquatorialRadius());  // 32 segments, radius 1
         Geometry sphere = new Geometry(name, sphereMesh);
@@ -559,7 +552,7 @@ public class ObjectModel {
         Material mat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 
         // Set a semi-transparent color (RGBA format, where A is alpha/transparency)
-        mat.setColor("Color", GuiUtils.opaqueOf(color, 0.1f));  // Red with 50% transparency
+        mat.setColor("Color", GuiUtils.opaqueOf(baseColor, opacity));  // Red with 50% transparency
 
         // Enable transparency
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
@@ -623,10 +616,10 @@ public class ObjectModel {
             rotateModel();
         }
         if (renderLight && object.getStatus() instanceof Star star) {
-            if (emissionLight == null) {
+            if (lightModel == null) {
                 updateLightSource();
             }
-            emissionLight.setPosition(xyz);
+            lightModel.emissionLight.setPosition(xyz);
             adjustPointLight(star);
 //            System.out.println(object.getName() + " " + emissionLight.getPosition() + " " + emissionLight.getRadius());
         }
@@ -642,6 +635,9 @@ public class ObjectModel {
         }
         if (showRocheLimit) {
             adjustRocheLimitScale((float) scale);
+        }
+        if (lightModel != null && lightModel.showHabitableZone) {
+            adjustHabitableZoneScale((float) scale);
         }
 //        System.out.println(object.getName() + " " + xyz);
     }
@@ -757,6 +753,7 @@ public class ObjectModel {
             if (show) {
                 if (hillSphereModel == null) {
                     hillSphereModel = createTransparentSphere("Hill sphere " + object.getId(),
+                            color,
                             0.1f);
                 }
                 objectNode.attachChild(hillSphereModel);
@@ -773,11 +770,36 @@ public class ObjectModel {
             if (show) {
                 if (rocheLimitModel == null) {
                     rocheLimitModel = createTransparentSphere("Roche sphere " + object.getId(),
+                            color,
                             0.2f);
                 }
                 objectNode.attachChild(rocheLimitModel);
             } else {
                 objectNode.detachChild(rocheLimitModel);
+            }
+        }
+    }
+    
+    public void setShowHabitableZone(boolean show) {
+        if (lightModel != null) {
+            boolean wasShow = lightModel.showHabitableZone;
+            lightModel.showHabitableZone = show;
+            if (wasShow != show) {
+                if (show) {
+                    if (lightModel.habitableZoneOuter == null) {
+                        lightModel.habitableZoneInner = createTransparentSphere("habitableZoneInner " + object.getId(), 
+                                ColorRGBA.Red,
+                                0.1f);
+                        lightModel.habitableZoneOuter = createTransparentSphere("habitableZoneOuter " + object.getId(),
+                                ColorRGBA.Green,
+                                0.1f);
+                    }
+                    objectNode.attachChild(lightModel.habitableZoneInner);
+                    objectNode.attachChild(lightModel.habitableZoneOuter);
+                } else {
+                    objectNode.detachChild(lightModel.habitableZoneInner);
+                    objectNode.detachChild(lightModel.habitableZoneOuter);
+                }
             }
         }
     }
@@ -804,6 +826,18 @@ public class ObjectModel {
             float ratio = (float) (object.getApproxRocheLimit() / object.getEquatorialRadius());
 //            System.out.println(object.getName() + ratio);
             rocheLimitModel.setLocalScale(ratio * baseScale);
+        }
+    }
+    
+    private void adjustHabitableZoneScale(float baseScale) {
+        if (lightModel != null && lightModel.habitableZoneOuter != null) {
+            if (object.getStatus() instanceof Star star) {
+                double[] innerOuter = star.estimateHabitableZone();
+                float innerRatio = (float) (innerOuter[0] / object.getEquatorialRadius());
+                float outerRatio = (float) (innerOuter[1] / object.getEquatorialRadius());
+                lightModel.habitableZoneInner.setLocalScale(innerRatio * baseScale);
+                lightModel.habitableZoneOuter.setLocalScale(outerRatio * baseScale);
+            }
         }
     }
 
