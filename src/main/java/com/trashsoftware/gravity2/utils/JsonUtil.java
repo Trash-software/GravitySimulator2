@@ -73,6 +73,7 @@ public class JsonUtil {
 //        System.out.println("Class: " + object.getClass());
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
+            if (field == null) continue;
             try {
                 if (Modifier.isTransient(field.getModifiers())) continue;
                 if (Modifier.isStatic(field.getModifiers())) continue;
@@ -94,8 +95,11 @@ public class JsonUtil {
                     Enum<?> en = (Enum<?>) field.get(object);
                     json.put(name, en.name());
                 } else {
-                    JSONObject nested = objectToJson(field.get(object));
-                    json.put(name, nested);
+                    Object obj = field.get(object);
+                    if (obj != null) {
+                        JSONObject nested = objectToJson(obj);
+                        json.put(name, nested);
+                    }
                 }
             } catch (Exception e) {
                 System.err.println(object.getClass().getName() + " " + field.getName() + "=" + field.get(object));

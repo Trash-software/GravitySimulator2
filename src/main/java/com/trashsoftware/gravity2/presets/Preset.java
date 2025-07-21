@@ -1,16 +1,12 @@
 package com.trashsoftware.gravity2.presets;
 
 import com.trashsoftware.gravity2.gui.GuiUtils;
-import com.trashsoftware.gravity2.physics.BodyType;
-import com.trashsoftware.gravity2.physics.CelestialObject;
-import com.trashsoftware.gravity2.physics.Simulator;
-import com.trashsoftware.gravity2.physics.VectorOperations;
+import com.trashsoftware.gravity2.gui.Vector3d;
+import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.utils.Util;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static com.trashsoftware.gravity2.presets.SystemPresets.*;
 
@@ -33,12 +29,137 @@ public abstract class Preset {
      */
     public abstract double instantiate(Simulator simulator);
 
+    static double randomDiskGalaxy(Simulator simulator,
+                                   int n,
+                                   double stdRadius,
+                                   double stdMass,
+                                   double massDeviation,
+                                   double zScale,
+                                   double coreMassRatio,
+                                   double coreRadiusRatio) {
+
+        Random rand = new Random();
+
+        int coreN = (int) Math.round(n * coreMassRatio);
+        double bulgeMass = 0;
+        double bulgeR = stdRadius * coreRadiusRatio;
+        Set<CelestialObject> bulgeStars = new HashSet<>();
+
+        for (int i = 0; i < n; i++) {
+            double mass = rand.nextGaussian(stdMass, massDeviation);
+            mass = Math.max(mass, massDeviation);
+            double density = rand.nextDouble(500, 6000);
+            double radius = CelestialObject.radiusOf(mass, density);
+            String colorCode = Util.randomColorCode();
+
+            double x, y, z;
+            boolean bulge = i < coreN;
+            if (bulge) {
+                // bulge
+                bulgeMass += mass;
+                x = rand.nextDouble();
+                double r = bulgeR / Math.sqrt(Math.pow(x, -2.0 / 3.0) - 1);
+                double theta = Math.acos(2 * rand.nextDouble() - 1); // [0, pi]
+                double phi = 2 * Math.PI * rand.nextDouble();        // [0, 2pi]
+
+                x = r * Math.sin(theta) * Math.cos(phi);
+                y = r * Math.sin(theta) * Math.sin(phi);
+                z = r * Math.cos(theta);
+            } else {
+                // disk
+                // Sample radius using inverse CDF of exponential distribution
+//                double r = -stdRadius * Math.log(1 - rand.nextDouble());
+                double r = -stdRadius * Math.log(rand.nextDouble())
+                        - stdRadius * Math.log(rand.nextDouble()) + bulgeR;
+
+                // Uniform angle for circular distribution
+                double theta = 2 * Math.PI * rand.nextDouble();
+                x = r * Math.cos(theta);
+                y = r * Math.sin(theta);
+
+                // Add small vertical thickness
+                z = rand.nextGaussian() * zScale * stdRadius;
+            }
+
+            CelestialObject co = CelestialObject.create3d(
+                    "Object" + i,
+                    mass,
+                    radius,
+                    new double[]{x, y, z},
+                    new double[3],
+                    colorCode
+            );
+            simulator.addObject(co);
+            if (bulge) bulgeStars.add(co);
+        }
+        double[] barycenter = simulator.barycenter();
+
+        for (CelestialObject co : simulator.getObjects()) {
+            double[] pos = co.getPosition();
+            double dtToCenter = VectorOperations.distance(pos, barycenter);
+            if (dtToCenter == 0) continue;
+
+            double vx, vy, vz;
+            if (bulgeStars.contains(co)) {
+                double phi_r = -simulator.getG() * bulgeMass / Math.sqrt(dtToCenter * dtToCenter + bulgeR * bulgeR);
+                double v_esc = Math.sqrt(-2 * phi_r);
+
+                double v;
+
+                // Rejection sampling
+                while (true) {
+                    double x = rand.nextDouble();
+                    double y = rand.nextDouble();
+
+                    double testV = x * v_esc;
+                    double f = Math.pow(testV, 2) * Math.pow(1 - Math.pow(testV / v_esc, 2), 3.5);
+
+                    if (y < f) {
+                        v = testV;
+                        break;
+                    }
+                }
+
+                // Random velocity direction
+                double theta = Math.acos(2 * rand.nextDouble() - 1);
+                double phi = 2 * Math.PI * rand.nextDouble();
+
+                vx = v * Math.sin(theta) * Math.cos(phi);
+                vy = v * Math.sin(theta) * Math.sin(phi);
+                vz = v * Math.cos(theta);
+            } else {
+                double massInside = 0;
+                for (CelestialObject other : simulator.getObjects()) {
+                    if (co != other) {
+                        double otherDt = VectorOperations.distance(other.getPosition(), barycenter);
+                        if (otherDt < dtToCenter) massInside += other.getMass();
+                    }
+                }
+
+                // Compute circular velocity
+                double vc = Math.sqrt(simulator.getG() * massInside / dtToCenter);
+
+                // Direction: perpendicular to radius vector
+                vx = -vc * co.getY() / dtToCenter;
+                vy = vc * co.getX() / dtToCenter;
+
+                // Add small perturbations
+                vx = vx + 0.05 * vc * rand.nextGaussian();
+                vy = vy + 0.05 * vc * rand.nextGaussian();
+                vz = 0.05 * vc * rand.nextGaussian();
+            }
+            co.setVelocity(new double[]{vx, vy, vz});
+        }
+        return 30 / stdRadius;
+    }
+
     static double randomStarSystem(Simulator simulator, int n,
                                    double sizeScale, double starMass,
-                                   double planetMass, double planetMassDeviation) {
+                                   double planetMass, double planetMassDeviation,
+                                   double zScale) {
         double a = 2e10 * sizeScale;
         double b = 2e10 * sizeScale;
-        double c = 1e9 * sizeScale;
+        double c = 2e10 * zScale * sizeScale;
 
         double flatRatio = c / (a + b) * 2;
 
@@ -178,6 +299,31 @@ public abstract class Preset {
         return dt;
     }
 
+    public static Preset EARTH_MOON_SYSTEM = new Preset("EarthMoonSystem", 2) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject earth = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.earth,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(earth);
+
+            SystemPresets.addObject3d(
+                    simulator,
+                    SystemPresets.moon,
+                    earth,
+                    1, 1e3, 1e3,
+                    Vector3d.UNIT_Z,
+                    true
+            );
+
+            return 1e-7;
+        }
+    };
+
     public static Preset TOY_STAR_SYSTEM = new Preset("ToyStarSystem", 20) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -292,10 +438,83 @@ public abstract class Preset {
         }
     };
 
+    public static Preset JUPITER_LAGRANGE = new Preset("JupiterLagrange", 101) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject sun = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.sun,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(sun);
+
+            double r = 1e11;
+
+            CelestialObject jupiter = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.jupiter,
+                    new double[]{r, 0, 0},
+                    new double[3],
+                    1
+            );
+            simulator.addObject(jupiter);
+            jupiter.setVelocity(simulator.computeVelocityOfN(sun, jupiter, 1.0,
+                    sun.getRotationAxis()));
+
+            int n = 99;
+            double tick = 360.0 / (n + 1);
+
+            for (int i = 1; i < n + 1; i++) {
+                double rad = Math.toRadians(i * tick);
+                double x = r * Math.cos(rad);
+                double y = r * Math.sin(rad);
+
+                double mass = 1e20;
+                double density = 2000;
+                double radius = CelestialObject.radiusOf(mass, density);
+                String color = Util.randomCelestialColorCode();
+
+                CelestialObject co = CelestialObject.create3d(
+                        "Trojan-" + i,
+                        mass,
+                        radius,
+                        new double[]{x, y, 0},
+                        new double[3],
+                        color
+                );
+                simulator.addObject(co);
+                co.setVelocity(simulator.computeVelocityOfN(sun, co, 1.0, new double[]{0, 0, 1}));
+            }
+
+            return 0.005 * 1e-7;
+        }
+    };
+
     public static Preset SOLAR_SYSTEM = new Preset("SolarSystem", SystemPresets.sun.getNumChildrenIncludeSelf()) {
         @Override
         public double instantiate(Simulator simulator) {
             SystemPresets.makeSystem(simulator, SystemPresets.sun, 1, 1e3, 1e3);
+
+            SystemPresets.setTemperatureToSystem(simulator);
+            return 0.005 * 1e-7;
+        }
+    };
+
+    public static Preset SOLAR_SYSTEM_NO_MOONS = new Preset("SolarSystemNoMoons",
+            SystemPresets.sun.getNumDirectChildrenIncludeSelf()) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject sun = SystemPresets.addObject3d(simulator, SystemPresets.sun,
+                    null, 1, 1e3, 1e3,
+                    null, false);
+            
+            for (ObjectInfo planetLike : SystemPresets.sun.children) {
+                SystemPresets.addObject3d(simulator, planetLike,
+                        sun, 1, 1e3, 1e3,
+                        sun.getRotationAxisVector(), false);
+            }
 
             SystemPresets.setTemperatureToSystem(simulator);
             return 0.005 * 1e-7;
@@ -308,7 +527,7 @@ public abstract class Preset {
         public double instantiate(Simulator simulator) {
             double scale = SOLAR_SYSTEM.instantiate(simulator);
 
-            simulator.simulate(10, false);
+            simulator.simulate(10);
             simulator.updateMasters();
 
             CelestialObject sun = simulator.findByName("Sun");
@@ -342,6 +561,83 @@ public abstract class Preset {
             SOLAR_SYSTEM.instantiate(simulator);  // 2nd solar system
 
             return baseScale * 1e-1;
+        }
+    };
+    
+    public static Preset NESTED_PLANET = new Preset("NestedPlanet", 6) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            double baseScale = 1.6;
+            CelestialObject sirius = SystemPresets.createObjectPreset(
+                    simulator,
+                    siriusA,
+                    new double[3],
+                    new double[3],
+                    1.0
+            );
+            CelestialObject pc = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.proximaCentauri,
+                    new double[]{-1.2e11 * baseScale, 0, 8e10 * baseScale},
+                    new double[3],
+                    1.0
+            );
+            CelestialObject sun = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.sun,
+                    new double[]{5e11 * baseScale, 0, 0},
+                    new double[3],
+                    1.0
+            );
+            
+            Vector3d pcVel = simulator.computeVelocityOfN(sirius, pc, 1.0, Vector3d.UNIT_Z);
+            pc.setVelocity(pcVel.mult(sirius.getMass() / (sirius.getMass() + pc.getMass())));
+            sirius.setVelocity(pcVel.mult(-pc.getMass() / (sirius.getMass() + pc.getMass())));
+            
+            simulator.addObject(sirius);
+            simulator.addObject(pc);
+            simulator.simulate(1);
+            HieraticalSystem siriusHs = simulator.getHieraticalSystem(sirius);
+            
+            Vector3d sunVel = simulator.computeVelocityOfN(siriusHs, sun, 0.8, Vector3d.UNIT_Z);
+            siriusHs.accelerate(sunVel.mult(-sun.getMass() / (siriusHs.getMass() + sun.getMass())));
+            sun.setVelocity(sunVel.mult(siriusHs.getMass() / (siriusHs.getMass() + sun.getMass())));
+            
+            simulator.addObject(sun);
+            
+            CelestialObject hostStar = sun;
+            
+            CelestialObject jup = SystemPresets.createObjectPreset(
+                    simulator,
+                    jupiter,
+                    VectorOperations.add(hostStar.getPosition(), new double[]{1e11 * baseScale, 0, 0}),
+                    new double[3],
+                    1.0
+            );
+            jup.setVelocity(simulator.computeVelocityOfN(hostStar, jup, 1.0, hostStar.getRotationAxis()));
+            simulator.addObject(jup);
+
+            CelestialObject ear = SystemPresets.createObjectPreset(
+                    simulator,
+                    earth,
+                    VectorOperations.add(jup.getPosition(), new double[]{2e9 * baseScale, 0, 0}),
+                    new double[3],
+                    1.0
+            );
+            ear.setVelocity(simulator.computeVelocityOfN(jup, ear, 1.0, jup.getRotationAxis()));
+            simulator.addObject(ear);
+
+            CelestialObject mon = SystemPresets.createObjectPreset(
+                    simulator,
+                    moon,
+                    VectorOperations.add(ear.getPosition(), new double[]{-7e7 * baseScale, 0, 1e7 * baseScale}),
+                    new double[3],
+                    1.0
+            );
+            mon.setVelocity(simulator.computeVelocityOfN(ear, mon, 1.0, ear.getRotationAxis()));
+            simulator.addObject(mon);
+            
+            return 1e-10;
         }
     };
 
@@ -478,26 +774,26 @@ public abstract class Preset {
     public static Preset RANDOM_STAR_SYSTEM = new Preset("StarSystem", 91) {
         @Override
         public double instantiate(Simulator simulator) {
-            return randomStarSystem(simulator, 90, 1, 5e29, 1e27, 10);
+            return randomStarSystem(simulator, 90, 1, 5e29, 1e27, 10, 0.05);
         }
     };
 
     public static Preset INFANT_STAR_SYSTEM = new Preset("InfantStarSystem", 191) {
         @Override
         public double instantiate(Simulator simulator) {
-            return randomStarSystem(simulator, 100, 5, 2e30, 1e28, 30);
+            return randomStarSystem(simulator, 100, 5, 2e30, 1e28, 30, 0.05);
         }
     };
 
     public static Preset TWO_RANDOM_STAR_SYSTEM = new Preset("TwoStarSystem", 182) {
         @Override
         public double instantiate(Simulator simulator) {
-            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 5e25, 10);
+            double scale = randomStarSystem(simulator, 70, 0.8, 3e29, 5e25, 10, 0.01);
             simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
-            simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
+            simulator.accelerateWholeSystem(new double[]{0, 0, -3e4});
             simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-            randomStarSystem(simulator, 90, 1.2, 2e30, 1e26, 10);
+            randomStarSystem(simulator, 80, 1.2, 2e30, 1e26, 10, 0.01);
 
             return scale;
         }
@@ -506,12 +802,12 @@ public abstract class Preset {
     public static Preset TWO_RANDOM_CHAOS_SYSTEM = new Preset("TwoChaosSystem", 182) {
         @Override
         public double instantiate(Simulator simulator) {
-            double scale = randomStarSystem(simulator, 90, 0.8, 3e29, 1e27, 10);
+            double scale = randomStarSystem(simulator, 90, 0.8, 3e28, 1e26, 10, 0.05);
             simulator.rotateWholeSystem(new double[]{0, 0.5, 0.5});
             simulator.accelerateWholeSystem(new double[]{0, 0, -2e4});
             simulator.shiftWholeSystem(new double[]{1e11, 1e10, 1e10});
 
-            randomStarSystem(simulator, 90, 1.2, 2e30, 5e28, 10);
+            randomStarSystem(simulator, 90, 1.2, 2e29, 5e27, 10, 0.05);
 
             return scale;
         }
@@ -597,6 +893,64 @@ public abstract class Preset {
         }
     };
 
+    public static final Preset JUPITER_HARMONIC = new Preset("JupiterHarmonicMoons", 4) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject jupiter = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.jupiter,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(jupiter);
+
+            CelestialObject io = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.io,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(io);
+            io.setPosition(SystemPresets.rotateToParentEclipticPlane(
+                    new double[]{421700_000, 0, 0},
+                    jupiter.getRotationAxis()
+            ));
+            io.setVelocity(simulator.computeOrbitVelocity(jupiter, io, jupiter.getRotationAxis()));
+
+            CelestialObject europa = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.europa,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(europa);
+            europa.setPosition(SystemPresets.rotateToParentEclipticPlane(
+                    new double[]{670900_000, 0, 0},
+                    jupiter.getRotationAxis()
+            ));
+            europa.setVelocity(simulator.computeOrbitVelocity(jupiter, europa, jupiter.getRotationAxis()));
+
+            CelestialObject ganymede = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.ganymede,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(ganymede);
+            ganymede.setPosition(SystemPresets.rotateToParentEclipticPlane(
+                    new double[]{0, 1070400_000, 0},
+                    jupiter.getRotationAxis()
+            ));
+            ganymede.setVelocity(simulator.computeOrbitVelocity(jupiter, ganymede, jupiter.getRotationAxis()));
+
+            return 1e-8;
+        }
+    };
+
     public static final Preset PLUTO_CHARON = new Preset("PlutoCharon", 2) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -663,12 +1017,36 @@ public abstract class Preset {
         }
     };
 
+    public static Preset SINGLE_GALAXY = new Preset("SingleGalaxy", 120) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            double scale = randomDiskGalaxy(
+                    simulator,
+                    180,
+                    3e10,
+                    1e25,
+                    1e24,
+                    0.01,
+                    0.3,
+                    0.1);
+            return scale;
+        }
+    };
+
     public static final Preset[] DEFAULT_PRESETS = {
-            SOLAR_SYSTEM, SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
+            SOLAR_SYSTEM,
+            SOLAR_SYSTEM_NO_MOONS,
+            SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS, 
+            NESTED_PLANET,
+            JUPITER_LAGRANGE,
             SIMPLE_THREE_BODY, TOY_STAR_SYSTEM, HARMONIC_KITTY_SYSTEM,
             RANDOM_STAR_SYSTEM, INFANT_STAR_SYSTEM,
-            TWO_RANDOM_STAR_SYSTEM, TWO_RANDOM_CHAOS_SYSTEM,
+            TWO_RANDOM_STAR_SYSTEM,
+            TWO_RANDOM_CHAOS_SYSTEM,
+            SINGLE_GALAXY,
             ELLIPSE_CLUSTER,
-            PLUTO_CHARON, ORBIT_TEST
+            PLUTO_CHARON,
+            JUPITER_HARMONIC,
+            ORBIT_TEST
     };
 }

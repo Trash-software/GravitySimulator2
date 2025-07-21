@@ -103,6 +103,32 @@ public class ObjectListPanel extends AbstractObjectPanel {
         
         habitableZoneMenu.selectedProperty().addListener((observable, oldValue, newValue) -> 
                 fxApp.getJmeApp().setHabitableZone(newValue));
+        
+        gravityContourMenu.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = fxApp.getJmeApp();
+            if (jmeApp == null) {
+                gravityContourMenu.setSelected(false);
+                return;
+            }
+            if (newValue) {
+                fxApp.getControlBar().pause();
+                effPotentialContourMenu.setSelected(false);
+            }
+            jmeApp.setShowGravityContour(newValue);
+        });
+
+        effPotentialContourMenu.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = fxApp.getJmeApp();
+            if (jmeApp == null) {
+                effPotentialContourMenu.setSelected(false);
+                return;
+            }
+            if (newValue) {
+                fxApp.getControlBar().pause();
+                gravityContourMenu.setSelected(false);
+            }
+            jmeApp.setShowEffectivePotentialContour(newValue);
+        });
     }
 
     private void setComboBoxes() {

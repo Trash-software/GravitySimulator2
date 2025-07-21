@@ -1,6 +1,7 @@
 package com.trashsoftware.gravity2.physics;
 
 import com.trashsoftware.gravity2.gui.GuiUtils;
+import com.trashsoftware.gravity2.gui.Vector3d;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.physics.status.Status;
@@ -36,7 +37,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     protected String id;
     protected String shownName;
 
-    protected Status status;
+    protected transient Status status;
 
     private boolean exist = true;
 
@@ -202,7 +203,7 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         double[] axis = new double[]{0, 0, 1};
         CelestialObject co = new CelestialObject(
                 id,
-                BodyType.simpleInfer(mass),
+                BodyType.simpleInfer(mass, mass / volumeOf(radius, radius)),
                 mass,
                 radius,
                 radius,
@@ -276,6 +277,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                 throw new RuntimeException(e);
             }
         }
+        
+        co.updateStatus(true);
 
         return co;
     }
@@ -645,6 +648,15 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         System.arraycopy(velocity, 0, this.velocity, 0, velocity.length);
     }
 
+    public void setVelocity(Vector3d velocity) {
+        if (this.velocity.length != 3) {
+            throw new IllegalArgumentException("setVelocity(Vector3d) only works for 3d simulation");
+        }
+        this.velocity[0] = velocity.x;
+        this.velocity[1] = velocity.y;
+        this.velocity[2] = velocity.z;
+    }
+
     protected void setPositionOverride(double[] position) {
         this.position = position;
     }
@@ -696,6 +708,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     public double[] getRotationAxis() {
         return rotationAxis;
+    }
+    
+    public Vector3d getRotationAxisVector() {
+        return Vector3d.fromArray(rotationAxis);
     }
 
     public void updateRotationAxis(double[] newRotationAxis) {
@@ -949,6 +965,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     public boolean isExist() {
         return exist;
+    }
+    
+    public static double volumeOf(double equatorialRadius, double polarRadius) {
+        return 4.0 / 3.0 * Math.PI * equatorialRadius * equatorialRadius * polarRadius;
     }
 
     public double getVolume() {

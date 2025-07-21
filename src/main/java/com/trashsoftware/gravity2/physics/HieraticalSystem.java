@@ -1,5 +1,8 @@
 package com.trashsoftware.gravity2.physics;
 
+import com.trashsoftware.gravity2.gui.Vector3d;
+import com.trashsoftware.gravity2.utils.Util;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -240,7 +243,20 @@ public class HieraticalSystem implements AbstractObject {
 
     @Override
     public String toString() {
-        return "HieraticalSystem{" + master.getId() + "}";
+        return "HieraticalSystem{" + master.getId() + ": " + (children == null ? "null" : children.size()) + "}";
+    }
+    
+    public void accelerate(Vector3d deltaVel) {
+        accelerate(deltaVel.toArray());
+    }
+    
+    public void accelerate(double[] deltaVel) {
+        master.setVelocity(VectorOperations.add(master.getVelocity(), deltaVel));
+        if (children != null) {
+            for (HieraticalSystem child : children) {
+                child.accelerate(deltaVel);
+            }
+        }
     }
 
     public HieraticalSystem getDeepestHillMaster(double[] position) {

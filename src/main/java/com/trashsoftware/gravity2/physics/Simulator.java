@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.physics;
 
+import com.trashsoftware.gravity2.gui.Vector3d;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
@@ -35,6 +36,7 @@ public class Simulator {
     private double epsilon = 0.0;
     private double cutOffForce;
     private boolean enableDisassemble = true;
+    private boolean enableMasterCalculation = true;
 
     /**
      * All objects, always sorted from massive to light
@@ -103,6 +105,7 @@ public class Simulator {
         json.put("cutOffForce", cutOffForce);
         json.put("tidalEffectFactor", tidalEffectFactor);
         json.put("enableDisassemble", enableDisassemble);
+        json.put("enableMasterCalculation", enableMasterCalculation);
 
         JSONArray objectsArray = new JSONArray();
         for (CelestialObject co : objects) {
@@ -139,6 +142,19 @@ public class Simulator {
         return enableDisassemble;
     }
 
+    public void setEnableMasterCalculation(boolean enableMasterCalculation) {
+        this.enableMasterCalculation = enableMasterCalculation;
+        
+        if (!enableMasterCalculation) {
+            systemMap.clear();
+            rootSystems.clear();
+        }
+    }
+
+    public boolean isEnableMasterCalculation() {
+        return enableMasterCalculation;
+    }
+
     public void setG(double g) {
         this.G = g;
     }
@@ -162,7 +178,7 @@ public class Simulator {
     /**
      * @return whether the size has changed
      */
-    public SimResult simulate(int nPhysicalFrames, boolean highPerformanceMode) {
+    public SimResult simulate(int nPhysicalFrames) {
         int nObj = objects.size();
         boolean changeHappen = false;
 
@@ -235,7 +251,7 @@ public class Simulator {
                 changeHappen = true;
             }
 
-            if (!highPerformanceMode) {
+            if (enableMasterCalculation) {
                 if (timeStepAccumulator - lastTimeStepAccumulator >= PATH_INTERVAL) {
                     updateBarycenter();
                     for (CelestialObject obj : objects) {
@@ -252,13 +268,13 @@ public class Simulator {
 
             if (result == SimResult.TOO_FAST) break;
         }
-        if (!highPerformanceMode) {
+        if (enableMasterCalculation) {
             gcPaths(timeStepAccumulator);
         }
 
         updateBarycenter();
 
-        if (!highPerformanceMode) {
+        if (enableMasterCalculation) {
             for (CelestialObject co : objects) {
                 co.updateRotation(performedTimeSteps);
             }
@@ -277,7 +293,7 @@ public class Simulator {
             if (result == SimResult.NORMAL) result = SimResult.NUM_CHANGED;
         }
 
-        if (!highPerformanceMode) {
+        if (enableMasterCalculation) {
             updateMasters();
         }
 
@@ -808,6 +824,11 @@ public class Simulator {
                 }
             }
         }
+        
+        // remove potential circular reference
+        for (CelestialObject object : objects) {
+            removeCircularHillMasters(object);
+        }
 
         for (CelestialObject object : objects) {
             HieraticalSystem hs = systemMap.computeIfAbsent(object, HieraticalSystem::new);
@@ -835,18 +856,18 @@ public class Simulator {
         for (HieraticalSystem root : rootSystems) {
             root.updateRecursive(0);
         }
-
-//        for (CelestialObject object : objects) {
-//            if (object.hillMaster != null) {
-//                HieraticalSystem hs = getHieraticalSystem(object.hillMaster);
-//                double[] barycenter2 = barycenterOf(object, object.hillMaster);
-//                object.orbitBasic = OrbitCalculator.computeBasic(object,
-//                        barycenter2,
-//                        object.hillMaster.getMass() + object.getMass(),
-//                        VectorOperations.subtract(object.getVelocity(), hs.getVelocity()),
-//                        G);
-//            }
-//        }
+    }
+    
+    private void removeCircularHillMasters(CelestialObject co) {
+        CelestialObject visit = co;
+        while (visit.hillMaster != null) {
+            if (visit.hillMaster == co) {
+                // circular!
+                visit.hillMaster = null;
+                break;
+            }
+            visit = visit.hillMaster;
+        }
     }
 
     public HieraticalSystem findMostProbableHillMaster(double[] position) {
@@ -1262,6 +1283,11 @@ public class Simulator {
         return computeVelocityOfN(dominant, placing, 2, planeNormal);
     }
 
+    public Vector3d computeVelocityOfN(AbstractObject dominant, AbstractObject placing,
+                                       double speedFactor, Vector3d planeNormal) {
+        return Vector3d.fromArray(computeVelocityOfN(dominant, placing, speedFactor, planeNormal.toArray()));
+    }
+
     public double[] computeVelocityOfN(AbstractObject dominant, AbstractObject placing,
                                        double speedFactor, double[] planeNormal) {
         return computeVelocityOfN(dominant.getPosition(), dominant.getMass(),
@@ -1448,6 +1474,10 @@ public class Simulator {
         double M = co.hillMaster.mass;
         double m = co.mass;
         HieraticalSystem parentSystem = getHieraticalSystem(co.hillMaster);
+        if (parentSystem == null) {
+            System.err.println("Parent system is null!");
+            return 0;
+        }
         double[] barycenter = OrbitCalculator.calculateBarycenter(co, co.hillMaster);
 
         double[] ae = OrbitCalculator.computeBasic(co,

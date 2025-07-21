@@ -462,6 +462,7 @@ public class ObjectStatsWrapper extends HBox {
     }
 
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
+        if (!simulator.isEnableMasterCalculation()) return;
         CelestialObject parent = object.getHillMaster();
         HieraticalSystem system = simulator.getHieraticalSystem(object);
 //        childrenCountLabel.setText(String.valueOf(system.nChildren()));

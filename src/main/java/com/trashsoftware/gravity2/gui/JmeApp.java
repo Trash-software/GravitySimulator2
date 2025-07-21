@@ -20,6 +20,7 @@ import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.FxApp;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
+import com.trashsoftware.gravity2.gui.widgets.ContourDataList;
 import com.trashsoftware.gravity2.physics.*;
 import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.Preset;
@@ -93,6 +94,7 @@ public class JmeApp extends SimpleApplication {
     private RefFrame refFrame = RefFrame.STATIC;
 
     protected SpawningObject spawning;
+    private ContourDataList contourDataList;
 
     public static JmeApp getInstance() {
         return instance;
@@ -134,7 +136,7 @@ public class JmeApp extends SimpleApplication {
         if (locked) return;
         if (playing) {
             int nPhysicalFrames = Math.round(tpf * 1000);
-            Simulator.SimResult sr = simulator.simulate(nPhysicalFrames, false);
+            Simulator.SimResult sr = simulator.simulate(nPhysicalFrames);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 reloadObjects();
                 getFxApp().notifyObjectCountChanged(simulator);
@@ -334,18 +336,25 @@ public class JmeApp extends SimpleApplication {
 
     private Simulator initializeSimulator() {
         simulator = new Simulator();
+        
+        TestSet test = new TestSet();
 
 //        simpleTest();
 //        simpleTest2();
 //        simpleTest3();
 //        simpleTest4();
+//        earthMoonSystemTest();
+//        test.singleGalaxyTest();
 //        saturnRingTest();
 //        rocheEffectTest();
 //        toyStarSystemTest();
-        harmonicSystemTest();
+//        harmonicSystemTest();
 //        orbitTest();
 //        solarSystemTest();
+//        test.solarSystemNoMoonsTest();
+        test.nestedPlanets();
 //        solarSystemWithCometsTest();
+//        jupiterLagrangeTest();
 //        cometTest();
 //        smallSolarSystemTest();
 //        tidalTest();
@@ -355,6 +364,7 @@ public class JmeApp extends SimpleApplication {
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
+//        jupiterHarmonicTest();
 //        threeBodyTest();
 //        plutoCharonTest();
 
@@ -1072,13 +1082,15 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void enableBarycenters() {
-        List<HieraticalSystem> roots = simulator.getRootSystems();
-        for (HieraticalSystem hs : roots) {
-            enableBarycenterNodes(hs, 2);
+        if (simulator.isEnableMasterCalculation()) {
+            List<HieraticalSystem> roots = simulator.getRootSystems();
+            for (HieraticalSystem hs : roots) {
+                enableBarycenterNodes(hs, 2);
+            }
         }
 
         // overall barycenter
-        if (roots.size() > 1) {
+        if (!simulator.getObjects().isEmpty()) {
             double[] barycenter = simulator.barycenter();
             float x = paneX(barycenter[0]);
             float y = paneY(barycenter[1]);
@@ -1636,278 +1648,314 @@ public class JmeApp extends SimpleApplication {
         return true; // Enough space to label
     }
 
-    private void simpleTest() {
-        CelestialObject sun = CelestialObject.create2d("Sun", 512000, 5, -1, -1, 0, 0, "#ff0000");
-        simulator.addObject(sun);
-        CelestialObject planet1 = CelestialObject.create2d("Sun2", 256000, 4, 20, 20, "#ffff00");
-        simulator.addObject(planet1);
-        planet1.setVelocity(simulator.computeOrbitVelocity(sun, planet1, new double[]{0, 0, 1}));
-
-        scale = 0.1f;
-    }
-
-    private void simpleTest2() {
-        CelestialObject earth = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.earth,
-                new double[]{-2e6, 1e6, -1e6},
-                new double[3],
-                scale
-        );
-//        earth.forceSetMass(earth.getMass() * 10);
-        earth.forcedSetRotation(new double[]{0, 0, 1}, earth.getAngularVelocity());
-        simulator.addObject(earth);
-        CelestialObject moon = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.moon,
-                new double[]{1e8, 1e8, 1e7},
-                new double[3],
-                scale
-        );
-        simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon,
-                0.7,
-                VectorOperations.normalize(new double[]{2, 3, 1}));
-//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-        moon.setVelocity(vel);
-
-        scale = 5e-7f;
-    }
-
-    private void simpleTest3() {
-        CelestialObject sun = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.sun,
-                new double[]{0, 0, 0},
-                new double[3],
-                scale
-        );
-        sun.forceSetMass(1);
-        simulator.addObject(sun);
-
-        CelestialObject earth = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.earth,
-                new double[]{-3e9, 0, 0},
-                new double[3],
-                scale
-        );
-        earth.forceSetMass(1);
-//        earth.forceSetMass(earth.getMass() * 10);
-        simulator.addObject(earth);
-        CelestialObject moon = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.moon,
-                new double[]{-3.05e9, 0, 0},
-                new double[3],
-                scale
-        );
-        moon.forceSetMass(1);
-        simulator.addObject(moon);
-//        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
-//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-//        moon.setVelocity(vel);
-
-        scale = 5e-9f;
-    }
-
-    private void simpleTest4() {
-        CelestialObject earth = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.saturn,
-                new double[]{-5e6, 1e6, -1e6},
-                new double[3],
-                scale
-        );
-//        earth.forceSetMass(earth.getMass() * 10);
-        simulator.addObject(earth);
-        CelestialObject moon = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.earth,
-                new double[]{5e8, 0, 2e7},
-                new double[3],
-                scale
-        );
-        simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
-        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-        moon.setVelocity(vel);
-
-        CelestialObject comet = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.charon,
-                new double[]{1e8, 0, 1e7},
-                new double[3],
-                scale
-        );
-        simulator.addObject(comet);
-        double[] vel2 = simulator.computeVelocityOfN(earth, comet, 2.1, new double[]{0, 0, 1});
-        comet.setVelocity(vel2);
-
-        scale = 1e-7f;
-    }
-
-    private void threeBodyTest() {
-        scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
-    }
-
-    private void plutoCharonTest() {
-        scale = Preset.PLUTO_CHARON.instantiate(simulator);
-    }
-
-    private void saturnRingTest() {
-        scale = (float) SystemPresets.saturnRingTest(simulator, 100);
-
-        reloadObjects();
-        DirectionalLight directionalLight = new DirectionalLight();
-        directionalLight.setColor(ColorRGBA.White);
-//        directionalLight.setDirection(new Vector3f(0, 0.5f, -0.2f));
-
-        // Add shadow renderer
-        DirectionalLightShadowRenderer plsr = new DirectionalLightShadowRenderer(getAssetManager(),
-                1024, 4);
-        plsr.setLight(directionalLight);
-        plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-        plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-        getViewPort().addProcessor(plsr);
-
-        // Add shadow filter for softer shadows
-        DirectionalLightShadowFilter plsf = new DirectionalLightShadowFilter(getAssetManager(), 1024, 4);
-        plsf.setLight(directionalLight);
-        plsf.setEnabled(true);
-        FilterPostProcessor fpp = new FilterPostProcessor(getAssetManager());
-        fpp.addFilter(plsf);
-
-        rootNode.addLight(directionalLight);
-        getViewPort().addProcessor(fpp);
-//        model.setShadowMode(RenderQueue.ShadowMode.Off);
-    }
-
-    private void tidalTest() {
-        CelestialObject jupiter = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.jupiter,
-                new double[]{0, 0, 0},
-                new double[3],
-                scale
-        );
-//        earth.forceSetMass(earth.getMass() * 10);
-        simulator.addObject(jupiter);
-        CelestialObject moon = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.mars,
-                new double[]{5e8, 0, 1e7},
-                new double[3],
-                scale
-        );
-        moon.forcedSetRotation(moon.getRotationAxis(), 1e-3);
-        simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(jupiter, moon, 0.99, new double[]{0, 0, 1});
-//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-        moon.setVelocity(vel);
-
-        scale = 1e-7f;
-    }
-
-    private void toyStarSystemTest() {
-        scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
-    }
-
-    private void harmonicSystemTest() {
-        scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
-    }
-
-    private void orbitTest() {
-        scale = Preset.ORBIT_TEST.instantiate(simulator);
-    }
-
-    private void solarSystemTest() {
-        scale = Preset.SOLAR_SYSTEM.instantiate(simulator);
-        scale *= 0.5;
-    }
-
     private void pink() {
         CelestialObject sun = simulator.findByName("Sun");
         String color = "#ff55aa";
         sun.setColorCode(color);
         sun.setLightColorCode(color);
     }
+    
+    @SuppressWarnings("unused")
+    class TestSet {
+        private void simpleTest() {
+            CelestialObject sun = CelestialObject.create2d("Sun", 512000, 5, -1, -1, 0, 0, "#ff0000");
+            simulator.addObject(sun);
+            CelestialObject planet1 = CelestialObject.create2d("Sun2", 256000, 4, 20, 20, "#ffff00");
+            simulator.addObject(planet1);
+            planet1.setVelocity(simulator.computeOrbitVelocity(sun, planet1, new double[]{0, 0, 1}));
 
-    private void smallSolarSystemTest() {
-        scale = SystemPresets.smallSolarSystem(simulator);
-        scale *= 0.5;
-    }
+            scale = 0.1f;
+        }
 
-    private void solarSystemWithCometsTest() {
-        scale = SystemPresets.solarSystemWithComets(simulator);
-        scale *= 0.5;
-    }
-
-    private void cometTest() {
-        scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
-//        simulator.addObject();
-    }
-
-    private void ellipseClusterTest() {
-        scale = Preset.ELLIPSE_CLUSTER.instantiate(simulator);
-        simulator.setEnableDisassemble(false);
-    }
-
-    private void subStarTest() {
-        scale = SystemPresets.dwarfStarTest(simulator);
-    }
-
-    private void chaosSolarSystemTest() {
-        scale = Preset.RANDOM_STAR_SYSTEM.instantiate(simulator);
-        simulator.setEnableDisassemble(false);
-    }
-
-    private void infantStarSystemTest() {
-        scale = Preset.INFANT_STAR_SYSTEM.instantiate(simulator);
-        simulator.setEnableDisassemble(false);
-
-        getFxApp().getControlBar().highPerformanceMode(true);
-    }
-
-    private void twoChaosSolarSystemTest() {
-        scale = Preset.TWO_RANDOM_STAR_SYSTEM.instantiate(simulator);
-        simulator.setEnableDisassemble(false);
-
-//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
-    }
-
-    private void twoChaosSystemTest() {
-        scale = Preset.TWO_RANDOM_CHAOS_SYSTEM.instantiate(simulator);
-        simulator.setEnableDisassemble(false);
-
-//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
-    }
-
-    private void rocheEffectTest() {
-        CelestialObject earth = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.earth,
-                new double[]{-5e6, 1e6, -1e6},
-                new double[3],
-                scale
-        );
+        private void simpleTest2() {
+            CelestialObject earth = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.earth,
+                    new double[]{-2e6, 1e6, -1e6},
+                    new double[3],
+                    scale
+            );
 //        earth.forceSetMass(earth.getMass() * 10);
-        simulator.addObject(earth);
-        CelestialObject moon = SystemPresets.createObjectPreset(
-                simulator,
-                SystemPresets.moon,
-                new double[]{5e7, 0, 5e6},
-                new double[3],
-                scale
-        );
-        simulator.addObject(moon);
-        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.30, new double[]{0, 0, 1});
-        vel[2] = VectorOperations.magnitude(vel) * 0.1;
-        moon.setVelocity(vel);
+            earth.forcedSetRotation(new double[]{0, 0, 1}, earth.getAngularVelocity());
+            simulator.addObject(earth);
+            CelestialObject moon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.moon,
+                    new double[]{1e8, 1e8, 1e7},
+                    new double[3],
+                    scale
+            );
+            simulator.addObject(moon);
+            double[] vel = simulator.computeVelocityOfN(earth, moon,
+                    0.7,
+                    VectorOperations.normalize(new double[]{2, 3, 1}));
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+            moon.setVelocity(vel);
 
-        scale = 5e-7f;
+            scale = 5e-7f;
+        }
 
-        simulator.setEnableDisassemble(true);
+        private void simpleTest3() {
+            CelestialObject sun = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.sun,
+                    new double[]{0, 0, 0},
+                    new double[3],
+                    scale
+            );
+            sun.forceSetMass(1);
+            simulator.addObject(sun);
+
+            CelestialObject earth = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.earth,
+                    new double[]{-3e9, 0, 0},
+                    new double[3],
+                    scale
+            );
+            earth.forceSetMass(1);
+//        earth.forceSetMass(earth.getMass() * 10);
+            simulator.addObject(earth);
+            CelestialObject moon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.moon,
+                    new double[]{-3.05e9, 0, 0},
+                    new double[3],
+                    scale
+            );
+            moon.forceSetMass(1);
+            simulator.addObject(moon);
+//        double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8);
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+//        moon.setVelocity(vel);
+
+            scale = 5e-9f;
+        }
+
+        private void simpleTest4() {
+            CelestialObject earth = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.saturn,
+                    new double[]{-5e6, 1e6, -1e6},
+                    new double[3],
+                    scale
+            );
+//        earth.forceSetMass(earth.getMass() * 10);
+            simulator.addObject(earth);
+            CelestialObject moon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.earth,
+                    new double[]{5e8, 0, 2e7},
+                    new double[3],
+                    scale
+            );
+            simulator.addObject(moon);
+            double[] vel = simulator.computeVelocityOfN(earth, moon, 0.8, new double[]{0, 0, 1});
+            vel[2] = VectorOperations.magnitude(vel) * 0.1;
+            moon.setVelocity(vel);
+
+            CelestialObject comet = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.charon,
+                    new double[]{1e8, 0, 1e7},
+                    new double[3],
+                    scale
+            );
+            simulator.addObject(comet);
+            double[] vel2 = simulator.computeVelocityOfN(earth, comet, 2.1, new double[]{0, 0, 1});
+            comet.setVelocity(vel2);
+
+            scale = 1e-7f;
+        }
+
+        private void threeBodyTest() {
+            scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
+        }
+
+        private void plutoCharonTest() {
+            scale = Preset.PLUTO_CHARON.instantiate(simulator);
+        }
+
+        private void saturnRingTest() {
+            scale = (float) SystemPresets.saturnRingTest(simulator, 100);
+
+            reloadObjects();
+            DirectionalLight directionalLight = new DirectionalLight();
+            directionalLight.setColor(ColorRGBA.White);
+//        directionalLight.setDirection(new Vector3f(0, 0.5f, -0.2f));
+
+            // Add shadow renderer
+            DirectionalLightShadowRenderer plsr = new DirectionalLightShadowRenderer(getAssetManager(),
+                    1024, 4);
+            plsr.setLight(directionalLight);
+            plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
+            plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+            getViewPort().addProcessor(plsr);
+
+            // Add shadow filter for softer shadows
+            DirectionalLightShadowFilter plsf = new DirectionalLightShadowFilter(getAssetManager(), 1024, 4);
+            plsf.setLight(directionalLight);
+            plsf.setEnabled(true);
+            FilterPostProcessor fpp = new FilterPostProcessor(getAssetManager());
+            fpp.addFilter(plsf);
+
+            rootNode.addLight(directionalLight);
+            getViewPort().addProcessor(fpp);
+//        model.setShadowMode(RenderQueue.ShadowMode.Off);
+        }
+
+        private void tidalTest() {
+            CelestialObject jupiter = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.jupiter,
+                    new double[]{0, 0, 0},
+                    new double[3],
+                    scale
+            );
+//        earth.forceSetMass(earth.getMass() * 10);
+            simulator.addObject(jupiter);
+            CelestialObject moon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.mars,
+                    new double[]{5e8, 0, 1e7},
+                    new double[3],
+                    scale
+            );
+            moon.forcedSetRotation(moon.getRotationAxis(), 1e-3);
+            simulator.addObject(moon);
+            double[] vel = simulator.computeVelocityOfN(jupiter, moon, 0.99, new double[]{0, 0, 1});
+//        vel[2] = VectorOperations.magnitude(vel) * 0.1;
+            moon.setVelocity(vel);
+
+            scale = 1e-7f;
+        }
+
+        private void earthMoonSystemTest() {
+            scale = Preset.EARTH_MOON_SYSTEM.instantiate(simulator);
+        }
+
+        private void singleGalaxyTest() {
+            simulator.setEnableMasterCalculation(false);
+            scale = Preset.SINGLE_GALAXY.instantiate(simulator);
+
+            getFxApp().getControlBar().highPerformanceMode(true);
+        }
+
+        private void toyStarSystemTest() {
+            scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
+        }
+
+        private void harmonicSystemTest() {
+            scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
+        }
+
+        private void orbitTest() {
+            scale = Preset.ORBIT_TEST.instantiate(simulator);
+        }
+
+        private void solarSystemTest() {
+            scale = Preset.SOLAR_SYSTEM.instantiate(simulator);
+            scale *= 0.5;
+        }
+
+        private void solarSystemNoMoonsTest() {
+            scale = Preset.SOLAR_SYSTEM_NO_MOONS.instantiate(simulator);
+            scale *= 0.5;
+        }
+        
+        private void nestedPlanets() {
+            scale = Preset.NESTED_PLANET.instantiate(simulator);
+        }
+
+        private void smallSolarSystemTest() {
+            scale = SystemPresets.smallSolarSystem(simulator);
+            scale *= 0.5;
+        }
+
+        private void solarSystemWithCometsTest() {
+            scale = SystemPresets.solarSystemWithComets(simulator);
+            scale *= 0.5;
+        }
+
+        private void jupiterLagrangeTest() {
+            scale = Preset.JUPITER_LAGRANGE.instantiate(simulator);
+            scale *= 0.5;
+        }
+
+        private void cometTest() {
+            scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
+//        simulator.addObject();
+        }
+
+        private void ellipseClusterTest() {
+            scale = Preset.ELLIPSE_CLUSTER.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+        }
+
+        private void subStarTest() {
+            scale = SystemPresets.dwarfStarTest(simulator);
+        }
+
+        private void chaosSolarSystemTest() {
+            scale = Preset.RANDOM_STAR_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+        }
+
+        private void infantStarSystemTest() {
+            scale = Preset.INFANT_STAR_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+
+            getFxApp().getControlBar().highPerformanceMode(true);
+        }
+
+        private void twoChaosSolarSystemTest() {
+            scale = Preset.TWO_RANDOM_STAR_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+
+//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+        }
+
+        private void twoChaosSystemTest() {
+            scale = Preset.TWO_RANDOM_CHAOS_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+
+//        setRenderLight(false);
+
+//        ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+        }
+
+        private void jupiterHarmonicTest() {
+            scale = Preset.JUPITER_HARMONIC.instantiate(simulator);
+
+            ambientLight.setColor(ColorRGBA.White.mult(0.5f));
+        }
+
+        private void rocheEffectTest() {
+            CelestialObject earth = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.earth,
+                    new double[]{-5e6, 1e6, -1e6},
+                    new double[3],
+                    scale
+            );
+//        earth.forceSetMass(earth.getMass() * 10);
+            simulator.addObject(earth);
+            CelestialObject moon = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.moon,
+                    new double[]{5e7, 0, 5e6},
+                    new double[3],
+                    scale
+            );
+            simulator.addObject(moon);
+            double[] vel = simulator.computeVelocityOfN(earth, moon, 0.30, new double[]{0, 0, 1});
+            vel[2] = VectorOperations.magnitude(vel) * 0.1;
+            moon.setVelocity(vel);
+
+            scale = 5e-7f;
+
+            simulator.setEnableDisassemble(true);
+        }
     }
 
     private RefFrame getRefFrame() {
@@ -2002,7 +2050,9 @@ public class JmeApp extends SimpleApplication {
     }
 
     public void setPlaying(boolean playing) {
-        this.playing = playing;
+        enqueue(() -> {
+            this.playing = playing;
+        });
     }
 
     public void setTracePathOrbit(boolean showTrace, boolean showFullPath, boolean showOrbit) {
@@ -2024,6 +2074,12 @@ public class JmeApp extends SimpleApplication {
             }
 
             updateAmbientLight();
+        });
+    }
+    
+    public void setHighPerformanceMode(boolean highPerformanceMode) {
+        enqueue(() -> {
+            simulator.setEnableMasterCalculation(!highPerformanceMode);
         });
     }
 
@@ -2066,6 +2122,26 @@ public class JmeApp extends SimpleApplication {
             for (CelestialObject object : simulator.getObjects()) {
                 ObjectModel om = modelMap.get(object);
                 om.setShowRocheLimit(show);
+            }
+        });
+    }
+    
+    public void setShowGravityContour(boolean show) {
+        enqueue(() -> {
+            if (show) {
+                
+            } else {
+                contourDataList = null;
+            }
+        });
+    }
+
+    public void setShowEffectivePotentialContour(boolean show) {
+        enqueue(() -> {
+            if (show) {
+
+            } else {
+                contourDataList = null;
             }
         });
     }

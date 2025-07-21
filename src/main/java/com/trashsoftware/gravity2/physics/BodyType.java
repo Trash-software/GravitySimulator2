@@ -16,8 +16,8 @@ public enum BodyType {
     public final double thermalSkinDensity;
     public final boolean adaptiveDensity;
 
-    BodyType(double thermalSkinHeatCapacity, 
-             double thermalSkinDepth, 
+    BodyType(double thermalSkinHeatCapacity,
+             double thermalSkinDepth,
              double thermalSkinDensity,
              boolean adaptiveDensity) {
         this.thermalSkinHeatCapacity = thermalSkinHeatCapacity;
@@ -26,14 +26,19 @@ public enum BodyType {
         this.adaptiveDensity = adaptiveDensity;
     }
 
-    public static BodyType simpleInfer(double mass) {
-        if (mass <= SystemPresets.MOON_MASS * 0.5) return ICE;
-        else if (mass <= SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
+    public static BodyType simpleInfer(double mass, double density) {
+        if (mass <= SystemPresets.MOON_MASS * 0.5) {
+            if (density < 1750) {
+                return ICE;
+            } else {
+                return TERRESTRIAL;
+            }
+        } else if (mass <= SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
         else if (mass <= SystemPresets.JUPITER_MASS * 13) return GAS_GIANT;
         else if (mass <= SystemPresets.JUPITER_MASS * 80) return BROWN_DWARF;
         else return STAR;
     }
-    
+
     public static double massiveObjectDensity(double mass) {
         if (mass < SystemPresets.JUPITER_MASS * 13) {
             return gasGiantDensity(mass);
@@ -68,7 +73,7 @@ public enum BodyType {
         double massJup = mass / SystemPresets.JUPITER_MASS;
         if (massJup < 13) {
             return 6000;
-        } 
+        }
 //        else if (massJup > 80) {
 //            return 80000;
 //        }
@@ -155,7 +160,7 @@ public enum BodyType {
         }
         throw new IllegalArgumentException();
     }
-    
+
     private double inferAvgRadius(double mass) {
         double density = massiveObjectDensity(mass);
         double volume = mass / density;
@@ -164,9 +169,9 @@ public enum BodyType {
     }
 
     public static void main(String[] args) {
-        var a = simpleInfer(SystemPresets.JUPITER_MASS * 12.5);
+        var a = simpleInfer(SystemPresets.JUPITER_MASS * 12.5, 1000);
         System.out.println(a.inferAvgRadius(SystemPresets.JUPITER_MASS * 12.5) / SystemPresets.JUPITER_RADIUS_KM / 1000);
-        
+
         System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 12.5));
         System.out.println(brownDwarfDensity(SystemPresets.JUPITER_MASS * 70.8));
         System.out.println(starDensity(SystemPresets.JUPITER_MASS * 70.8));

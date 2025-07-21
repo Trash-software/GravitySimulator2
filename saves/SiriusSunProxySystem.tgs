@@ -1,0 +1,228 @@
+{
+  "timeStepAccumulator": 2.04565107E8,
+  "epsilon": 0,
+  "gravityDtPower": 2,
+  "timeStep": 8,
+  "G": 6.6743E-11,
+  "cutOffForce": 0,
+  "objects": [
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "STAR",
+      "polarRadius": 1.19143774E9,
+      "emissivity": 0.95,
+      "mass": 4.01778E30,
+      "velocity": [
+        -4015.349576551574,
+        1791.3413307833973,
+        -756.0176102279587
+      ],
+      "angularVelocity": 1.3222191302987345E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.301928073036784E28,
+      "rotationAxis": [
+        8.915840573738361E-30,
+        -6.099641125579631E-31,
+        1
+      ],
+      "rotationAngle": 173.66893939391528,
+      "internalThermalEnergy": 2.8727127E38,
+      "dissipationFunction": 20000,
+      "equatorialRadius": 1.19143774E9,
+      "colorCode": "#C3DDFF",
+      "position": [
+        4.6954559852271185E11,
+        2.5148432362814072E11,
+        7.332333144178881E9
+      ],
+      "id": "Sirius A",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "STAR",
+      "polarRadius": 6.9634E8,
+      "emissivity": 0.95,
+      "mass": 1.989E30,
+      "velocity": [
+        10582.623398396032,
+        -7007.268501773724,
+        -49.511097867247784
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/sunmap.jpg",
+      "angularVelocity": 2.8653290845717256E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 6.857625275186235E28,
+      "rotationAxis": [
+        1.320507167582513E-31,
+        8.351668256545315E-32,
+        1
+      ],
+      "rotationAngle": 103.73423955872687,
+      "internalThermalEnergy": 1.422135E38,
+      "dissipationFunction": 20000,
+      "equatorialRadius": 6.9634E8,
+      "colorCode": "#FFD700",
+      "position": [
+        -2.463189379321065E11,
+        -5.466916922907603E11,
+        1.1577697904109118E10
+      ],
+      "id": "Sun",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.03,
+      "bodyType": "STAR",
+      "polarRadius": 1.07375628E8,
+      "emissivity": 0.95,
+      "mass": 2.3868E29,
+      "velocity": [
+        -20647.459693665845,
+        28444.37215101828,
+        13139.921879662847
+      ],
+      "angularVelocity": 8.761693032100048E-7,
+      "exist": true,
+      "surfaceThermalEnergy": 2.4791566100974847E28,
+      "rotationAxis": [
+        2.261291802142448E-27,
+        -1.5717058844232917E-28,
+        1
+      ],
+      "rotationAngle": 189.33950803224067,
+      "internalThermalEnergy": 1.706562E37,
+      "dissipationFunction": 20000,
+      "equatorialRadius": 1.07375628E8,
+      "colorCode": "#ffad99",
+      "position": [
+        6.316288855061666E11,
+        4.010245992764665E11,
+        -9.199938332529771E10
+      ],
+      "id": "Proxima Centauri",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.589,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.6854E7,
+      "emissivity": 0.95,
+      "mass": 1.899E27,
+      "velocity": [
+        6327.0723581844695,
+        19939.29293340994,
+        -97.66606766086483
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/jupiter2k.jpg",
+      "angularVelocity": 1.758695336552126E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 3.591921332464601E26,
+      "rotationAxis": [
+        -0.05320442759612762,
+        0.012273050565971525,
+        0.9985082178499952
+      ],
+      "rotationAngle": 318.4401450992762,
+      "internalThermalEnergy": 1.3577850000000001E35,
+      "dissipationFunction": 10500,
+      "equatorialRadius": 7.1492E7,
+      "colorCode": "#F4A460",
+      "position": [
+        -8.147790205055562E10,
+        -5.186651978644619E11,
+        1.1556830062982044E10
+      ],
+      "id": "Jupiter",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.299,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 6356800,
+      "emissivity": 0.95,
+      "mass": 5.972E24,
+      "velocity": [
+        2675.1061170075527,
+        14629.657519451957,
+        -116.78847059241394
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/earth/earth2k.jpg",
+      "angularVelocity": 7.29408747908028E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.2140164515728002E23,
+      "rotationAxis": [
+        0.10049256439989605,
+        -0.38488562082548816,
+        0.9174771405229186
+      ],
+      "rotationAngle": 279.9348044131601,
+      "internalThermalEnergy": 4.26998E32,
+      "dissipationFunction": 12,
+      "equatorialRadius": 6378100,
+      "colorCode": "#4682B4",
+      "position": [
+        -8.398082405294737E10,
+        -5.1682393713612695E11,
+        1.15912524582058E10
+      ],
+      "id": "Earth",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.024,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1735600,
+      "emissivity": 0.95,
+      "mass": 7.342E22,
+      "velocity": [
+        4498.750173993829,
+        14656.802829895456,
+        -613.4370400796156
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/earth/moon.png",
+      "angularVelocity": 2.6616665019555817E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 8.485011747836236E21,
+      "rotationAxis": [
+        0.02915589474816803,
+        -0.1126109140096188,
+        0.9932113148003058
+      ],
+      "rotationAngle": 236.66111558443993,
+      "internalThermalEnergy": 5.24953E30,
+      "dissipationFunction": 30,
+      "equatorialRadius": 1738100,
+      "colorCode": "#C0C0C0",
+      "position": [
+        -8.399155187341316E10,
+        -5.1692985337802673E11,
+        1.1557157280100866E10
+      ],
+      "id": "Moon",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    }
+  ],
+  "enableDisassemble": true,
+  "enableMasterCalculation": true,
+  "tidalEffectFactor": 1,
+  "dimension": 3
+}

@@ -485,11 +485,7 @@ public class SystemPresets {
                            double massMul,
                            double radiusMul,
                            double distanceMul) {
-        if (true) {
-            addObject3d(simulator, root, null, massMul, radiusMul, distanceMul, null);
-        } else {
-            addObject2d(simulator, root, null, massMul, radiusMul, distanceMul);
-        }
+        addObject3d(simulator, root, null, massMul, radiusMul, distanceMul, null, true);
     }
 
     static void setTemperatureToSystem(Simulator simulator) {
@@ -527,13 +523,14 @@ public class SystemPresets {
                 1e3 * Math.cbrt(scale));
     }
 
-    static void addObject3d(Simulator simulator,
+    static CelestialObject addObject3d(Simulator simulator,
                             ObjectInfo info,
                             CelestialObject parent,
                             double massMul,
                             double radiusMul,
                             double distanceMul,
-                            Vector3d parentOrbitPlaneNormal) {
+                            Vector3d parentOrbitPlaneNormal,
+                            boolean recursion) {
         double[] position;
         double[] velocity;
         double[] localAxis = randomAxisToZ(info.tilt);
@@ -607,22 +604,25 @@ public class SystemPresets {
                 position,
                 velocity,
                 axisD,
-//                new double[]{axis.x, axis.y, axis.z},
                 massMul,
                 radiusMul);
 
         simulator.addObject(co);
 
-        for (ObjectInfo moon : info.children) {
-            addObject3d(simulator,
-                    moon,
-                    co,
-                    massMul,
-                    radiusMul,
-                    distanceMul,
-                    Vector3d.fromArray(eclipticPlaneNormal)
-            );
+        if (recursion) {
+            for (ObjectInfo moon : info.children) {
+                addObject3d(simulator,
+                        moon,
+                        co,
+                        massMul,
+                        radiusMul,
+                        distanceMul,
+                        Vector3d.fromArray(eclipticPlaneNormal),
+                        true
+                );
+            }
         }
+        return co;
     }
 
     static void addObject2d(Simulator simulator,
@@ -1179,6 +1179,10 @@ public class SystemPresets {
         @Override
         public String toString() {
             return name;
+        }
+
+        public int getNumDirectChildrenIncludeSelf() {
+            return children.length + 1;
         }
         
         public int getNumChildrenIncludeSelf() {

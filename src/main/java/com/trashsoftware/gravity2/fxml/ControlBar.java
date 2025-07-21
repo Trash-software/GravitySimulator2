@@ -370,6 +370,9 @@ public class ControlBar implements Initializable {
                 lightShadowCheck.setSelected(false);
                 nameOnCanvasCheck.setSelected(false);
                 orbitShowingGroup.selectToggle(showNoneBtn);
+                JmeApp jmeApp = getJmeApp();
+                if (jmeApp == null) return;
+                jmeApp.setHighPerformanceMode(highPerformanceMode);
             }
         });
     }

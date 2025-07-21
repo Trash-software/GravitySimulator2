@@ -24,8 +24,10 @@
         
         <Menu text="%menuTool">
             <CheckMenuItem fx:id="habitableZoneMenu" text="%menuHabitableZone"/>
-            <CheckMenuItem fx:id="gravityContourMenu" text="%menuContour"/>
-            <CheckMenuItem fx:id="effPotentialContourMenu" text="%menuEffPotContour"/>
+            <CheckMenuItem fx:id="gravityContourMenu" text="%menuContour" 
+                           visible="false"/>
+            <CheckMenuItem fx:id="effPotentialContourMenu" text="%menuEffPotContour" 
+                           visible="false"/>
         </Menu>
 
     </MenuBar>
