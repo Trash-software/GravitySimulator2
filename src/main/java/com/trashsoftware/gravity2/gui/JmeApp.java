@@ -339,20 +339,20 @@ public class JmeApp extends SimpleApplication {
         
         TestSet test = new TestSet();
 
-//        simpleTest();
-//        simpleTest2();
-//        simpleTest3();
-//        simpleTest4();
-//        earthMoonSystemTest();
+//        test.simpleTest();
+//        test.simpleTest2();
+//        test.simpleTest3();
+//        test.simpleTest4();
+//        test.earthMoonSystemTest();
 //        test.singleGalaxyTest();
 //        saturnRingTest();
 //        rocheEffectTest();
 //        toyStarSystemTest();
 //        harmonicSystemTest();
 //        orbitTest();
-//        solarSystemTest();
+//        test.solarSystemTest();
 //        test.solarSystemNoMoonsTest();
-        test.nestedPlanets();
+//        test.nestedPlanets();
 //        solarSystemWithCometsTest();
 //        jupiterLagrangeTest();
 //        cometTest();
@@ -362,7 +362,7 @@ public class JmeApp extends SimpleApplication {
 //        subStarTest();
 //        infantStarSystemTest();
 //        chaosSolarSystemTest();
-//        twoChaosSolarSystemTest();
+        test.twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
 //        jupiterHarmonicTest();
 //        threeBodyTest();
@@ -521,9 +521,6 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void setupMouses() {
-//        cam.setFrustumNear(1f);
-//        cam.setFrustumFar(1e7f);
-
         cam.setLocation(new Vector3f(0, 0, 100));
 
         // Disable flyCam

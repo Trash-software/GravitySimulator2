@@ -1,6 +1,8 @@
 package com.trashsoftware.gravity2.physics;
 
 import com.trashsoftware.gravity2.gui.Vector3d;
+import com.trashsoftware.gravity2.physics.bhTree.BoundingBox;
+import com.trashsoftware.gravity2.physics.bhTree.OctreeNode;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
@@ -175,10 +177,121 @@ public class Simulator {
         return dimension;
     }
 
+    public SimResult simulate(int nPhysicalFrames) {
+        if (dimension != 3) {
+            throw new UnsupportedOperationException("Only 3D simulation is supported.");
+        }
+
+        int nObj = objects.size();
+        boolean changeHappen = false;
+
+        SimResult result = SimResult.NORMAL;
+
+        double[] zeros = new double[dimension];
+        double performedTimeSteps = 0;
+
+        for (int frame = 0; frame < nPhysicalFrames; frame++) {
+            computeAllForcesBH();
+
+            // Half-step velocity update
+            for (int i = 0; i < objects.size(); i++) {
+                CelestialObject object = objects.get(i);
+                if (Arrays.equals(zeros, forcesBuffer[i])) {
+                    Arrays.fill(object.lastAcceleration, 0);
+                    continue;
+                }
+                for (int j = 0; j < dimension; j++) {
+                    object.lastAcceleration[j] = 0.5 * forcesBuffer[i][j] / object.mass;
+                    objects.get(i).velocity[j] += object.lastAcceleration[j] * timeStep;
+                }
+            }
+
+            // Full-step position update
+            for (CelestialObject obj : objects) {
+                for (int j = 0; j < dimension; j++) {
+                    obj.position[j] += obj.velocity[j] * timeStep;
+                }
+            }
+
+            // Check for collisions and handle them
+            if (handleCollisions(objects, timeStep)) {
+                changeHappen = true;
+            }
+
+            computeAllForcesBH();
+
+            // Half-step velocity update
+            for (int i = 0; i < objects.size(); i++) {
+                CelestialObject object = objects.get(i);
+                if (Arrays.equals(zeros, forcesBuffer[i])) {
+                    Arrays.fill(object.lastAcceleration, 0);
+                    continue;
+                }
+                for (int j = 0; j < dimension; j++) {
+                    double newAcc = 0.5 * forcesBuffer[i][j] / object.mass;
+                    object.lastAcceleration[j] += newAcc;
+                    object.velocity[j] += newAcc * timeStep;
+                }
+            }
+
+            if (enableMasterCalculation) {
+                if (timeStepAccumulator - lastTimeStepAccumulator >= PATH_INTERVAL) {
+                    updateBarycenter();
+                    for (CelestialObject obj : objects) {
+                        addPath(obj, timeStepAccumulator);
+                    }
+                    addBarycenterPath(timeStepAccumulator);
+
+                    lastTimeStepAccumulator = timeStepAccumulator;
+                }
+            }
+
+            timeStepAccumulator += timeStep;
+            performedTimeSteps += timeStep;
+
+            if (result == SimResult.TOO_FAST) break;
+        }
+
+        if (enableMasterCalculation) {
+            gcPaths(timeStepAccumulator);
+        }
+
+        boolean changed = changeHappen || objects.size() != nObj;
+        if (changed) {
+            keepOrder();
+            if (result == SimResult.NORMAL) result = SimResult.NUM_CHANGED;
+        }
+        
+        return result;
+    }
+    
+    void computeAllForcesBH() {
+        int n = objects.size();
+        if (n == 0) return;
+        if (forcesBuffer == null || forcesBuffer.length < n || forcesBuffer[0].length != dimension) {
+            forcesBuffer = new double[n][dimension];
+        } else {
+            for (double[] doubles : forcesBuffer) {
+                Arrays.fill(doubles, 0.0);
+            }
+        }
+        
+        BoundingBox rootBox = BoundingBox.computeBoundingBox(objects);
+        OctreeNode root = new OctreeNode(rootBox);
+        for (CelestialObject obj : objects) {
+            root.insert(obj);
+        }
+        
+        for (int i = 0; i < n; i++) {
+            double[] force = root.computeForce(objects.get(i), G);
+            System.arraycopy(force, 0, forcesBuffer[i], 0, dimension);
+        }
+    }
+
     /**
      * @return whether the size has changed
      */
-    public SimResult simulate(int nPhysicalFrames) {
+    public SimResult simulate2(int nPhysicalFrames) {
         int nObj = objects.size();
         boolean changeHappen = false;
 
