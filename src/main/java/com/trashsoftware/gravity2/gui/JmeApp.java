@@ -26,6 +26,7 @@ import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import com.trashsoftware.gravity2.utils.OrbitPlane;
+import com.trashsoftware.gravity2.utils.Util;
 import javafx.application.Platform;
 
 import java.util.*;
@@ -139,10 +140,13 @@ public class JmeApp extends SimpleApplication {
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 reloadObjects();
+                System.out.println("Trigger: num change");
                 getFxApp().notifyObjectCountChanged(simulator);
             } else if (sr == Simulator.SimResult.TOO_FAST) {
-                getFxApp().getControlBar().speedDownAction();
+//                getFxApp().getControlBar().speedDownAction();
+                speedDownAction();
                 reloadObjects();
+                System.out.println("Trigger: too fast");
                 getFxApp().notifyObjectCountChanged(simulator);
             }
 
@@ -336,36 +340,40 @@ public class JmeApp extends SimpleApplication {
 
     private Simulator initializeSimulator() {
         simulator = new Simulator();
-        
+
         TestSet test = new TestSet();
 
 //        simpleTest();
 //        simpleTest2();
 //        simpleTest3();
-//        simpleTest4();
+//        test.simpleTest4();
+//        test.compactStarSystem();
 //        earthMoonSystemTest();
 //        test.singleGalaxyTest();
 //        saturnRingTest();
 //        rocheEffectTest();
-//        toyStarSystemTest();
-//        harmonicSystemTest();
+//        test.toyStarSystemTest();
+//        test.harmonicSystemTest();
+//        test.cuteStarSystemWithRaw();
+//        test.cuteStarGasGiantSystem();
+        test.starSheepdogRing();
 //        orbitTest();
 //        solarSystemTest();
 //        test.solarSystemNoMoonsTest();
-        test.nestedPlanets();
+//        test.nestedPlanets();
 //        solarSystemWithCometsTest();
 //        jupiterLagrangeTest();
 //        cometTest();
-//        smallSolarSystemTest();
+//        test.smallSolarSystemTest();
 //        tidalTest();
 //        ellipseClusterTest();
 //        subStarTest();
-//        infantStarSystemTest();
+//        test.infantStarSystemTest();
 //        chaosSolarSystemTest();
 //        twoChaosSolarSystemTest();
 //        twoChaosSystemTest();
 //        jupiterHarmonicTest();
-//        threeBodyTest();
+//        test.threeBodyTest();
 //        plutoCharonTest();
 
         getFxApp().notifyObjectCountChanged(simulator);
@@ -392,7 +400,7 @@ public class JmeApp extends SimpleApplication {
             om.removeEmissionLight();
         }
     }
-    
+
     void clearParticleEffects() {
         for (ObjectModel om : modelMap.values()) {
             om.clearEffects();
@@ -1654,7 +1662,7 @@ public class JmeApp extends SimpleApplication {
         sun.setColorCode(color);
         sun.setLightColorCode(color);
     }
-    
+
     @SuppressWarnings("unused")
     class TestSet {
         private void simpleTest() {
@@ -1768,6 +1776,10 @@ public class JmeApp extends SimpleApplication {
             scale = 1e-7f;
         }
 
+        private void compactStarSystem() {
+            scale = Preset.COMPACT_STAR_SYSTEM.instantiate(simulator);
+        }
+
         private void threeBodyTest() {
             scale = Preset.SIMPLE_THREE_BODY.instantiate(simulator);
         }
@@ -1848,6 +1860,55 @@ public class JmeApp extends SimpleApplication {
         private void harmonicSystemTest() {
             scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
         }
+        
+        private void cuteStarGasGiantSystem() {
+            scale = Preset.CUTE_STAR_GAS_GIANT_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+        }
+        
+        private void starSheepdogRing() {
+            scale = Preset.STAR_SHEEPDOG_RING.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+        }
+        
+        private void addDisk(int n) {
+            
+        }
+
+        private void cuteStarSystemWithRaw() {
+            scale = Preset.CUTE_STAR_SYSTEM.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+
+            double systemRadius = simulator.greatestRadius();
+            double systemMass = simulator.totalMass();
+            double[] barycenter = simulator.barycenter();
+            CelestialObject master = simulator.getObjects().getFirst();
+            Random random = new Random();
+            int nAsteroids = 0;
+            for (int i = 0; i < nAsteroids; i++) {
+                double dt = random.nextDouble(systemRadius * 1.05);
+                double rad = random.nextDouble(Math.PI * 2);
+                double mass = random.nextDouble(SystemPresets.MOON_MASS * 0.05, SystemPresets.MOON_MASS * 3);
+                double density = Math.max(1800, random.nextGaussian() * 3000);  // 避免彗星
+                double x = dt * Math.cos(rad);
+                double y = dt * Math.sin(rad);
+                double z = random.nextGaussian() * systemRadius * 0.0;
+
+                CelestialObject co = CelestialObject.create3d(
+                        "Asteroid" + i,
+                        mass,
+                        CelestialObject.radiusOf(mass, density),
+                        new double[]{x, y, z},
+                        new double[3],
+                        Util.randomCelestialColorCode()
+                );
+                double[] vel = simulator.computeOrbitVelocity(master,
+                        co,
+                        new double[]{0, 0, 1});
+                co.setVelocity(vel);
+                simulator.addObject(co);
+            }
+        }
 
         private void orbitTest() {
             scale = Preset.ORBIT_TEST.instantiate(simulator);
@@ -1862,7 +1923,7 @@ public class JmeApp extends SimpleApplication {
             scale = Preset.SOLAR_SYSTEM_NO_MOONS.instantiate(simulator);
             scale *= 0.5;
         }
-        
+
         private void nestedPlanets() {
             scale = Preset.NESTED_PLANET.instantiate(simulator);
         }
@@ -2076,7 +2137,7 @@ public class JmeApp extends SimpleApplication {
             updateAmbientLight();
         });
     }
-    
+
     public void setHighPerformanceMode(boolean highPerformanceMode) {
         enqueue(() -> {
             simulator.setEnableMasterCalculation(!highPerformanceMode);
@@ -2125,11 +2186,11 @@ public class JmeApp extends SimpleApplication {
             }
         });
     }
-    
+
     public void setShowGravityContour(boolean show) {
         enqueue(() -> {
             if (show) {
-                
+
             } else {
                 contourDataList = null;
             }

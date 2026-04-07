@@ -281,6 +281,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
 
     private void collapseObjectStats() {
         celestialContainer.setContent(celestialListPane);
+        System.out.println("Triggered reload by collapse obj stats!");
         reloadInfoPane(fxApp.getSimulator(), fxApp.getSimulator().getObjects());
         celestialContainer.setVvalue(celestialContainerVValueCache);
     }

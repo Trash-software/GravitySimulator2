@@ -1,0 +1,3031 @@
+{
+  "timeStepAccumulator": 9.68820724E8,
+  "epsilon": 0,
+  "gravityDtPower": 2,
+  "timeStep": 2,
+  "G": 6.6743E-11,
+  "cutOffForce": 0,
+  "objects": [
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "STAR",
+      "polarRadius": 1.5251600291826752E8,
+      "emissivity": 0.95,
+      "mass": 2.983500463352345E29,
+      "velocity": [
+        9.478807887535911,
+        265.0367557507177,
+        2.9852373534348486
+      ],
+      "angularVelocity": 1.0009548919416228E-6,
+      "exist": true,
+      "surfaceThermalEnergy": 0,
+      "rotationAxis": [
+        1.9044296211423307E-4,
+        5.0269325640765054E-5,
+        0.9999999806022364
+      ],
+      "rotationAngle": 122.34263370116031,
+      "internalThermalEnergy": 2.133298010462408E37,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1.5251600291826752E8,
+      "colorCode": "#95591F",
+      "position": [
+        -2.829142965182806E11,
+        4.193721431925304E11,
+        -2593492.317504447
+      ],
+      "id": "Star",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.589,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.686001050203959E7,
+      "emissivity": 0.95,
+      "mass": 1.9041434895621503E27,
+      "velocity": [
+        -6783.480451853539,
+        -44182.908402440364,
+        62.6356293386304
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/jupiter/jupiter2k.jpg",
+      "angularVelocity": 1.7543986133891415E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 2.6095358252151438E26,
+      "rotationAxis": [
+        0.03860491766521108,
+        -0.04089360839913032,
+        0.9984174343049909
+      ],
+      "rotationAngle": 329.25783949408833,
+      "internalThermalEnergy": 1.4461261197154506E35,
+      "dissipationFunction": 10500,
+      "equatorialRadius": 7.149842748095573E7,
+      "colorCode": "#F4A460",
+      "position": [
+        -2.9259717757906104E11,
+        4.206423146733061E11,
+        1.862505094868947E7
+      ],
+      "id": "Jupiter",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.5,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.499319054337553E7,
+      "emissivity": 0.95,
+      "mass": 1.5216947675424603E27,
+      "velocity": [
+        -53875.25139552884,
+        76703.9187987385,
+        -667.2939678476341
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/custom/pink_gas_giant.jpg",
+      "angularVelocity": 1.8163655446364513E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 4.8639364932303326E26,
+      "rotationAxis": [
+        -0.08853751160402161,
+        -0.011541879326624533,
+        0.9960059708960471
+      ],
+      "rotationAngle": 267.7528263340828,
+      "internalThermalEnergy": 1.1423132163851635E35,
+      "dissipationFunction": 12000,
+      "equatorialRadius": 6.918629961069006E7,
+      "colorCode": "#ffaec9",
+      "position": [
+        -2.81049343881263E11,
+        4.206715549937787E11,
+        -8173315.81662145
+      ],
+      "id": "PinkGasGiant",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.341,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 5.443756309135494E7,
+      "emissivity": 0.95,
+      "mass": 5.7052295323252715E26,
+      "velocity": [
+        2428.990851872817,
+        36824.304097967266,
+        -31.65100065187375
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/saturn/saturnmap.jpg",
+      "angularVelocity": 1.6289471502175571E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 1.4612816311178662E26,
+      "rotationAxis": [
+        0.3145256447808748,
+        0.31870113906736297,
+        0.8941494297556423
+      ],
+      "rotationAngle": 131.97038379748446,
+      "internalThermalEnergy": 4.196360707550418E34,
+      "dissipationFunction": 18000,
+      "equatorialRadius": 6.0349552137255885E7,
+      "colorCode": "#DAA520",
+      "position": [
+        -2.6748307215976303E11,
+        4.1936575911385693E11,
+        -2.213043149544152E7
+      ],
+      "id": "Saturn",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.122,
+      "bodyType": "ICE_GIANT",
+      "polarRadius": 4.106292978996929E7,
+      "emissivity": 0.95,
+      "mass": 1.0463378845984279E26,
+      "velocity": [
+        14411.38290858205,
+        -21700.157381746976,
+        168.0063123318326
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/neptune/neptune_current.jpg",
+      "angularVelocity": 3.6906499546019E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 1.7109544535043036E26,
+      "rotationAxis": [
+        0.2990958583922761,
+        -0.41125595111720215,
+        0.8610518045758182
+      ],
+      "rotationAngle": 266.5397597397693,
+      "internalThermalEnergy": 1.0068690767728921E33,
+      "dissipationFunction": 4000,
+      "equatorialRadius": 4.177652492990425E7,
+      "colorCode": "#4169E1",
+      "position": [
+        -3.037113847462263E11,
+        4.0161159540518207E11,
+        3.188628476577887E8
+      ],
+      "id": "Neptune",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.14,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 7646695.7306621345,
+      "emissivity": 0.95,
+      "mass": 1.0752672253263687E25,
+      "velocity": [
+        23466.214179444258,
+        53235.34281293825,
+        687.1908005998035
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/custom/hellokitty.jpg",
+      "angularVelocity": 1.454441043328608E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 1.5854579825452262E23,
+      "rotationAxis": [
+        0.33983464486128434,
+        0.175951764863928,
+        0.9238795325112867
+      ],
+      "rotationAngle": 145.8333333327558,
+      "internalThermalEnergy": 7.577350115521066E32,
+      "dissipationFunction": 50,
+      "equatorialRadius": 8029030.5171952415,
+      "colorCode": "#ffaec9",
+      "position": [
+        -2.7788851519590283E11,
+        4.161789656285987E11,
+        -6.184794637689601E7
+      ],
+      "id": "HelloKitty",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.295,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 6853581.770151979,
+      "emissivity": 0.95,
+      "mass": 5.623099028431448E24,
+      "velocity": [
+        103468.57651862098,
+        -44034.71903824189,
+        852.0093274121809
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/venusmap.jpg",
+      "angularVelocity": 0.0016018833143247007,
+      "exist": true,
+      "surfaceThermalEnergy": 2.544146466210122E23,
+      "rotationAxis": [
+        -0.6402527711319612,
+        -0.46014489987609003,
+        0.6150959763938206
+      ],
+      "rotationAngle": 9588990.205513459,
+      "internalThermalEnergy": 1.0683350975124596E33,
+      "dissipationFunction": 150,
+      "equatorialRadius": 6853581.770151979,
+      "colorCode": "#EED2B3",
+      "position": [
+        -2.8370669212699384E11,
+        4.182053264857326E11,
+        -1973006.0166231312
+      ],
+      "id": "Venus",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 4625030.815572379,
+      "emissivity": 0.95,
+      "mass": 9.665529312574902E23,
+      "velocity": [
+        21213.20220280671,
+        152493.7741436799,
+        -3743.3960599919687
+      ],
+      "angularVelocity": 0.003142201564534917,
+      "exist": true,
+      "surfaceThermalEnergy": 1.563634338798563E23,
+      "rotationAxis": [
+        0.37128255876102406,
+        -0.6563439734403789,
+        -0.6567814325088385
+      ],
+      "rotationAngle": 4.07387312110319E7,
+      "internalThermalEnergy": 3.581793555870914E32,
+      "dissipationFunction": 100,
+      "equatorialRadius": 4625030.815572379,
+      "colorCode": "#B5BCC1",
+      "position": [
+        -2.8216054777722424E11,
+        4.191709546376728E11,
+        -1.3245820235903208E8
+      ],
+      "id": "Asteroid41",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.14,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3376200,
+      "emissivity": 0.95,
+      "mass": 6.417E23,
+      "velocity": [
+        52061.514495370626,
+        43518.845169196175,
+        -408.56020461382883
+      ],
+      "texturePath": "com/trashsoftware/gravity2/textures/marsmap1k.jpg",
+      "angularVelocity": 7.0879193144669E-5,
+      "exist": true,
+      "surfaceThermalEnergy": 4.2204268838402845E22,
+      "rotationAxis": [
+        -0.4253289176866673,
+        -0.015775182875412488,
+        0.9049013511895844
+      ],
+      "rotationAngle": 17.03378817365299,
+      "internalThermalEnergy": 4.588155000000001E31,
+      "dissipationFunction": 92,
+      "equatorialRadius": 3396200,
+      "colorCode": "#A52A2A",
+      "position": [
+        -2.802319719896373E11,
+        4.164078517536277E11,
+        1.6837279734542098E7
+      ],
+      "id": "Mars",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3636449.7384246546,
+      "emissivity": 0.95,
+      "mass": 3.6257168283936346E23,
+      "velocity": [
+        3600.1558491960936,
+        -3563.08711904141,
+        95.19644581671469
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.744769809182044E21,
+      "rotationAxis": [
+        3.895844217842702E-24,
+        2.092900239703936E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.5923875323014486E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3636449.7384246546,
+      "colorCode": "#837988",
+      "position": [
+        -7.600532378728196E11,
+        7.38537954662173E11,
+        -1.074090988244939E10
+      ],
+      "id": "Asteroid85",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3374421.524220439,
+      "emissivity": 0.95,
+      "mass": 3.576326836468541E23,
+      "velocity": [
+        -22585.671602321,
+        360.52486794800427,
+        -420.57945864432696
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.2498086250298487E22,
+      "rotationAxis": [
+        -1.9877351721563753E-24,
+        -2.1410268485505252E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.5570736880750067E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3374421.524220439,
+      "colorCode": "#837BA6",
+      "position": [
+        -2.84542471071876E11,
+        4.584944551245344E11,
+        -1.130815923066261E8
+      ],
+      "id": "Asteroid77",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3614441.532205569,
+      "emissivity": 0.95,
+      "mass": 3.56028468546574E23,
+      "velocity": [
+        4731.35443820286,
+        -2128.28100188635,
+        -522.256406425225
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.241659014506367E21,
+      "rotationAxis": [
+        -4.9427144435712503E-23,
+        8.915851064011593E-23,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.545603550108004E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3614441.532205569,
+      "colorCode": "#6A6A69",
+      "position": [
+        3.1169886944386484E12,
+        -1.440113376352763E12,
+        -3.214413944274602E11
+      ],
+      "id": "Asteroid33",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3604955.632434708,
+      "emissivity": 0.95,
+      "mass": 3.5323268832392874E23,
+      "velocity": [
+        -20233.039281506266,
+        -11075.148817343092,
+        74.74531299688189
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.573628688003673E22,
+      "rotationAxis": [
+        -1.112272239960411E-22,
+        8.592414769927871E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.519434114821591E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3604955.632434708,
+      "colorCode": "#1F1C24",
+      "position": [
+        -3.0157313833650323E11,
+        4.513420667370625E11,
+        -2.741085138668395E8
+      ],
+      "id": "Asteroid1",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3594973.695223243,
+      "emissivity": 0.95,
+      "mass": 3.503065560321982E23,
+      "velocity": [
+        -21927.871908564237,
+        -9044.129108598281,
+        -250.7036707558918
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.5686509750922976E22,
+      "rotationAxis": [
+        -5.619502632157332E-25,
+        -1.2622075383197172E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.504691875630217E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3594973.695223243,
+      "colorCode": "#342F44",
+      "position": [
+        -2.933347345727038E11,
+        4.524693164736437E11,
+        -2.778578963639924E8
+      ],
+      "id": "Asteroid71",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3591177.548883508,
+      "emissivity": 0.95,
+      "mass": 3.49197998924358E23,
+      "velocity": [
+        -11460.45854402004,
+        18215.317673245052,
+        -4434.776836278317
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.3546516936434106E22,
+      "rotationAxis": [
+        4.458175035138387E-23,
+        1.1991390414750308E-22,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.49676569230916E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3591177.548883508,
+      "colorCode": "#2E3430",
+      "position": [
+        -2.6854677438036942E11,
+        4.3475444841456903E11,
+        9.093119590485664E9
+      ],
+      "id": "Asteroid76",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3590181.5000355556,
+      "emissivity": 0.95,
+      "mass": 3.4890751888164534E23,
+      "velocity": [
+        44203.02253919768,
+        54835.41024031723,
+        -4281.387824338846
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 4.4515829902898964E22,
+      "rotationAxis": [
+        -3.02700648542532E-22,
+        2.2312071720592764E-22,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.494688760003764E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3590181.5000355556,
+      "colorCode": "#73392F",
+      "position": [
+        -2.797010921041653E11,
+        4.167593238518519E11,
+        -1.35312394783863E8
+      ],
+      "id": "Asteroid128",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3517033.608145637,
+      "emissivity": 0.95,
+      "mass": 3.2801270791618595E23,
+      "velocity": [
+        9835.642746761025,
+        -28716.043548212172,
+        -55.100209377336874
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3235042201835988E22,
+      "rotationAxis": [
+        -2.0053972584587634E-24,
+        -4.7500575378028796E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.3452908616007297E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3517033.608145637,
+      "colorCode": "#A147E1",
+      "position": [
+        -3.074121683133449E11,
+        4.024686534774264E11,
+        -3.1338620578534096E8
+      ],
+      "id": "Asteroid102",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3507154.1070868163,
+      "emissivity": 0.95,
+      "mass": 3.252562593406469E23,
+      "velocity": [
+        -29958.01814280926,
+        -5955.837760828651,
+        -733.733998096226
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.7945152921411797E22,
+      "rotationAxis": [
+        -6.70751468832042E-24,
+        -2.1196707191572866E-23,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.3255822542856254E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3507154.1070868163,
+      "colorCode": "#111339",
+      "position": [
+        -2.8785322664063824E11,
+        4.4224477540953876E11,
+        -2.0220407683407698E9
+      ],
+      "id": "Asteroid95",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3497733.6719226507,
+      "emissivity": 0.95,
+      "mass": 3.226423172092889E23,
+      "velocity": [
+        1688.3303176604802,
+        -1057.4239789288013,
+        176.53617279333199
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.5940627146936707E21,
+      "rotationAxis": [
+        -6.072760691441056E-24,
+        9.69683699647967E-25,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.306892568046416E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3497733.6719226507,
+      "colorCode": "#1F190D",
+      "position": [
+        2.6307956135529414E12,
+        -2.0952300752476704E12,
+        2.838873296434352E11
+      ],
+      "id": "Asteroid135",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3470566.820562783,
+      "emissivity": 0.95,
+      "mass": 3.1518268139322385E23,
+      "velocity": [
+        -61134.69719007033,
+        -32459.62870406325,
+        -27.180502995204225
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.6837196723007087E22,
+      "rotationAxis": [
+        -5.03097997652383E-22,
+        -7.466826714241157E-23,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.2535561719615505E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3470566.820562783,
+      "colorCode": "#8EE6E3",
+      "position": [
+        -2.84932784859042E11,
+        4.230705267556656E11,
+        -4.514680491467021E8
+      ],
+      "id": "Asteroid8",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3466900.9955304964,
+      "emissivity": 0.95,
+      "mass": 3.1418499025783065E23,
+      "velocity": [
+        7916.605018571185,
+        5893.000736414226,
+        271.61683660040296
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.6095084773999043E21,
+      "rotationAxis": [
+        -3.428054353342664E-23,
+        -7.325724754524208E-23,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.246422680343489E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3466900.9955304964,
+      "colorCode": "#BDCCD2",
+      "position": [
+        6.721559216501667E12,
+        4.994462777934341E12,
+        2.3140120947157678E11
+      ],
+      "id": "Asteroid4",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3457712.5360916927,
+      "emissivity": 0.95,
+      "mass": 3.116935159366964E23,
+      "velocity": [
+        -10858.937941752236,
+        19490.520282555506,
+        -219.7539280465671
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3764741674302456E22,
+      "rotationAxis": [
+        -1.1981306272389754E-24,
+        -4.567228234035484E-27,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.228608638947379E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3457712.5360916927,
+      "colorCode": "#161327",
+      "position": [
+        -2.4718311496165094E11,
+        4.402274545393913E11,
+        1.3175104237976609E8
+      ],
+      "id": "Asteroid32",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2417978.381062404,
+      "emissivity": 0.95,
+      "mass": 3.093508041023305E23,
+      "velocity": [
+        24770.10484475361,
+        12433.433473921066,
+        142.06725766501407
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 6.422820427677913E21,
+      "rotationAxis": [
+        -2.810314792931424E-25,
+        -1.230301448346521E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.2118582493316634E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2417978.381062404,
+      "colorCode": "#6FDFFA",
+      "position": [
+        -2.6898736303943408E11,
+        3.930454659466087E11,
+        1.6502929709488797E8
+      ],
+      "id": "Asteroid5",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3428889.0448743105,
+      "emissivity": 0.95,
+      "mass": 3.0396348178225707E23,
+      "velocity": [
+        -20099.775816111953,
+        -9419.913381105396,
+        -55.513108653101206
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1631746854786148E22,
+      "rotationAxis": [
+        -4.733630470002536E-25,
+        8.276907694001297E-26,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.173338894743138E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3428889.0448743105,
+      "colorCode": "#EAD1A0",
+      "position": [
+        -3.0131980980986115E11,
+        4.561794190571379E11,
+        -1.9301215436027282E8
+      ],
+      "id": "Asteroid129",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3421385.268780981,
+      "emissivity": 0.95,
+      "mass": 3.0197226591803243E23,
+      "velocity": [
+        14602.800767959741,
+        -19846.410086251355,
+        100.07796778070741
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.2666662319428372E22,
+      "rotationAxis": [
+        1.19668842491555E-24,
+        -3.780133934497724E-25,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.159101701313932E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3421385.268780981,
+      "colorCode": "#454031",
+      "position": [
+        -3.176882277279076E11,
+        4.1490613366069104E11,
+        3.388365607865666E8
+      ],
+      "id": "Asteroid43",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2900212.2509825616,
+      "emissivity": 0.95,
+      "mass": 2.9433152654408797E23,
+      "velocity": [
+        8491.179218472957,
+        1487.6885966159477,
+        394.8032965900592
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 7.206949010036221E21,
+      "rotationAxis": [
+        -1.6881957475001264E-23,
+        1.7715750417239914E-23,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.104470414790229E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2900212.2509825616,
+      "colorCode": "#501932",
+      "position": [
+        -1.140949205443574E11,
+        3.661496573762823E11,
+        1.0763727524893713E10
+      ],
+      "id": "Asteroid137",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3364927.774881662,
+      "emissivity": 0.95,
+      "mass": 2.8726873051148054E23,
+      "velocity": [
+        2482.722091168022,
+        -22748.163029143787,
+        -324.56236487733065
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3129898619509968E22,
+      "rotationAxis": [
+        1.9299497648244845E-24,
+        1.4291737039199403E-25,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.0539714231570857E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3364927.774881662,
+      "colorCode": "#182123",
+      "position": [
+        -3.206737134399831E11,
+        4.1768506015615356E11,
+        2.2472575319611725E8
+      ],
+      "id": "Asteroid75",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3355031.9754575416,
+      "emissivity": 0.95,
+      "mass": 2.847417207504552E23,
+      "velocity": [
+        -782.1126483322171,
+        5534.6951597142015,
+        -200.1808928455672
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.5220907431949836E21,
+      "rotationAxis": [
+        -5.858071119031354E-24,
+        1.7591019659134466E-24,
+        1
+      ],
+      "rotationAngle": 195.09337214940948,
+      "internalThermalEnergy": 2.035903303365755E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3355031.9754575416,
+      "colorCode": "#CCBFB6",
+      "position": [
+        -3.3815813918645197E11,
+        2.364569942208948E12,
+        -7.593396340537413E10
+      ],
+      "id": "Asteroid140",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3350034.432280963,
+      "emissivity": 0.95,
+      "mass": 2.8347119000150976E23,
+      "velocity": [
+        -18722.56687650259,
+        -11797.248791269403,
+        429.01925567615274
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.2104197142454305E22,
+      "rotationAxis": [
+        -1.374433502878492E-22,
+        1.327279896364692E-23,
+        1
+      ],
+      "rotationAngle": 195.09339162997452,
+      "internalThermalEnergy": 2.0239498275642706E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3350034.432280963,
+      "colorCode": "#AD9CB9",
+      "position": [
+        -3.025505904550575E11,
+        4.523446895462897E11,
+        2579552.69115009
+      ],
+      "id": "Asteroid36",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3268896.511973704,
+      "emissivity": 0.95,
+      "mass": 2.633689847456622E23,
+      "velocity": [
+        5092.494176924845,
+        -14012.739748141666,
+        1094.2113896894198
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1301275848377576E22,
+      "rotationAxis": [
+        -5.3519938690384076E-24,
+        1.4968676199056232E-24,
+        1
+      ],
+      "rotationAngle": 195.09339162997452,
+      "internalThermalEnergy": 1.8830882409314847E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3268896.511973704,
+      "colorCode": "#74A1C5",
+      "position": [
+        -3.3292354602294586E11,
+        4.100481291906684E11,
+        -9.341543212164427E9
+      ],
+      "id": "Asteroid144",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2987317.657869823,
+      "emissivity": 0.95,
+      "mass": 2.6112316406682786E23,
+      "velocity": [
+        5883.5651063850155,
+        24394.196869615673,
+        1132.0726972880955
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 7.602723991786685E21,
+      "rotationAxis": [
+        6.727620250603082E-25,
+        2.270440177849577E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.8670306230778192E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2987317.657869823,
+      "colorCode": "#B1B2B6",
+      "position": [
+        -2.582935909485317E11,
+        3.865458766537436E11,
+        -9.53626546613204E7
+      ],
+      "id": "Asteroid25",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2772011.208901904,
+      "emissivity": 0.95,
+      "mass": 2.536991551149961E23,
+      "velocity": [
+        25570.44754049491,
+        2510.1809276869776,
+        174.88630395006578
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.067807784398469E21,
+      "rotationAxis": [
+        -5.501351247693825E-24,
+        7.885432576984067E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.8139489590722221E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2772011.208901904,
+      "colorCode": "#4640A0",
+      "position": [
+        -2.805539992725109E11,
+        3.8715230067742084E11,
+        8.217874001043355E7
+      ],
+      "id": "Asteroid42",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3222836.641770614,
+      "emissivity": 0.95,
+      "mass": 2.5239223673481492E23,
+      "velocity": [
+        -19455.32083671821,
+        -11167.910458955705,
+        -62.32978395950423
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1081854060546627E22,
+      "rotationAxis": [
+        9.801216857429344E-25,
+        -1.3860282109872743E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.8046044926539266E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3222836.641770614,
+      "colorCode": "#81B88B",
+      "position": [
+        -3.01112510571396E11,
+        4.539715243949051E11,
+        5.690283023134962E7
+      ],
+      "id": "Asteroid134",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3221088.2269349587,
+      "emissivity": 0.95,
+      "mass": 2.519816850792033E23,
+      "velocity": [
+        -1994.2807394265437,
+        1518.1385200013328,
+        186.37417535019435
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.8387823120475834E21,
+      "rotationAxis": [
+        -6.2432840436377985E-24,
+        -1.6117638152161746E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.8016690483163037E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3221088.2269349587,
+      "colorCode": "#5F5455",
+      "position": [
+        -8.362867835675386E11,
+        1.192407300380451E12,
+        1.8031810616047882E11
+      ],
+      "id": "Asteroid123",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2771917.0721874507,
+      "emissivity": 0.95,
+      "mass": 2.5077934534560023E23,
+      "velocity": [
+        -19858.230120004537,
+        5983.386299369725,
+        116.78673597309269
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 8.572213322602816E21,
+      "rotationAxis": [
+        6.391330501079149E-25,
+        -7.314835687510622E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.7930723192210416E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2771917.0721874507,
+      "colorCode": "#5C5255",
+      "position": [
+        -2.7212585878657755E11,
+        4.615698713460111E11,
+        2.4636284641886032E8
+      ],
+      "id": "Asteroid56",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3208932.8498848737,
+      "emissivity": 0.95,
+      "mass": 2.4913973710714943E23,
+      "velocity": [
+        -1384.41329656134,
+        -6987.041022285044,
+        5.958408335139249
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.012305008834486E22,
+      "rotationAxis": [
+        1.6452285307662068E-22,
+        5.196452859808781E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.7813491203161185E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3208932.8498848737,
+      "colorCode": "#54391B",
+      "position": [
+        -3.638142983963018E11,
+        4.563966430023388E11,
+        5.788424233916703E9
+      ],
+      "id": "Asteroid54",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2939854.0660296706,
+      "emissivity": 0.95,
+      "mass": 2.425680636440987E23,
+      "velocity": [
+        -5915.802376112329,
+        975.9306418214478,
+        -730.6141199037803
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.782997092903798E21,
+      "rotationAxis": [
+        -4.79472541983579E-24,
+        -4.692069011300831E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.7343616550553058E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2939854.0660296706,
+      "colorCode": "#1A0A20",
+      "position": [
+        2.114170179775223E11,
+        4.7619261379888116E11,
+        7.050463086095782E10
+      ],
+      "id": "Asteroid18",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3155443.1490429426,
+      "emissivity": 0.95,
+      "mass": 2.3688752713624268E23,
+      "velocity": [
+        -367.1470044683044,
+        -6596.735820510215,
+        -235.08168405651995
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.347980616460928E21,
+      "rotationAxis": [
+        -4.009048216673799E-24,
+        5.049324630789341E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.693745819024135E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3155443.1490429426,
+      "colorCode": "#5B5F71",
+      "position": [
+        -4.046149853928551E11,
+        -1.5595029710424846E12,
+        -6.084561956946617E10
+      ],
+      "id": "Asteroid66",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3141514.4735229895,
+      "emissivity": 0.95,
+      "mass": 2.3376436559190486E23,
+      "velocity": [
+        -29747.203619547076,
+        14481.019402144528,
+        1581.6144497998553
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3988674328528773E22,
+      "rotationAxis": [
+        3.1503845109557077E-23,
+        -2.6766082892592404E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.6714152139821198E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3141514.4735229895,
+      "colorCode": "#574B43",
+      "position": [
+        -2.6938363090536795E11,
+        4.3529045711324976E11,
+        -1.5375294258171966E9
+      ],
+      "id": "Asteroid89",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3003084.428849928,
+      "emissivity": 0.95,
+      "mass": 2.2714273127122544E23,
+      "velocity": [
+        11072.4899406273,
+        -27071.166722975064,
+        305.25087074189247
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.779869577063896E21,
+      "rotationAxis": [
+        8.426565106729387E-25,
+        -1.0718477883839323E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.624070528589262E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3003084.428849928,
+      "colorCode": "#9C9B9C",
+      "position": [
+        -3.102596152557779E11,
+        4.1155915311289856E11,
+        -2.5659867669758E8
+      ],
+      "id": "Asteroid58",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3080321.5674449676,
+      "emissivity": 0.95,
+      "mass": 2.2036838270883225E23,
+      "velocity": [
+        37462.46902281725,
+        -16807.765082916536,
+        732.4546613191798
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.099002984972911E21,
+      "rotationAxis": [
+        -6.121931216933777E-23,
+        -3.61995309199662E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.5756339363681505E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3080321.5674449676,
+      "colorCode": "#C798FA",
+      "position": [
+        2.7898185268462617E13,
+        -1.2457728832608314E13,
+        5.475918387444201E11
+      ],
+      "id": "Asteroid100",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3076918.2825359623,
+      "emissivity": 0.95,
+      "mass": 2.196387691889345E23,
+      "velocity": [
+        -26211.798389866217,
+        2903.854354824081,
+        -626.9681487722768
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.3455841434207326E22,
+      "rotationAxis": [
+        9.418979181921088E-25,
+        1.0757760244443004E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.5704171997008816E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3076918.2825359623,
+      "colorCode": "#3D544E",
+      "position": [
+        -2.8620940414270276E11,
+        4.473522225848555E11,
+        -1.2049289661340995E9
+      ],
+      "id": "Asteroid131",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3058710.7464945833,
+      "emissivity": 0.95,
+      "mass": 2.157626866372119E23,
+      "velocity": [
+        25120.378718635864,
+        69252.34301855043,
+        2809.2522844048294
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.185309771937794E22,
+      "rotationAxis": [
+        -5.359333973809727E-23,
+        -2.4576683693879613E-26,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.5427032094560649E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3058710.7464945833,
+      "colorCode": "#D2A241",
+      "position": [
+        -2.79369236150571E11,
+        4.1801662328827496E11,
+        2.4746419730041957E8
+      ],
+      "id": "Asteroid115",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3034697.820539793,
+      "emissivity": 0.95,
+      "mass": 2.1072083217351377E23,
+      "velocity": [
+        20864.412234109066,
+        7863.418279981736,
+        148.18803126094076
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 8.977604550260441E21,
+      "rotationAxis": [
+        -2.610115003231866E-25,
+        -8.357078081238984E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.5066539500406233E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3034697.820539793,
+      "colorCode": "#8F9FCF",
+      "position": [
+        -2.824409021144318E11,
+        3.7838040239628467E11,
+        6.958317735750765E7
+      ],
+      "id": "Asteroid133",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 3007932.0888818344,
+      "emissivity": 0.95,
+      "mass": 2.0519425384462162E23,
+      "velocity": [
+        -23400.964747694976,
+        -7470.877390682344,
+        -189.79846501895346
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0613180667485305E22,
+      "rotationAxis": [
+        -2.640262417201204E-25,
+        -1.1275932018295722E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.4671389149890448E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 3007932.0888818344,
+      "colorCode": "#859E93",
+      "position": [
+        -2.9538692574603235E11,
+        4.5037977842074866E11,
+        2.5356711572334167E8
+      ],
+      "id": "Asteroid81",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2936698.6447959407,
+      "emissivity": 0.95,
+      "mass": 1.9095861795439265E23,
+      "velocity": [
+        19120.800140606436,
+        -7320.805880888979,
+        946.9566320217617
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0215202378083966E22,
+      "rotationAxis": [
+        -1.4309907817485627E-23,
+        -2.2881211950794682E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.3653541183739074E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2936698.6447959407,
+      "colorCode": "#549667",
+      "position": [
+        -3.0525289615009064E11,
+        3.8970663862461584E11,
+        1.50805275557791E9
+      ],
+      "id": "Asteroid126",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2912713.7174897348,
+      "emissivity": 0.95,
+      "mass": 1.8631787305999163E23,
+      "velocity": [
+        11967.758943442446,
+        -16006.186229669986,
+        3947.0462219977203
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.673764714306599E21,
+      "rotationAxis": [
+        -7.965238757103295E-23,
+        3.061673479245019E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.3321727923789403E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2912713.7174897348,
+      "colorCode": "#C47185",
+      "position": [
+        2.960354290737239E12,
+        -3.9827512755766514E12,
+        1.0603699411690216E12
+      ],
+      "id": "Asteroid120",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2910940.520761818,
+      "emissivity": 0.95,
+      "mass": 1.8597780137226395E23,
+      "velocity": [
+        -22492.494540479885,
+        2747.725875920222,
+        -414.31962901858026
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.86119141963729E21,
+      "rotationAxis": [
+        -9.872162232010183E-25,
+        7.746581691072982E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.3297412798116875E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2910940.520761818,
+      "colorCode": "#5B5559",
+      "position": [
+        -2.784643295802764E11,
+        4.5714280896338257E11,
+        1.4193912556868035E8
+      ],
+      "id": "Asteroid14",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2832877.7982237753,
+      "emissivity": 0.95,
+      "mass": 1.7141334768683563E23,
+      "velocity": [
+        14002.622654706594,
+        -18353.363759638032,
+        -139.39883706939605
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.408215318244754E21,
+      "rotationAxis": [
+        -1.3021576636413984E-24,
+        1.0585419881440625E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.2256054359608748E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2832877.7982237753,
+      "colorCode": "#412D32",
+      "position": [
+        -3.1289099412265686E11,
+        3.983385705815154E11,
+        4.0243321304624104E8
+      ],
+      "id": "Asteroid28",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2482065.9086800795,
+      "emissivity": 0.95,
+      "mass": 1.6476245152092598E23,
+      "velocity": [
+        10420.3966394296,
+        9069.027357699899,
+        -1238.4389721866678
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 6.68005062804003E21,
+      "rotationAxis": [
+        1.1073719832985497E-24,
+        6.844643690816232E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.1780515283746206E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2482065.9086800795,
+      "colorCode": "#6A6D77",
+      "position": [
+        -2.603189972824894E11,
+        3.686565452125542E11,
+        1.0994419646607418E9
+      ],
+      "id": "Asteroid21",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2272083.985819945,
+      "emissivity": 0.95,
+      "mass": 1.5314923367979025E23,
+      "velocity": [
+        -8721.209821823442,
+        20601.95998551433,
+        -36.919086541874414
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 5.923539023910623E21,
+      "rotationAxis": [
+        1.1424742701720433E-24,
+        3.1557930231770625E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.0950170208105004E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2272083.985819945,
+      "colorCode": "#5D5B66",
+      "position": [
+        -2.4741560176541217E11,
+        4.369655458034961E11,
+        4.729236364456123E8
+      ],
+      "id": "Asteroid107",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2715375.620148247,
+      "emissivity": 0.95,
+      "mass": 1.5095616619000058E23,
+      "velocity": [
+        -15818.97659503661,
+        -17158.05382967744,
+        -298.32918267748306
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 8.683684313736815E21,
+      "rotationAxis": [
+        -3.1607883715997754E-24,
+        -1.4207001950867751E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.0793365882585042E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2715375.620148247,
+      "colorCode": "#2E4930",
+      "position": [
+        -3.0844819229230743E11,
+        4.452825728555135E11,
+        -1.8608678369441643E8
+      ],
+      "id": "Asteroid17",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2709388.1307870527,
+      "emissivity": 0.95,
+      "mass": 1.4995977709069118E23,
+      "velocity": [
+        15460.376694584846,
+        17616.937424265212,
+        -99.62234247525731
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 8.262278630295268E21,
+      "rotationAxis": [
+        -8.946998084072303E-24,
+        1.3223642296438838E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.072212406198442E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2709388.1307870527,
+      "colorCode": "#B04D76",
+      "position": [
+        -2.5425331784569208E11,
+        3.9569845479358374E11,
+        9.922456219983663E7
+      ],
+      "id": "Asteroid93",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1862775.0513629757,
+      "emissivity": 0.95,
+      "mass": 1.4912017841800855E23,
+      "velocity": [
+        -15480.571145952465,
+        21921.847908414573,
+        -943.2023285739336
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.8419680706642916E21,
+      "rotationAxis": [
+        -2.6986951436372334E-23,
+        6.747386639595051E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.0662092756887611E31,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1862775.0513629757,
+      "colorCode": "#E3CDA4",
+      "position": [
+        -2.5714034690433633E11,
+        4.356586342858283E11,
+        -3.7578529253043814E9
+      ],
+      "id": "Asteroid90",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2634033.013609704,
+      "emissivity": 0.95,
+      "mass": 1.3779223867127982E23,
+      "velocity": [
+        -22326.67423367434,
+        -4344.752532585367,
+        156.16644590940774
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 7.925430382519987E21,
+      "rotationAxis": [
+        1.4583667780606886E-24,
+        3.854266880711401E-26,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 9.852145064996507E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2634033.013609704,
+      "colorCode": "#4E353D",
+      "position": [
+        -2.904369973371318E11,
+        4.577461965585632E11,
+        3.14967765488172E7
+      ],
+      "id": "Asteroid113",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2616010.6780831194,
+      "emissivity": 0.95,
+      "mass": 1.349831788374971E23,
+      "velocity": [
+        -19884.84440375185,
+        -19299.728526058385,
+        -5522.409569406085
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0967338511474977E22,
+      "rotationAxis": [
+        -3.6283328380353707E-23,
+        -3.0999001127801743E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 9.651297286881042E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2616010.6780831194,
+      "colorCode": "#423B45",
+      "position": [
+        -2.960212569756502E11,
+        4.363331923940301E11,
+        5.282705704655478E8
+      ],
+      "id": "Asteroid51",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2581281.9712500325,
+      "emissivity": 0.95,
+      "mass": 1.2967834485241862E23,
+      "velocity": [
+        -1625.1232491336423,
+        -20137.8887776101,
+        -467.9784991880446
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.891136559589938E21,
+      "rotationAxis": [
+        8.91153714276014E-23,
+        4.3128904975065503E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 9.272001656947931E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2581281.9712500325,
+      "colorCode": "#BDDCBE",
+      "position": [
+        -3.0956989390319543E11,
+        4.119421643695824E11,
+        -5.721418544903833E9
+      ],
+      "id": "Asteroid136",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2485805.351586443,
+      "emissivity": 0.95,
+      "mass": 1.1581437568283446E23,
+      "velocity": [
+        18365.204168409382,
+        1980.062133482063,
+        -306.4270401356985
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.5074231997113012E21,
+      "rotationAxis": [
+        7.178917520175311E-25,
+        1.424306799967782E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 8.280727861322663E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2485805.351586443,
+      "colorCode": "#4E8E78",
+      "position": [
+        1.0317620178207756E13,
+        1.2554940291222217E12,
+        -1.7390852369392047E11
+      ],
+      "id": "Asteroid124",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2460156.977811279,
+      "emissivity": 0.95,
+      "mass": 1.1226634216971556E23,
+      "velocity": [
+        23256.343842049286,
+        -26416.090245205825,
+        906.7118135925982
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.596007104338379E21,
+      "rotationAxis": [
+        8.738708277573586E-23,
+        -8.792316972154026E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 8.027043465134663E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2460156.977811279,
+      "colorCode": "#3C1443",
+      "position": [
+        -2.9571940964295337E11,
+        4.069701528475519E11,
+        4.2568554521222725E9
+      ],
+      "id": "Asteroid94",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2034643.2992111007,
+      "emissivity": 0.95,
+      "mass": 1.008877643463797E23,
+      "velocity": [
+        -13225.715250078641,
+        18296.62793433402,
+        -334.2957675029279
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 4.699432570717919E21,
+      "rotationAxis": [
+        -6.105271277429745E-25,
+        1.6440420588975866E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 7.213475150766148E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2034643.2992111007,
+      "colorCode": "#47CF63",
+      "position": [
+        -2.5138845348111252E11,
+        4.407073426301343E11,
+        4.7347499688559376E7
+      ],
+      "id": "Asteroid132",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1943509.9657012967,
+      "emissivity": 0.95,
+      "mass": 9.974611547195012E22,
+      "velocity": [
+        1751.7337268658284,
+        23432.638429365124,
+        -1882.957528598592
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 4.755757357481245E21,
+      "rotationAxis": [
+        -1.558945123405013E-24,
+        -9.726920283801906E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 7.131847256244433E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1943509.9657012967,
+      "colorCode": "#3B3C44",
+      "position": [
+        -2.483798954774434E11,
+        4.187339629078203E11,
+        4.327391789620655E9
+      ],
+      "id": "Asteroid45",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1865683.0625273092,
+      "emissivity": 0.95,
+      "mass": 9.763746439716049E22,
+      "velocity": [
+        8319.411223059398,
+        -9108.931087570649,
+        -1562.2449178595477
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.810861980440471E21,
+      "rotationAxis": [
+        2.321542745579008E-22,
+        -3.169006621089877E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.981078704396975E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1865683.0625273092,
+      "colorCode": "#8D7688",
+      "position": [
+        -3.313236223182587E11,
+        3.9450260546503986E11,
+        1.2783052339724443E10
+      ],
+      "id": "Asteroid116",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2311200.500170831,
+      "emissivity": 0.95,
+      "mass": 9.308377395987369E22,
+      "velocity": [
+        -1424.0485834647695,
+        2873.7993366082765,
+        33.16197809218513
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.504270180620327E21,
+      "rotationAxis": [
+        -5.091703365882915E-24,
+        -8.30882225977223E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.655489838130969E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2311200.500170831,
+      "colorCode": "#7886B6",
+      "position": [
+        -2.7248650229895935E11,
+        9.991850214881813E11,
+        8.355626165712112E9
+      ],
+      "id": "Asteroid142",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1916775.969543889,
+      "emissivity": 0.95,
+      "mass": 9.17354453294946E22,
+      "velocity": [
+        50508.17300356354,
+        -21899.342712771642,
+        -3341.498591463357
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.005278025495378E22,
+      "rotationAxis": [
+        2.340514833025593E-22,
+        1.1881919326298135E-22,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.559084341058864E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1916775.969543889,
+      "colorCode": "#7F7D47",
+      "position": [
+        -2.858434657823803E11,
+        4.138417074504878E11,
+        4.3299955234235084E8
+      ],
+      "id": "Asteroid47",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2293934.253908631,
+      "emissivity": 0.95,
+      "mass": 9.101312237333544E22,
+      "velocity": [
+        17988.067016782643,
+        18405.434863205377,
+        212.24334061553927
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 6.382413946435032E21,
+      "rotationAxis": [
+        -7.077241033479437E-25,
+        -1.3651432210794316E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.507438249693483E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2293934.253908631,
+      "colorCode": "#4D3E54",
+      "position": [
+        -2.557152468620318E11,
+        3.9973832257232935E11,
+        3.891939889290051E8
+      ],
+      "id": "Asteroid53",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2276845.321590087,
+      "emissivity": 0.95,
+      "mass": 8.899419876166588E22,
+      "velocity": [
+        -22722.635589376343,
+        3306.032094167518,
+        237.60980433647316
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 5.691104334431571E21,
+      "rotationAxis": [
+        2.7662435574123546E-25,
+        1.0080311931548045E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.36308521145911E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2276845.321590087,
+      "colorCode": "#72A37F",
+      "position": [
+        -2.78621170586929E11,
+        4.578162400529452E11,
+        -3.071230320599109E8
+      ],
+      "id": "Asteroid2",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1715649.441185995,
+      "emissivity": 0.95,
+      "mass": 8.825342830592735E22,
+      "velocity": [
+        -14598.856513091852,
+        22084.005251764258,
+        771.7041855935722
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 4.901202582290607E21,
+      "rotationAxis": [
+        -2.1996292043281962E-23,
+        6.554994761552798E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 6.310120123873805E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1715649.441185995,
+      "colorCode": "#468CAD",
+      "position": [
+        -2.6745782363752124E11,
+        4.2606784833799316E11,
+        -1.1844091309978308E10
+      ],
+      "id": "Asteroid22",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2209661.8672706266,
+      "emissivity": 0.95,
+      "mass": 8.13464448634108E22,
+      "velocity": [
+        -1234.7067668509478,
+        -268.4491008780883,
+        6.575040957203125
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.4882596599793758E21,
+      "rotationAxis": [
+        4.201230229824203E-24,
+        8.892019182917539E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 5.816270807733872E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2209661.8672706266,
+      "colorCode": "#E1B1EE",
+      "position": [
+        2.3937719532831394E10,
+        1.3564839777676917E12,
+        -3.584309697000622E9
+      ],
+      "id": "Asteroid147",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2114583.767487461,
+      "emissivity": 0.95,
+      "mass": 7.1291178913825015E22,
+      "velocity": [
+        -75253.72712998292,
+        29894.033638261863,
+        3807.8685206110717
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.4067457370964995E22,
+      "rotationAxis": [
+        6.475429328303483E-23,
+        4.0937759525281715E-22,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 5.097319292338489E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2114583.767487461,
+      "colorCode": "#6AF38A",
+      "position": [
+        -2.814132908013814E11,
+        4.226715128789478E11,
+        -1.5827120635131705E8
+      ],
+      "id": "Asteroid38",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2061324.1798000291,
+      "emissivity": 0.95,
+      "mass": 6.603892687239086E22,
+      "velocity": [
+        386.5374247829984,
+        682.2728194201467,
+        7.321116936093254
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1532554947754348E21,
+      "rotationAxis": [
+        -3.347175986560975E-24,
+        -9.6025805376285E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 4.721783271375947E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2061324.1798000291,
+      "colorCode": "#573236",
+      "position": [
+        -8.76063701128182E11,
+        -8.379801139972389E11,
+        1.285636276876326E10
+      ],
+      "id": "Asteroid88",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 2035097.9660162015,
+      "emissivity": 0.95,
+      "mass": 6.355022245213504E22,
+      "velocity": [
+        -661.2336317656279,
+        5907.876846436592,
+        -30.865583078611763
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 9.354953313937472E20,
+      "rotationAxis": [
+        -2.600908709246022E-25,
+        -3.7113827464013065E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 4.543840905327655E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 2035097.9660162015,
+      "colorCode": "#1C1610",
+      "position": [
+        -4.934512502410724E11,
+        5.358952235440504E12,
+        -2.614212595628892E10
+      ],
+      "id": "Asteroid108",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1900265.6799622437,
+      "emissivity": 0.95,
+      "mass": 5.173733909643361E22,
+      "velocity": [
+        20515.810915161546,
+        -17379.83599952452,
+        242.17498948283293
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 4.1278886911609033E21,
+      "rotationAxis": [
+        -1.865508897516537E-24,
+        2.5436743574055497E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 3.6992197453950026E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1900265.6799622437,
+      "colorCode": "#AA6AA2",
+      "position": [
+        -3.009769390305164E11,
+        3.945863233964278E11,
+        3.9261475486653656E8
+      ],
+      "id": "Asteroid31",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1760617.7010726598,
+      "emissivity": 0.95,
+      "mass": 4.114871770627385E22,
+      "velocity": [
+        -7459.731799933685,
+        19229.600510082662,
+        -58.453642373268416
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.6509484461938615E21,
+      "rotationAxis": [
+        -9.38465985890041E-25,
+        -9.680595274327158E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 2.9421333159985806E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1760617.7010726598,
+      "colorCode": "#151510",
+      "position": [
+        -2.421897549701327E11,
+        4.3109976202007745E11,
+        3.032407337388096E8
+      ],
+      "id": "Asteroid111",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1661996.209690276,
+      "emissivity": 0.95,
+      "mass": 4.105542374414937E22,
+      "velocity": [
+        24977.502650545746,
+        5021.860629003055,
+        214.6555967037249
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.372935203033452E21,
+      "rotationAxis": [
+        -3.0286710011357737E-25,
+        -2.089152030223363E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 2.93546279770668E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1661996.209690276,
+      "colorCode": "#6C2D5A",
+      "position": [
+        -2.75391148459932E11,
+        3.879647654363946E11,
+        1.3190944231256353E7
+      ],
+      "id": "Asteroid3",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1738564.5934418035,
+      "emissivity": 0.95,
+      "mass": 3.9621745749242665E22,
+      "velocity": [
+        5318.704519774758,
+        -26469.381243016993,
+        4415.105103585712
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.5850010737781663E21,
+      "rotationAxis": [
+        -9.696100079341794E-24,
+        1.6111297183717686E-23,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 2.8329548210708505E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1738564.5934418035,
+      "colorCode": "#EBD9DF",
+      "position": [
+        -3.0849073518042804E11,
+        4.1054573732165717E11,
+        2.418161874142153E9
+      ],
+      "id": "Asteroid7",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1668050.8617287225,
+      "emissivity": 0.95,
+      "mass": 3.499362883199121E22,
+      "velocity": [
+        19143.860055009332,
+        -19072.930648954978,
+        1316.6276676979182
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 3.2493574243194713E21,
+      "rotationAxis": [
+        -2.9564980206149472E-24,
+        -1.7493039844229896E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 2.5020444614873715E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1668050.8617287225,
+      "colorCode": "#1B0C24",
+      "position": [
+        -3.080318948175357E11,
+        4.001985226325478E11,
+        -9.282999322919743E8
+      ],
+      "id": "Asteroid82",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1189872.7112652329,
+      "emissivity": 0.95,
+      "mass": 2.643984004831894E22,
+      "velocity": [
+        9555.838502376273,
+        12300.504582961357,
+        -1301.5954510776412
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.7111770334456502E21,
+      "rotationAxis": [
+        -4.885614178639145E-25,
+        9.767057579154083E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.8904485634548043E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1189872.7112652329,
+      "colorCode": "#736782",
+      "position": [
+        -2.5270943940976022E11,
+        3.861492324807327E11,
+        -5.443482629026987E9
+      ],
+      "id": "Asteroid67",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1448514.8880476044,
+      "emissivity": 0.95,
+      "mass": 2.2915535175090944E22,
+      "velocity": [
+        22501.94274261832,
+        15208.39000938741,
+        298.8841827699995
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 2.1266428214656067E21,
+      "rotationAxis": [
+        -2.4784701599639524E-23,
+        1.314328986498261E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.6384607650190026E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1448514.8880476044,
+      "colorCode": "#F7F2E2",
+      "position": [
+        -2.764306534129108E11,
+        3.900174813991215E11,
+        3.351742518025058E9
+      ],
+      "id": "Asteroid74",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1341943.384995411,
+      "emissivity": 0.95,
+      "mass": 1.8220642871922578E22,
+      "velocity": [
+        29772.062349608,
+        -59165.1533837343,
+        3370.6247910034303
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 6.274145934169585E21,
+      "rotationAxis": [
+        2.6106557493296852E-23,
+        1.4534976235699494E-22,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.3027759653424642E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1341943.384995411,
+      "colorCode": "#439D66",
+      "position": [
+        -2.862190025577512E11,
+        4.1652614398340247E11,
+        1.7483181471341652E8
+      ],
+      "id": "Asteroid114",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 908244.6557316554,
+      "emissivity": 0.95,
+      "mass": 1.7106366288778272E22,
+      "velocity": [
+        28426.589881271775,
+        3629.914393987635,
+        112.3053551338037
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.1604991699226517E21,
+      "rotationAxis": [
+        1.698214443405069E-23,
+        6.381967089849727E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.2231051896476465E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 908244.6557316554,
+      "colorCode": "#83C3B5",
+      "position": [
+        -2.824419311093529E11,
+        3.971052724170876E11,
+        3.6344936414369076E8
+      ],
+      "id": "Asteroid148",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1303180.0065800487,
+      "emissivity": 0.95,
+      "mass": 1.6686849137425693E22,
+      "velocity": [
+        -8126.15345914364,
+        20629.42096923633,
+        339.98172950235517
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.8928999026777852E21,
+      "rotationAxis": [
+        6.593541087563242E-25,
+        -3.436039518919623E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.1931097133259371E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1303180.0065800487,
+      "colorCode": "#62463A",
+      "position": [
+        -2.443130770714918E11,
+        4.343676071917316E11,
+        1.278972984345586E8
+      ],
+      "id": "Asteroid48",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1278470.2557014904,
+      "emissivity": 0.95,
+      "mass": 1.5755529368052039E22,
+      "velocity": [
+        17524.420122785723,
+        -14712.470955466588,
+        199.74487703037505
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.942911974534072E21,
+      "rotationAxis": [
+        -7.163298660759949E-25,
+        1.149227721388702E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.1265203498157208E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1278470.2557014904,
+      "colorCode": "#596739",
+      "position": [
+        -3.080794814664268E11,
+        3.946618320664585E11,
+        1.6749221556436175E8
+      ],
+      "id": "Asteroid13",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1275342.393296236,
+      "emissivity": 0.95,
+      "mass": 1.5640171212772534E22,
+      "velocity": [
+        -11588.126637537653,
+        -21748.934169335775,
+        466.1022307661036
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.713872074915385E21,
+      "rotationAxis": [
+        -2.8721098266257462E-24,
+        1.5208318495897801E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 1.1182722417132361E30,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1275342.393296236,
+      "colorCode": "#B8DDFB",
+      "position": [
+        -3.1207854049332495E11,
+        4.357416249292707E11,
+        2.199640393996944E8
+      ],
+      "id": "Asteroid63",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 1223723.472846754,
+      "emissivity": 0.95,
+      "mass": 1.3816911822906116E22,
+      "velocity": [
+        22346.757542926924,
+        8134.48615956336,
+        383.26684059650125
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.7300489863286222E21,
+      "rotationAxis": [
+        -2.617299610073594E-24,
+        -4.7124866699460435E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 9.879091953377873E29,
+      "dissipationFunction": 100,
+      "equatorialRadius": 1223723.472846754,
+      "colorCode": "#D3B179",
+      "position": [
+        -2.735538841554139E11,
+        3.8744925863327454E11,
+        1.8066045314190292E8
+      ],
+      "id": "Asteroid80",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 951376.429260519,
+      "emissivity": 0.95,
+      "mass": 6.492594456125298E21,
+      "velocity": [
+        -21892.7409147266,
+        -3438.32977503895,
+        -399.90520363857684
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 1.0922885870368973E21,
+      "rotationAxis": [
+        -4.215070222345989E-24,
+        -3.2204204470888357E-24,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 4.642205036129588E29,
+      "dissipationFunction": 100,
+      "equatorialRadius": 951376.429260519,
+      "colorCode": "#0A0A0A",
+      "position": [
+        -2.9024916689074695E11,
+        4.5801683457715063E11,
+        4.5523507495388335E8
+      ],
+      "id": "Asteroid60",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 759930.5846908335,
+      "emissivity": 0.95,
+      "mass": 4.74686698313751E21,
+      "velocity": [
+        23858.805862125733,
+        -3270.50827353135,
+        47.383458720763706
+      ],
+      "angularVelocity": 1.0E-8,
+      "exist": true,
+      "surfaceThermalEnergy": 7.048742315444592E20,
+      "rotationAxis": [
+        -4.430419378531387E-25,
+        8.257905061307668E-25,
+        1
+      ],
+      "rotationAngle": 195.0934282992734,
+      "internalThermalEnergy": 3.3940098929433195E29,
+      "dissipationFunction": 100,
+      "equatorialRadius": 759930.5846908335,
+      "colorCode": "#492B3A",
+      "position": [
+        -2.912898929590125E11,
+        3.869765641617566E11,
+        1.6611862278542006E8
+      ],
+      "id": "Asteroid35",
+      "debrisLevel": 0,
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    }
+  ],
+  "enableDisassemble": false,
+  "enableMasterCalculation": true,
+  "tidalEffectFactor": 1,
+  "dimension": 3
+}

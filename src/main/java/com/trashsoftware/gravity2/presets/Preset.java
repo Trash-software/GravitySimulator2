@@ -438,6 +438,126 @@ public abstract class Preset {
         }
     };
 
+    public static Preset CUTE_STAR_SYSTEM = new Preset("CuteStarSystem", 9) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star = SystemPresets.createMainSequenceStar(
+                    "Star",
+                    SOLAR_MASS * 0.081
+            );
+            simulator.addObject(star);
+
+            ObjectInfo[] infos = {
+                    mercury, venus, earth, mars, helloKitty, moon, neptune, titan, ganymede
+            };
+//            String[] names = {null, null, null, "peppapig", null, null};
+//            double[] distancesAu = {1, 2, 3, 5, 8, 13, 21, 34};
+            double[] distancesAu = {2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+            double baseLine = 0.004;
+            for (int i = 0; i < infos.length; i++) {
+                distancesAu[i] *= baseLine;
+            }
+            System.out.println(Arrays.toString(distancesAu));
+
+            for (int i = 0; i < infos.length; i++) {
+//                double ecc = random.nextDouble(0, 0.18);
+                double ecc = 0;
+                double ap = distancesAu[i] * AU;
+
+                CelestialObject planet = Preset.addPlanetRandomPosition(simulator,
+                        star,
+                        infos[i],
+//                        names[i],
+                        null,
+                        1,
+                        ap,
+                        ecc,
+                        1);
+            }
+
+            setTemperatureToSystem(simulator);
+            return 1e-9;
+        }
+    };
+
+    public static Preset CUTE_STAR_GAS_GIANT_SYSTEM = new Preset("CuteStarGasGiantSystem", 9) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star = SystemPresets.createMainSequenceStar(
+                    "Star",
+                    SOLAR_MASS * 0.081
+            );
+            simulator.addObject(star);
+
+            ObjectInfo[] infos = {
+                    pinkGasGiant, bigPinkGasGiant, jupiter, saturn, uranus, neptune
+            };
+//            String[] names = {null, null, null, "peppapig", null, null};
+//            double[] distancesAu = {1, 2, 3, 5, 8, 13, 21, 34};
+            double[] distancesAu = {3, 5, 7, 9, 11, 13};
+
+            double baseLine = 0.005;
+            for (int i = 0; i < infos.length; i++) {
+                distancesAu[i] *= baseLine;
+            }
+            System.out.println(Arrays.toString(distancesAu));
+
+            for (int i = 0; i < infos.length; i++) {
+//                double ecc = random.nextDouble(0, 0.18);
+                double ecc = 0;
+                double ap = distancesAu[i] * AU;
+
+                CelestialObject planet = Preset.addPlanetRandomPosition(simulator,
+                        star,
+                        infos[i],
+//                        names[i],
+                        null,
+                        1,
+                        ap,
+                        ecc,
+                        1);
+            }
+
+            setTemperatureToSystem(simulator);
+            return 1e-9;
+        }
+    };
+
+    public static Preset STAR_SHEEPDOG_RING = new Preset("StarSheepdog", 182) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject sun = SystemPresets.createObjectPreset(
+                    simulator,
+                    SystemPresets.sun,
+                    new double[3],
+                    new double[3],
+                    1
+            );
+            simulator.addObject(sun);
+
+            double r = 1e11;
+
+            CelestialObject jupiter = SystemPresets.createObjectPreset(
+                    simulator,
+                    megaPinkGasGiant,
+                    new double[]{r, 0, 1},
+                    new double[3],
+                    1
+            );
+            simulator.addObject(jupiter);
+            jupiter.setVelocity(simulator.computeVelocityOfN(sun, jupiter, 1.0,
+                    sun.getRotationAxis()));
+
+            int n = 180;
+            addRingTo("RingObj", simulator, sun,
+                    r * 0.1 / 1000, r * 0.9 / 1000, r * 0.01 / 1000,
+                    n, jupiter.getMass() * 0.05);
+
+            return 5e-10;
+        }
+    };
+
     public static Preset JUPITER_LAGRANGE = new Preset("JupiterLagrange", 101) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -509,7 +629,7 @@ public abstract class Preset {
             CelestialObject sun = SystemPresets.addObject3d(simulator, SystemPresets.sun,
                     null, 1, 1e3, 1e3,
                     null, false);
-            
+
             for (ObjectInfo planetLike : SystemPresets.sun.children) {
                 SystemPresets.addObject3d(simulator, planetLike,
                         sun, 1, 1e3, 1e3,
@@ -563,7 +683,7 @@ public abstract class Preset {
             return baseScale * 1e-1;
         }
     };
-    
+
     public static Preset NESTED_PLANET = new Preset("NestedPlanet", 6) {
         @Override
         public double instantiate(Simulator simulator) {
@@ -589,24 +709,24 @@ public abstract class Preset {
                     new double[3],
                     1.0
             );
-            
+
             Vector3d pcVel = simulator.computeVelocityOfN(sirius, pc, 1.0, Vector3d.UNIT_Z);
             pc.setVelocity(pcVel.mult(sirius.getMass() / (sirius.getMass() + pc.getMass())));
             sirius.setVelocity(pcVel.mult(-pc.getMass() / (sirius.getMass() + pc.getMass())));
-            
+
             simulator.addObject(sirius);
             simulator.addObject(pc);
             simulator.simulate(1);
             HieraticalSystem siriusHs = simulator.getHieraticalSystem(sirius);
-            
+
             Vector3d sunVel = simulator.computeVelocityOfN(siriusHs, sun, 0.8, Vector3d.UNIT_Z);
             siriusHs.accelerate(sunVel.mult(-sun.getMass() / (siriusHs.getMass() + sun.getMass())));
             sun.setVelocity(sunVel.mult(siriusHs.getMass() / (siriusHs.getMass() + sun.getMass())));
-            
+
             simulator.addObject(sun);
-            
+
             CelestialObject hostStar = sun;
-            
+
             CelestialObject jup = SystemPresets.createObjectPreset(
                     simulator,
                     jupiter,
@@ -636,7 +756,7 @@ public abstract class Preset {
             );
             mon.setVelocity(simulator.computeVelocityOfN(ear, mon, 1.0, ear.getRotationAxis()));
             simulator.addObject(mon);
-            
+
             return 1e-10;
         }
     };
@@ -768,6 +888,15 @@ public abstract class Preset {
             SystemPresets.setTemperatureToSystem(simulator);
 
             return 1e-8;
+        }
+    };
+
+    public static Preset COMPACT_STAR_SYSTEM = new Preset("CompactStarSystem", 100) {
+        @Override
+        public double instantiate(Simulator simulator) {
+
+
+            return 1e-7;
         }
     };
 
@@ -1036,7 +1165,7 @@ public abstract class Preset {
     public static final Preset[] DEFAULT_PRESETS = {
             SOLAR_SYSTEM,
             SOLAR_SYSTEM_NO_MOONS,
-            SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS, 
+            SOLAR_SYSTEM_WITH_ASTEROIDS, TWO_SOLAR_SYSTEMS,
             NESTED_PLANET,
             JUPITER_LAGRANGE,
             SIMPLE_THREE_BODY, TOY_STAR_SYSTEM, HARMONIC_KITTY_SYSTEM,

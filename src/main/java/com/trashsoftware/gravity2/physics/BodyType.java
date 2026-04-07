@@ -118,6 +118,13 @@ public enum BodyType {
         // Convert density from g/cm³ to kg/m³ (1 g/cm³ = 1000 kg/m³)
         return densityGcm3 * 1000;  // Return the approximate density in kg/m³
     }
+    
+    public static double gasGiantInferredRadius(double mass) {
+//        double massJup = mass / SystemPresets.JUPITER_MASS;
+        double density = gasGiantDensity(mass);
+        double volume = mass / density;
+        return Math.pow(3 * volume / (4 * Math.PI), 1.0 / 3);
+    }
 
     public BodyType merge(BodyType another, double newMass) {
         int sn = this.ordinal();
@@ -172,8 +179,9 @@ public enum BodyType {
         var a = simpleInfer(SystemPresets.JUPITER_MASS * 12.5, 1000);
         System.out.println(a.inferAvgRadius(SystemPresets.JUPITER_MASS * 12.5) / SystemPresets.JUPITER_RADIUS_KM / 1000);
 
-        System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 12.5));
-        System.out.println(brownDwarfDensity(SystemPresets.JUPITER_MASS * 70.8));
-        System.out.println(starDensity(SystemPresets.JUPITER_MASS * 70.8));
+        System.out.println(gasGiantDensity(SystemPresets.JUPITER_MASS * 1.8));
+        System.out.println(gasGiantInferredRadius(SystemPresets.JUPITER_MASS * 1.8) / SystemPresets.JUPITER_RADIUS_KM / 1000);
+//        System.out.println(brownDwarfDensity(SystemPresets.JUPITER_MASS * 70.8));
+//        System.out.println(starDensity(SystemPresets.JUPITER_MASS * 70.8));
     }
 }

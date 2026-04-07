@@ -465,6 +465,16 @@ public class Simulator {
     public double calculateCutoffDistance(double m1, double m2) {
         return cutOffForce == 0 ? Double.MAX_VALUE : Math.sqrt(G * m1 * m2 / cutOffForce);
     }
+    
+    public double greatestRadius() {
+        double[] barycenter = barycenter();
+        double maxDt = 0;
+        for (CelestialObject co : getObjects()) {
+            double dt = VectorOperations.distance(barycenter, co.getPosition());
+            if (dt > maxDt) maxDt = dt;
+        }
+        return maxDt;
+    }
 
     private void forceBetween(int i, CelestialObject coi,
                               int j, CelestialObject coj) {

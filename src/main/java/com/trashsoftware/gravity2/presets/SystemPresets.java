@@ -355,7 +355,19 @@ public class SystemPresets {
             0, 0, 0, 0, 0, 0, 5, 0.4,
             "#ffaec9", 0.5, 12000
     );
+    public static ObjectInfo bigPinkGasGiant = new ObjectInfo(
+            "PinkGasGiantStormy", BodyType.GAS_GIANT, JUPITER_MASS * 1.8,
+            JUPITER_RADIUS_KM * 1.21, JUPITER_RADIUS_KM * 1.22, JUPITER_RADIUS_KM * 1.20,
+            0, 0, 0, 0, 0, 0, 3, 0.6,
+            "#ffaec9", 0.5, 12000
+    );
     public static ObjectInfo superPinkGasGiant = new ObjectInfo(
+            "PinkGasGiantStormy", BodyType.GAS_GIANT, JUPITER_MASS * 6,
+            JUPITER_RADIUS_KM * 1.62, JUPITER_RADIUS_KM * 1.63, JUPITER_RADIUS_KM * 1.61,
+            0, 0, 0, 0, 0, 0, 3, 0.7,
+            "#ffaec9", 0.5, 12000
+    );
+    public static ObjectInfo megaPinkGasGiant = new ObjectInfo(
             "PinkGasGiantStormy", BodyType.GAS_GIANT, JUPITER_MASS * 12.5,
             JUPITER_RADIUS_KM * 1.44, JUPITER_RADIUS_KM * 1.46, JUPITER_RADIUS_KM * 1.42,
             0, 0, 0, 0, 0, 0, 3, 0.7,

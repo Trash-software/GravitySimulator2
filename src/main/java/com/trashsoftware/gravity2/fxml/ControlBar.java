@@ -302,6 +302,11 @@ public class ControlBar implements Initializable {
     public void speedDownAction() {
         getJmeApp().speedDownAction();
     }
+    
+//    public void syncSpeed() {
+//        double speed = getJmeApp().getSpeed();
+//        speedLabel
+//    }
 
     @FXML
     public void playPauseAction() {

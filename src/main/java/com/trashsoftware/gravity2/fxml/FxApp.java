@@ -79,6 +79,7 @@ public class FxApp extends Application {
         // which modifies the simulators object list
         // causing concurrent modification exception
         List<CelestialObject> objectsCopy = new ArrayList<>(simulator.getObjects());
+        System.out.println("Reload triggered!");
         Platform.runLater(() -> {
             if (objectListPanel != null) {
                 objectListPanel.reloadInfoPane(simulator, objectsCopy);
