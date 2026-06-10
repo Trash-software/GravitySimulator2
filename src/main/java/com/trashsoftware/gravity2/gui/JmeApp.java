@@ -356,9 +356,9 @@ public class JmeApp extends SimpleApplication {
 //        test.harmonicSystemTest();
 //        test.cuteStarSystemWithRaw();
 //        test.cuteStarGasGiantSystem();
-        test.starSheepdogRing();
+//        test.starSheepdogRing();
 //        orbitTest();
-//        solarSystemTest();
+//        test.solarSystemTest();
 //        test.solarSystemNoMoonsTest();
 //        test.nestedPlanets();
 //        solarSystemWithCometsTest();
@@ -370,8 +370,8 @@ public class JmeApp extends SimpleApplication {
 //        subStarTest();
 //        test.infantStarSystemTest();
 //        chaosSolarSystemTest();
-//        twoChaosSolarSystemTest();
-//        twoChaosSystemTest();
+        test.twoChaosSolarSystemTest();
+//        test.twoChaosSystemTest();
 //        jupiterHarmonicTest();
 //        test.threeBodyTest();
 //        plutoCharonTest();
