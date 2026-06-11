@@ -41,8 +41,8 @@ public class Simulator {
     /**
      * All objects, always sorted from massive to light
      */
-    private final List<CelestialObject> objects = new ArrayList<>();
-    private final Map<CelestialObject, Deque<double[]>> recentPaths = new HashMap<>();  // [x,y,timeStep]
+    private final List<RealObject> objects = new ArrayList<>();
+    private final Map<RealObject, Deque<double[]>> recentPaths = new HashMap<>();  // [x,y,timeStep]
     private final Deque<double[]> barycenterPath = new ArrayDeque<>();
     private double[] barycenter;
 
@@ -52,7 +52,7 @@ public class Simulator {
     private transient final List<CelestialObject> debrisBuffer = new ArrayList<>();
     private transient final List<CelestialObject> newlyDestroyed = new ArrayList<>();
 
-    private transient final Map<CelestialObject, HieraticalSystem> systemMap = new HashMap<>();
+    private transient final Map<RealObject, HieraticalSystem> systemMap = new HashMap<>();
     private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
     private transient int forceCounter1, forceCounter2;
 
@@ -108,7 +108,7 @@ public class Simulator {
         json.put("enableMasterCalculation", enableMasterCalculation);
 
         JSONArray objectsArray = new JSONArray();
-        for (CelestialObject co : objects) {
+        for (RealObject co : objects) {
             objectsArray.put(co.toJson());
         }
         json.put("objects", objectsArray);
@@ -144,7 +144,7 @@ public class Simulator {
 
     public void setEnableMasterCalculation(boolean enableMasterCalculation) {
         this.enableMasterCalculation = enableMasterCalculation;
-        
+
         if (!enableMasterCalculation) {
             systemMap.clear();
             rootSystems.clear();
@@ -195,7 +195,7 @@ public class Simulator {
 
             // Half-step velocity update
             for (int i = 0; i < objects.size(); i++) {
-                CelestialObject object = objects.get(i);
+                RealObject object = objects.get(i);
                 if (Arrays.equals(zeros, forcesBuffer[i])) {
                     Arrays.fill(object.lastAcceleration, 0);
                     continue;
@@ -207,7 +207,7 @@ public class Simulator {
             }
 
             // Full-step position update
-            for (CelestialObject obj : objects) {
+            for (RealObject obj : objects) {
                 for (int j = 0; j < dimension; j++) {
                     obj.position[j] += obj.velocity[j] * timeStep;
                 }
@@ -217,13 +217,16 @@ public class Simulator {
             if (handleCollisions(objects, timeStep)) {
                 changeHappen = true;
             }
+            if (handleAccretion(objects, timeStep)) {
+                changeHappen = true;
+            }
 
             // Calculate forces based on new positions
             calculateAllForces(objects);
 
             // Half-step velocity update
             for (int i = 0; i < objects.size(); i++) {
-                CelestialObject object = objects.get(i);
+                RealObject object = objects.get(i);
                 if (Arrays.equals(zeros, forcesBuffer[i])) {
                     Arrays.fill(object.lastAcceleration, 0);
                     continue;
@@ -233,10 +236,10 @@ public class Simulator {
                     object.lastAcceleration[j] += newAcc;
                     object.velocity[j] += newAcc * timeStep;
                 }
-                if (object.hillMaster != null && object.hillMaster.possibleRocheLimit != 0.0) {
+                if (object.hillMaster != null && object.hillMaster.proximityWarningDistance() != 0.0) {
                     // hill master is heavier, so its velocity will be updated earlier
                     double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
-                    if (VectorOperations.magnitude(relVel) * timeStep > object.hillMaster.possibleRocheLimit * 0.33) {
+                    if (VectorOperations.magnitude(relVel) * timeStep > object.hillMaster.proximityWarningDistance() * 0.33) {
                         System.out.println("Too fast: " + object.id);
                         result = SimResult.TOO_FAST;
                     }
@@ -254,7 +257,7 @@ public class Simulator {
             if (enableMasterCalculation) {
                 if (timeStepAccumulator - lastTimeStepAccumulator >= PATH_INTERVAL) {
                     updateBarycenter();
-                    for (CelestialObject obj : objects) {
+                    for (RealObject obj : objects) {
                         addPath(obj, timeStepAccumulator);
                     }
                     addBarycenterPath(timeStepAccumulator);
@@ -275,8 +278,10 @@ public class Simulator {
         updateBarycenter();
 
         if (enableMasterCalculation) {
-            for (CelestialObject co : objects) {
-                co.updateRotation(performedTimeSteps);
+            for (RealObject ro : objects) {
+                if (ro instanceof CelestialObject co) {
+                    co.updateRotation(performedTimeSteps);
+                }
             }
             updateTidal(performedTimeSteps);
             updateIndependentStatus();  // pre update
@@ -300,73 +305,93 @@ public class Simulator {
         return result;
     }
 
-    private boolean handleCollisions(List<CelestialObject> objects, double timeStep) {
+    private boolean handleAccretion(List<RealObject> objects, double timeStep) {
+        boolean nebulaExhausted = false;
+        int n = objects.size();
+        for (int i = n - 1; i >= 0; i--) {
+            RealObject roi = objects.get(i);
+            if (roi instanceof CelestialObject coi) {
+                for (int j = n - 1; j >= 0; j--) {
+                    if (i == j) continue;
+                    RealObject roj = objects.get(j);
+                    if (roj instanceof DustObject doj) {
+                        double distance = VectorOperations.distance(coi.position, doj.position);
+                        boolean enter = distance < coi.getAverageRadius() + doj.getAverageRadius();
+                        if (enter) {
+                            // todo
+                            
+                        }
+                    }
+                }
+            }
+        }
+        return nebulaExhausted;
+    }
+
+    private boolean handleCollisions(List<RealObject> objects, double timeStep) {
         boolean happen = false;
         int n = objects.size();
         for (int i = n - 1; i >= 0; i--) {
-            CelestialObject coi = objects.get(i);
-            for (int j = i - 1; j >= 0; j--) {
-                CelestialObject coj = objects.get(j);
-                double distance = VectorOperations.distance(coi.position, coj.position);
-                boolean collide = distance < coi.getAverageRadius() + coj.getAverageRadius();
+            RealObject roi = objects.get(i);
+            if (roi instanceof CelestialObject coi) {
+                for (int j = i - 1; j >= 0; j--) {
+                    RealObject roj = objects.get(j);
+                    if (roj instanceof CelestialObject coj) {
+                        double distance = VectorOperations.distance(coi.position, coj.position);
+                        boolean collide = distance < coi.getAverageRadius() + coj.getAverageRadius();
 
-                // Determine which object is heavier
-                CelestialObject heavier = coi.mass >= coj.mass ? coi : coj;
-                CelestialObject lighter = heavier == coi ? coj : coi;
+                        // Determine which object is heavier
+                        CelestialObject heavier = coi.mass >= coj.mass ? coi : coj;
+                        CelestialObject lighter = heavier == coi ? coj : coi;
 
-                if (collide) {
-                    double[] AB = VectorOperations.subtract(lighter.position, heavier.position);
-                    // Distance between the centers
-                    double distanceAB = VectorOperations.magnitude(AB);
-                    // Calculate the ratio of A's radius to the distance between A and B
-                    double t = heavier.getEquatorialRadius() / distanceAB;
-                    // Interpolate to find the collision point (starting from A's center)
-                    double[] collisionPoint = VectorOperations.add(heavier.position,
-                            VectorOperations.scale(AB, t));
-                    heavier.collideWith(this, lighter, collisionPoint);
+                        if (collide) {
+                            double[] collisionPoint = getCollisionPoint(lighter, heavier);
+                            heavier.collideWith(this, lighter, collisionPoint);
 
-                    // Remove the lighter object
-                    objects.remove(lighter);
-                    systemMap.remove(lighter);
-                    lighter.destroy(timeStepAccumulator);
-                    newlyDestroyed.add(lighter);
+                            // Remove the lighter object
+                            objects.remove(lighter);
+                            systemMap.remove(lighter);
+                            lighter.destroy(timeStepAccumulator);
+                            newlyDestroyed.add(lighter);
 
-                    // Adjust loop counters to account for the removed object
-                    n--;
-                    happen = true;
-                    break; // Restart checking for collisions with updated list
-                } else {
-                    // not collide, check roche
-                    if (distance < lighter.possibleRocheLimit) {
-                        // heavier one is also inside lighter's roche limit
-                        // unlikely to happen, but put it here
-                        double actualRoche = computeRocheLimitSolid(lighter, heavier.getDensity());
-                        if (distance - heavier.getAverageRadius() < actualRoche) {
+                            // Adjust loop counters to account for the removed object
+                            n--;
+                            happen = true;
+                            break; // Restart checking for collisions with updated list
+                        } else {
+                            // not collide, check roche
+                            if (distance < lighter.possibleRocheLimit) {
+                                // heavier one is also inside lighter's roche limit
+                                // unlikely to happen, but put it here
+                                double actualRoche = computeRocheLimitSolid(lighter, heavier.getDensity());
+                                if (distance - heavier.getAverageRadius() < actualRoche) {
 //                            lighter.gainMattersFrom(this, heavier, timeStep);
-                            if (enableDisassemble) {
-                                CelestialObject debris = heavier.disassemble(this, lighter, actualRoche);
-                                if (debris != null) {
-                                    debrisBuffer.add(debris);
+                                    if (enableDisassemble) {
+                                        CelestialObject debris = heavier.disassemble(this, lighter, actualRoche);
+                                        if (debris != null) {
+                                            debrisBuffer.add(debris);
+                                        }
+                                    } else {
+                                        lighter.gainMattersFrom(this, heavier, timeStep);
+                                    }
                                 }
-                            } else {
-                                lighter.gainMattersFrom(this, heavier, timeStep);
                             }
-                        }
-                    }
 
-                    if (distance < heavier.possibleRocheLimit) {
-                        // This is the most common scenario
-                        // if the above happen, this will also likely to happen
-                        double actualRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
-                        if (distance - lighter.getAverageRadius() < actualRoche) {
+                            if (distance < heavier.possibleRocheLimit) {
+                                // This is the most common scenario
+                                // if the above happen, this will also likely to happen
+                                double actualRoche = computeRocheLimitSolid(heavier, lighter.getDensity());
+                                if (distance - lighter.getAverageRadius() < actualRoche) {
 //                            heavier.gainMattersFrom(this, lighter, timeStep);
-                            if (enableDisassemble) {
-                                CelestialObject debris = lighter.disassemble(this, heavier, actualRoche);
-                                if (debris != null) {
-                                    debrisBuffer.add(debris);
+                                    if (enableDisassemble) {
+                                        CelestialObject debris = lighter.disassemble(this, heavier, actualRoche);
+                                        if (debris != null) {
+                                            debrisBuffer.add(debris);
+                                        }
+                                    } else {
+                                        heavier.gainMattersFrom(this, lighter, timeStep);
+                                    }
                                 }
-                            } else {
-                                heavier.gainMattersFrom(this, lighter, timeStep);
                             }
                         }
                     }
@@ -374,6 +399,17 @@ public class Simulator {
             }
         }
         return happen;
+    }
+
+    private static double[] getCollisionPoint(CelestialObject lighter, CelestialObject heavier) {
+        double[] AB = VectorOperations.subtract(lighter.position, heavier.position);
+        // Distance between the centers
+        double distanceAB = VectorOperations.magnitude(AB);
+        // Calculate the ratio of A's radius to the distance between A and B
+        double t = heavier.getEquatorialRadius() / distanceAB;
+        // Interpolate to find the collision point (starting from A's center)
+        return VectorOperations.add(heavier.position,
+                VectorOperations.scale(AB, t));
     }
 
     public void updateForceThreshold() {
@@ -444,7 +480,7 @@ public class Simulator {
         return forcesBuffer;
     }
 
-    public void calculateAllForces(List<CelestialObject> objects) {
+    public void calculateAllForces(List<RealObject> objects) {
         int n = objects.size();
         if (n == 0) return;
         if (forcesBuffer == null || forcesBuffer.length < n || forcesBuffer[0].length != dimension) {
@@ -465,32 +501,38 @@ public class Simulator {
     public double calculateCutoffDistance(double m1, double m2) {
         return cutOffForce == 0 ? Double.MAX_VALUE : Math.sqrt(G * m1 * m2 / cutOffForce);
     }
-    
+
     public double greatestRadius() {
         double[] barycenter = barycenter();
         double maxDt = 0;
-        for (CelestialObject co : getObjects()) {
+        for (RealObject co : getObjects()) {
             double dt = VectorOperations.distance(barycenter, co.getPosition());
             if (dt > maxDt) maxDt = dt;
         }
         return maxDt;
     }
 
-    private void forceBetween(int i, CelestialObject coi,
-                              int j, CelestialObject coj) {
+    private void forceBetween(int i, RealObject roi,
+                              int j, RealObject roj) {
         double[] dimDtBuffer = new double[dimension];
         double sqrDt = 0;
         for (int d = 0; d < dimension; d++) {
-            dimDtBuffer[d] = coj.position[d] - coi.position[d];
+            dimDtBuffer[d] = roj.position[d] - roi.position[d];
             sqrDt += dimDtBuffer[d] * dimDtBuffer[d];
         }
         double distance = Math.sqrt(sqrDt);
-        double cutOffDistance = calculateCutoffDistance(coi.mass, coj.mass);
+        double cutOffDistance = calculateCutoffDistance(roi.mass, roj.mass);
+        if (roi instanceof DustObject || roj instanceof DustObject) {
+            // For dust/nebula, do not make distance less than their radius
+            // Otherwise they will be throw away by gravity assist
+            // This is only a simple approximation
+            distance = Math.max(distance, Math.max(roi.getMajorRadius(), roj.getMajorRadius()));
+        }
 
         if (distance < cutOffDistance) {
             // only for potential performance improvement
             double dtPow = gravityDtPower == 2 ? distance * distance : Math.pow(distance, gravityDtPower);
-            double forceMagnitude = G * coi.mass * coj.mass / dtPow;
+            double forceMagnitude = G * roi.mass * roj.mass / dtPow;
             forceCounter1++;
 
             double[] fi = forcesBuffer[i];
@@ -553,7 +595,7 @@ public class Simulator {
         }
     }
 
-    private void addPath(CelestialObject object, double tsa) {
+    private void addPath(RealObject object, double tsa) {
         Deque<double[]> path = recentPaths.computeIfAbsent(object, o -> new ArrayDeque<>());
         double[] p = new double[dimension + 1];
         System.arraycopy(object.position, 0, p, 0, object.position.length);
@@ -582,7 +624,7 @@ public class Simulator {
         }
     }
 
-    public void addObject(CelestialObject celestialObject) {
+    public void addObject(RealObject celestialObject) {
         renameIfConflict(celestialObject);
 
         if (celestialObject.position.length < dimension) {
@@ -609,7 +651,7 @@ public class Simulator {
         objects.sort((a, b) -> Double.compare(b.mass, a.mass));
     }
 
-    private void renameIfConflict(CelestialObject newObject) {
+    private void renameIfConflict(RealObject newObject) {
         String origName = newObject.getId();
         String name = origName;
         int counter = 0;
@@ -621,7 +663,7 @@ public class Simulator {
     }
 
     private boolean nameConflict(String name) {
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             if (name.equals(object.getId())) return true;
         }
         return false;
@@ -631,7 +673,7 @@ public class Simulator {
         if (positionShift.length != dimension) {
             throw new IllegalArgumentException();
         }
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             VectorOperations.addInPlace(object.position, positionShift);
         }
         for (Deque<double[]> path : recentPaths.values()) {
@@ -650,7 +692,7 @@ public class Simulator {
         if (acceleration.length != dimension) {
             throw new IllegalArgumentException();
         }
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             VectorOperations.addInPlace(object.velocity, acceleration);
         }
 
@@ -660,15 +702,19 @@ public class Simulator {
     public void rotateWholeSystem(double[] newZAxis) {
         newZAxis = VectorOperations.normalize(newZAxis);
 
-        for (CelestialObject co : objects) {
-            double[] newPos = SystemPresets.rotateToXYPlane(co.getPosition(), newZAxis);
-            double[] newVel = SystemPresets.rotateToXYPlane(co.getVelocity(), newZAxis);
-            double[] newAxis = VectorOperations.normalize(
-                    SystemPresets.rotateToXYPlane(co.getRotationAxis(), newZAxis));
-
-            co.setPosition(newPos);
-            co.setVelocity(newVel);
-            co.forcedSetRotation(newAxis, co.angularVelocity);
+        for (RealObject ro : objects) {
+            double[] newPos = SystemPresets.rotateToXYPlane(ro.getPosition(), newZAxis);
+            double[] newVel = SystemPresets.rotateToXYPlane(ro.getVelocity(), newZAxis);
+            
+            // code order changed, setters were called after rotation computation. If bug, check this
+            ro.setPosition(newPos);
+            ro.setVelocity(newVel);
+            
+            if (ro instanceof CelestialObject co) {
+                double[] newAxis = VectorOperations.normalize(
+                        SystemPresets.rotateToXYPlane(co.getRotationAxis(), newZAxis));
+                co.forcedSetRotation(newAxis, co.angularVelocity);
+            }
         }
     }
 
@@ -676,17 +722,17 @@ public class Simulator {
         int index = (int) (objects.size() * (1 - percentile / 100));
         if (index <= 0) return 0;
         if (index >= objects.size()) return Double.MAX_VALUE;
-        List<CelestialObject> tempList = new ArrayList<>(getObjects());
+        List<RealObject> tempList = new ArrayList<>(getObjects());
         tempList.sort(Comparator.comparingDouble(a -> a.mass));
-        CelestialObject limitObj = tempList.get(index);
+        RealObject limitObj = tempList.get(index);
         return limitObj.mass;
     }
 
-    public List<CelestialObject> getObjects() {
+    public List<RealObject> getObjects() {
         return objects;
     }
 
-    public Map<CelestialObject, Deque<double[]>> getRecentPaths() {
+    public Map<RealObject, Deque<double[]>> getRecentPaths() {
         return recentPaths;
     }
 
@@ -718,8 +764,11 @@ public class Simulator {
      */
     public double calculateTotalKineticEnergy() {
         double totalKE = 0.0;
-        for (CelestialObject obj : objects) {
-            totalKE += obj.transitionalKineticEnergy() + obj.rotationalKineticEnergy();
+        for (RealObject obj : objects) {
+            totalKE += obj.transitionalKineticEnergy();
+            if (obj instanceof CelestialObject co) {
+                totalKE += co.rotationalKineticEnergy();
+            }
         }
         return totalKE;
     }
@@ -730,7 +779,7 @@ public class Simulator {
         return -0.6 * G * co.mass * co.mass / eqr * shape;
     }
 
-    protected double potentialEnergyBetween(CelestialObject co1, CelestialObject co2) {
+    protected double potentialEnergyBetween(RealObject co1, RealObject co2) {
         double distance = VectorOperations.distance(co1.position, co2.position);
         return potentialEnergyBetween(co1.mass, co2.mass, distance,
                 G, gravityDtPower);
@@ -747,9 +796,9 @@ public class Simulator {
         double totalPE = 0.0;
         int n = objects.size();
         for (int i = 0; i < n; i++) {
-            CelestialObject co1 = objects.get(i);
+            RealObject co1 = objects.get(i);
             for (int j = i + 1; j < n; j++) {
-                CelestialObject co2 = objects.get(j);
+                RealObject co2 = objects.get(j);
                 totalPE += potentialEnergyBetween(co1, co2);
             }
         }
@@ -759,30 +808,34 @@ public class Simulator {
     public double calculateTotalInternalEnergy() {
         double totalIE = 0.0;
         int n = objects.size();
-        for (CelestialObject co : objects) {
-            totalIE += gravitationalBindingEnergyOf(co) + co.getInternalThermalEnergy();
+        for (RealObject ro : objects) {
+            if (ro instanceof CelestialObject co) {
+                totalIE += gravitationalBindingEnergyOf(co) + co.getInternalThermalEnergy();
+            } else {
+                // todo: 星云也有什么能量
+            }
         }
         return totalIE;
     }
 
     public void updateMasters() {
-        TreeMap<CelestialObject, TreeMap<Double, CelestialObject>> gravityMap = new TreeMap<>();
+        TreeMap<RealObject, TreeMap<Double, RealObject>> gravityMap = new TreeMap<>();
         double maxMass = 0.0;
-        CelestialObject mostMassive = null;
+        RealObject mostMassive = null;
 
         int nObjects = objects.size();
         for (int i = 0; i < nObjects; i++) {
-            CelestialObject coi = objects.get(i);
+            RealObject coi = objects.get(i);
             coi.maxGravityObject = null;
             if (coi.mass > maxMass) {
                 maxMass = coi.mass;
                 mostMassive = coi;
             }
 
-            TreeMap<Double, CelestialObject> iMap = gravityMap.computeIfAbsent(coi, x -> new TreeMap<>());
+            TreeMap<Double, RealObject> iMap = gravityMap.computeIfAbsent(coi, x -> new TreeMap<>());
             for (int j = i + 1; j < nObjects; j++) {
-                CelestialObject coj = objects.get(j);
-                TreeMap<Double, CelestialObject> jMap = gravityMap.computeIfAbsent(coj, x -> new TreeMap<>());
+                RealObject coj = objects.get(j);
+                TreeMap<Double, RealObject> jMap = gravityMap.computeIfAbsent(coj, x -> new TreeMap<>());
                 double[] f = calculateGravitationalForce(coi.mass, coi.position, coj.mass, coj.position);
                 double fMag = VectorOperations.magnitude(f);
                 // assume there is not identical fMags
@@ -792,8 +845,8 @@ public class Simulator {
         }
 
         for (var entry : gravityMap.entrySet()) {
-            CelestialObject object = entry.getKey();
-            TreeMap<Double, CelestialObject> gravities = entry.getValue();
+            RealObject object = entry.getKey();
+            TreeMap<Double, RealObject> gravities = entry.getValue();
             if (!gravities.isEmpty()) {
                 object.maxGravityObject = gravities.lastEntry().getValue();
             }
@@ -807,7 +860,7 @@ public class Simulator {
 //            System.out.println(object + " gm: " + object.gravityMaster);
         }
 
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             object.hillRadius = computeHillRadiusVsGravityMaster(object);  // temporary
             if (mostMassive != null &&
                     object.mass > mostMassive.mass) {
@@ -818,10 +871,10 @@ public class Simulator {
 //            System.out.println(object.name + " gm: " + object.gravityMaster + " hm: " + object.hillMaster);
         }
 
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             if (object.hillMaster == null) continue;
             double minHillPercent = Double.MAX_VALUE;
-            for (CelestialObject master : objects) {
+            for (RealObject master : objects) {
                 if (object == master || object.mass >= master.mass) continue;
                 if (master.hillRadius == Double.MAX_VALUE) continue;  // default hill is MAX_VALUE
 
@@ -834,25 +887,25 @@ public class Simulator {
                 }
             }
         }
-        
+
         // remove potential circular reference
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             removeCircularHillMasters(object);
         }
 
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             HieraticalSystem hs = systemMap.computeIfAbsent(object, HieraticalSystem::new);
             hs.visited = false;
         }
         // update hill radius again, versus its hill master
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             if (object.hillMaster != null) {
                 object.hillRadius = computeHillRadiusVsHillMaster(object);
             }
         }
 
         rootSystems.clear();
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             HieraticalSystem hs = systemMap.get(object);  // not-null
             if (object.hillMaster == null) {
                 rootSystems.add(hs);
@@ -867,9 +920,9 @@ public class Simulator {
             root.updateRecursive(0);
         }
     }
-    
-    private void removeCircularHillMasters(CelestialObject co) {
-        CelestialObject visit = co;
+
+    private void removeCircularHillMasters(RealObject co) {
+        RealObject visit = co;
         while (visit.hillMaster != null) {
             if (visit.hillMaster == co) {
                 // circular!
@@ -912,11 +965,11 @@ public class Simulator {
         return best;
     }
 
-    public HieraticalSystem getHieraticalSystem(CelestialObject object) {
+    public HieraticalSystem getHieraticalSystem(RealObject object) {
         return systemMap.get(object);
     }
 
-    public List<CelestialObject> getObjectsSortByHieraticalDistance() {
+    public List<RealObject> getObjectsSortByHieraticalDistance() {
         if (barycenter == null) updateBarycenter();
         List<HieraticalSystem> rootDt = new ArrayList<>(rootSystems);
         rootDt.sort((a, b) -> Double.compare(
@@ -924,7 +977,7 @@ public class Simulator {
                 VectorOperations.distance(b.getPosition(), barycenter)
         ));
 
-        List<CelestialObject> result = new ArrayList<>();
+        List<RealObject> result = new ArrayList<>();
         for (HieraticalSystem system : rootDt) {
             system.sortByDistance(result);
         }
@@ -935,16 +988,16 @@ public class Simulator {
         return rootSystems;
     }
 
-    public List<CelestialObject> getAndClearNewlyDestroyed() {
-        List<CelestialObject> nd = new ArrayList<>(newlyDestroyed);
+    public List<RealObject> getAndClearNewlyDestroyed() {
+        List<RealObject> nd = new ArrayList<>(newlyDestroyed);
         newlyDestroyed.clear();
         return nd;
     }
 
-    public CelestialObject computeGravityMaster(CelestialObject target) {
+    public RealObject computeGravityMaster(RealObject target) {
         double maxF = 0.0;
-        CelestialObject dominant = null;
-        for (CelestialObject object : objects) {
+        RealObject dominant = null;
+        for (RealObject object : objects) {
             if (target == object) continue;
             double[] f = calculateGravitationalForce(target.mass, target.position,
                     object.mass, object.position);
@@ -957,21 +1010,21 @@ public class Simulator {
         return dominant;
     }
 
-    public CelestialObject computeHillMaster(CelestialObject target) {
+    public RealObject computeHillMaster(RealObject target) {
         double maxMass = 0.0;
-        CelestialObject mostMassive = null;
+        RealObject mostMassive = null;
 
-        for (CelestialObject coi : objects) {
+        for (RealObject coi : objects) {
             if (coi.mass > maxMass) {
                 maxMass = coi.mass;
                 mostMassive = coi;
             }
         }
 
-        CelestialObject hillMaster = mostMassive;
+        RealObject hillMaster = mostMassive;
 
         double minHillPercent = Double.MAX_VALUE;
-        for (CelestialObject master : objects) {
+        for (RealObject master : objects) {
             if (target == master || target.mass > master.mass) continue;
             if (master == mostMassive || master.hillRadius == Double.MAX_VALUE)
                 continue;  // default hill is MAX_VALUE
@@ -1012,9 +1065,9 @@ public class Simulator {
         return r * 2.423 * Math.cbrt(masterDensity / smallDensity);
     }
 
-    public SortedMap<Double, CelestialObject> getForcesOfAll(double[] position) {
-        SortedMap<Double, CelestialObject> forces = new TreeMap<>();
-        for (CelestialObject object : objects) {
+    public SortedMap<Double, RealObject> getForcesOfAll(double[] position) {
+        SortedMap<Double, RealObject> forces = new TreeMap<>();
+        for (RealObject object : objects) {
             double[] f = calculateGravitationalForce(1, position, object.mass, object.position);
             double fMag = VectorOperations.magnitude(f);
             forces.put(fMag, object);
@@ -1038,7 +1091,7 @@ public class Simulator {
                 double x = startX + (c + 0.0) * xTick;
 
                 double[] netForce = new double[dimension];
-                for (CelestialObject object : objects) {
+                for (RealObject object : objects) {
                     // just calculate it on the surface
                     double dx = x - object.position[0];
                     double dy = y - object.position[1];
@@ -1060,106 +1113,106 @@ public class Simulator {
         return result;
     }
 
-    /**
-     * Precondition: <code>object</code> has hill master
-     */
-    public EffectivePotential computeEffectivePotentialGrid(CelestialObject object,
-                                                            double startX, double startY,
-                                                            double width, double height,
-                                                            int nCols, int nRows) {
-        CelestialObject master = object.hillMaster;
-        HieraticalSystem masterSystem = getHieraticalSystem(master);
-        double[] barycenter = OrbitCalculator.calculateBarycenter(master, object);
-        double[] barycenter2d = Arrays.copyOf(barycenter, 2);
-
-//        System.out.println(Arrays.toString(object.velocity) + " " + Arrays.toString(masterSystem.getVelocity()));
-
-        OrbitalElements orbitalElements = OrbitCalculator.computeOrbitSpecsPlanar(
-                object,
-                VectorOperations.subtract(object.velocity, masterSystem.getVelocity()),
-                barycenter,
-                master.getMass() + object.getMass(),
-                G
-        );
-
-        if (orbitalElements.eccentricity > 0.1) {
-            System.out.println("Large eccentricity warning: " + orbitalElements.eccentricity);
-        }
-
-        double[][] result = new double[nRows][nCols];
-        double xTick = width / nCols;
-        double yTick = height / nRows;
-
-        double[] connection = new double[]{object.getX() - barycenter[0], object.getY() - barycenter[1]};
-        double currentDt = Math.hypot(connection[0], connection[1]);
-
-        double hillRadius = computeHillRadiusVsHillMaster(object);
-        // todo: per vs aph
-        double aph = orbitalElements.semiMajorAxis * (1 + orbitalElements.eccentricity);
-        double per = orbitalElements.semiMajorAxis * (1 - orbitalElements.eccentricity);
-
-        System.out.println(currentDt + ", ap: " + aph + ", pe: " + per);
-
-//        double hill
-
-        double minDtToMaster = Math.max(1e-9, currentDt - hillRadius * 1.5);
-        double minDtToMasterCut = Math.max(1e-9, per - hillRadius * 2.0);
-        double[] posAtMinDtToMaster = VectorOperations.add(
-                barycenter2d,
-                VectorOperations.scale(connection, minDtToMaster / currentDt)
-        );
-
-        double maxDtToMaster = currentDt + hillRadius * 1.5;
-        double maxDtToMasterCut = aph + hillRadius * 2.5;
-        double[] posAtMaxDtToMaster = VectorOperations.add(
-                barycenter2d,
-                VectorOperations.scale(connection, maxDtToMaster / currentDt)
-        );
-
-        EffectivePotentialCalculator calculator = new EffectivePotentialCalculator(G,
-                master,
-                object,
-                orbitalElements,
-                barycenter);
-
-//        double minDtToObject = hillRadius * 0.5;
-
-        double minEPCloseToMaster = calculator.compute(
-                posAtMinDtToMaster[0],
-                posAtMinDtToMaster[1]);
-        double minEPFarToMaster = calculator.compute(
-                posAtMaxDtToMaster[0],
-                posAtMaxDtToMaster[1]);
-
-        double minEP = Math.min(minEPCloseToMaster, minEPFarToMaster);
-
-        for (int r = 0; r < nRows; r++) {
-            double y = startY + (r + 0.0) * yTick;
-            for (int c = 0; c < nCols; c++) {
-                double x = startX + (c + 0.0) * xTick;
-                double posDt = Math.hypot(x - barycenter[0], y - barycenter[1]);
-                if (posDt > minDtToMasterCut && posDt < maxDtToMasterCut) {
-//                    double posDtToObj = Math.hypot(x - object.getX(), y - object.getY());
-//                    if (posDtToObj > minDtToObject) {
-                    double actual = calculator.compute(
-                            x,
-                            y);
-                    if (actual > minEP) {
-                        result[r][c] = actual;
-                    }
+//    /**
+//     * Precondition: <code>object</code> has hill master
+//     */
+//    public EffectivePotential computeEffectivePotentialGrid(RealObject object,
+//                                                            double startX, double startY,
+//                                                            double width, double height,
+//                                                            int nCols, int nRows) {
+//        RealObject master = object.hillMaster;
+//        HieraticalSystem masterSystem = getHieraticalSystem(master);
+//        double[] barycenter = OrbitCalculator.calculateBarycenter(master, object);
+//        double[] barycenter2d = Arrays.copyOf(barycenter, 2);
+//
+////        System.out.println(Arrays.toString(object.velocity) + " " + Arrays.toString(masterSystem.getVelocity()));
+//
+//        OrbitalElements orbitalElements = OrbitCalculator.computeOrbitSpecsPlanar(
+//                object,
+//                VectorOperations.subtract(object.velocity, masterSystem.getVelocity()),
+//                barycenter,
+//                master.getMass() + object.getMass(),
+//                G
+//        );
+//
+//        if (orbitalElements.eccentricity > 0.1) {
+//            System.out.println("Large eccentricity warning: " + orbitalElements.eccentricity);
+//        }
+//
+//        double[][] result = new double[nRows][nCols];
+//        double xTick = width / nCols;
+//        double yTick = height / nRows;
+//
+//        double[] connection = new double[]{object.getX() - barycenter[0], object.getY() - barycenter[1]};
+//        double currentDt = Math.hypot(connection[0], connection[1]);
+//
+//        double hillRadius = computeHillRadiusVsHillMaster(object);
+//        // todo: per vs aph
+//        double aph = orbitalElements.semiMajorAxis * (1 + orbitalElements.eccentricity);
+//        double per = orbitalElements.semiMajorAxis * (1 - orbitalElements.eccentricity);
+//
+//        System.out.println(currentDt + ", ap: " + aph + ", pe: " + per);
+//
+////        double hill
+//
+//        double minDtToMaster = Math.max(1e-9, currentDt - hillRadius * 1.5);
+//        double minDtToMasterCut = Math.max(1e-9, per - hillRadius * 2.0);
+//        double[] posAtMinDtToMaster = VectorOperations.add(
+//                barycenter2d,
+//                VectorOperations.scale(connection, minDtToMaster / currentDt)
+//        );
+//
+//        double maxDtToMaster = currentDt + hillRadius * 1.5;
+//        double maxDtToMasterCut = aph + hillRadius * 2.5;
+//        double[] posAtMaxDtToMaster = VectorOperations.add(
+//                barycenter2d,
+//                VectorOperations.scale(connection, maxDtToMaster / currentDt)
+//        );
+//
+//        EffectivePotentialCalculator calculator = new EffectivePotentialCalculator(G,
+//                master,
+//                object,
+//                orbitalElements,
+//                barycenter);
+//
+////        double minDtToObject = hillRadius * 0.5;
+//
+//        double minEPCloseToMaster = calculator.compute(
+//                posAtMinDtToMaster[0],
+//                posAtMinDtToMaster[1]);
+//        double minEPFarToMaster = calculator.compute(
+//                posAtMaxDtToMaster[0],
+//                posAtMaxDtToMaster[1]);
+//
+//        double minEP = Math.min(minEPCloseToMaster, minEPFarToMaster);
+//
+//        for (int r = 0; r < nRows; r++) {
+//            double y = startY + (r + 0.0) * yTick;
+//            for (int c = 0; c < nCols; c++) {
+//                double x = startX + (c + 0.0) * xTick;
+//                double posDt = Math.hypot(x - barycenter[0], y - barycenter[1]);
+//                if (posDt > minDtToMasterCut && posDt < maxDtToMasterCut) {
+////                    double posDtToObj = Math.hypot(x - object.getX(), y - object.getY());
+////                    if (posDtToObj > minDtToObject) {
+//                    double actual = calculator.compute(
+//                            x,
+//                            y);
+//                    if (actual > minEP) {
+//                        result[r][c] = actual;
 //                    }
-                }
-            }
-        }
-
-        // get lagrange points
-        double[][] lagrangePoints = getLagrangePointsGradientDescent(calculator,
-                hillRadius,
-                hillRadius * 0.01,
-                hillRadius * 1e-3);
-
-        return new EffectivePotential(result, minEP, lagrangePoints);
-    }
+////                    }
+//                }
+//            }
+//        }
+//
+//        // get lagrange points
+//        double[][] lagrangePoints = getLagrangePointsGradientDescent(calculator,
+//                hillRadius,
+//                hillRadius * 0.01,
+//                hillRadius * 1e-3);
+//
+//        return new EffectivePotential(result, minEP, lagrangePoints);
+//    }
 
     private double[][] getLagrangePointsGradientDescent(EffectivePotentialCalculator calculator,
                                                         double hillRadius,
@@ -1283,12 +1336,12 @@ public class Simulator {
      * Velocity in any other dimensions are 0.
      */
 
-    public double[] computeOrbitVelocity(CelestialObject dominant, CelestialObject placing,
+    public double[] computeOrbitVelocity(RealObject dominant, CelestialObject placing,
                                          double[] planeNormal) {
         return computeVelocityOfN(dominant, placing, 1, planeNormal);
     }
 
-    public double[] computeEscapeVelocity(CelestialObject dominant, CelestialObject placing,
+    public double[] computeEscapeVelocity(RealObject dominant, CelestialObject placing,
                                           double[] planeNormal) {
         return computeVelocityOfN(dominant, placing, 2, planeNormal);
     }
@@ -1378,7 +1431,7 @@ public class Simulator {
         return velocity;
     }
 
-    public FullOrbitSpec computeOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
+    public FullOrbitSpec computeOrbitOf(RealObject object, RealObject parent, boolean isPrimary) {
         AbstractObject child;
         if (isPrimary) {
             child = getHieraticalSystem(object);
@@ -1439,22 +1492,22 @@ public class Simulator {
 
     public double totalMass() {
         double totalMass = 0.0;
-        for (CelestialObject co : objects) {
+        for (RealObject co : objects) {
             totalMass += co.mass;
         }
         return totalMass;
     }
 
-    public double effectiveMassAt(double[] position, CelestialObject self) {
+    public double effectiveMassAt(double[] position, RealObject self) {
         return calculateEffectiveMass(objects, position, self);
     }
 
-    public double calculateEffectiveMass(Collection<CelestialObject> bodies,
+    public double calculateEffectiveMass(Collection<RealObject> bodies,
                                          double[] newPosition,
-                                         CelestialObject self) {
+                                         RealObject self) {
         double totalForce = 0;
 
-        for (CelestialObject body : bodies) {
+        for (RealObject body : bodies) {
             double distance = VectorOperations.distance(body.position, newPosition);
             if (distance != 0) {
                 totalForce += body.mass / (distance * distance);
@@ -1468,14 +1521,14 @@ public class Simulator {
         return totalForce * distanceToBarycenter * distanceToBarycenter;
     }
 
-    private double computeHillRadiusVsGravityMaster(CelestialObject co) {
-        CelestialObject gravityMaster = co.getGravityMaster();
+    private double computeHillRadiusVsGravityMaster(RealObject co) {
+        RealObject gravityMaster = co.getGravityMaster();
         if (gravityMaster == null) return Double.MAX_VALUE;
 
         return hillRadius(co, gravityMaster, G);
     }
 
-    private double computeHillRadiusVsHillMaster(CelestialObject co) {
+    private double computeHillRadiusVsHillMaster(RealObject co) {
         if (co.hillMaster == null) {
             if (co.hillRadius == 0.0) return Double.MAX_VALUE;
             else return co.hillRadius;
@@ -1500,7 +1553,7 @@ public class Simulator {
         return ae[0] * (1 - ae[1]) * cbrt;
     }
 
-    public static double hillRadius(CelestialObject target, CelestialObject master, double G) {
+    public static double hillRadius(RealObject target, RealObject master, double G) {
         double m1 = master.mass;
         double m2 = target.mass;
         double[] barycenter = OrbitCalculator.calculateBarycenter(target, master);
@@ -1512,7 +1565,14 @@ public class Simulator {
     }
 
     public CelestialObject findByName(String name) {
-        for (CelestialObject co : objects) {
+        for (RealObject ro : objects) {
+            if (ro.id.equals(name) && ro instanceof CelestialObject co) return co;
+        }
+        return null;
+    }
+
+    public RealObject findByNameAny(String name) {
+        for (RealObject co : objects) {
             if (co.id.equals(name)) return co;
         }
         return null;
@@ -1572,8 +1632,10 @@ public class Simulator {
     }
 
     void updateIndependentStatus() {
-        for (CelestialObject co : objects) {
-            co.updateStatus(true);
+        for (RealObject ro : objects) {
+            if (ro instanceof CelestialObject co) {
+                co.updateStatus(true);
+            }
         }
     }
 
@@ -1582,17 +1644,19 @@ public class Simulator {
         List<Star> sources = getAllLightSources();
         int n = objects.size();
         for (int i = n - 1; i >= 0; i--) {
-            CelestialObject co = objects.get(i);
-            co.updateStatus(false);  // majorly setup for the comets
-            if (co.getStatus() instanceof Comet comet) {
-                double lossRate = co.vapor(comet, timeStep, sources);
-                if (co.getMass() <= 0) {
-                    System.out.println(co.getId() + " has vaporized");
-                    objects.remove(i);
-                    changed = true;
-                    continue;
+            RealObject ro = objects.get(i);
+            if (ro instanceof CelestialObject co) {
+                co.updateStatus(false);  // majorly setup for the comets
+                if (co.getStatus() instanceof Comet comet) {
+                    double lossRate = co.vapor(comet, timeStep, sources);
+                    if (co.getMass() <= 0) {
+                        System.out.println(co.getId() + " has vaporized");
+                        objects.remove(i);
+                        changed = true;
+                        continue;
+                    }
+                    comet.updateTails(this, sources, lossRate, timeStep);
                 }
-                comet.updateTails(this, sources, lossRate, timeStep);
             }
         }
         return changed;
@@ -1600,8 +1664,8 @@ public class Simulator {
 
     public List<Star> getAllLightSources() {
         List<Star> result = new ArrayList<>();
-        for (CelestialObject co : objects) {
-            if (co.getStatus() instanceof Star star) {
+        for (RealObject ro : objects) {
+            if (ro instanceof CelestialObject co && co.getStatus() instanceof Star star) {
                 result.add(star);
             }
         }
@@ -1613,31 +1677,33 @@ public class Simulator {
         double each = timeStep / iteration;
 
         for (int i = 0; i < iteration; i++) {
-            for (CelestialObject co : objects) {
-                double luminosity = co.getLuminosity();
+            for (RealObject ro : objects) {
+                
+                double luminosity = ro.getLuminosity();
                 if (luminosity > 0) {
                     // is a light source
+                    CelestialObject co = (CelestialObject) ro;
                     double[] sourcePos = co.getPosition().clone();
-                    for (CelestialObject receiver : objects) {
+                    for (RealObject receiver : objects) {
                         if (co != receiver) {
                             receiver.receiveLight(sourcePos, luminosity, each);
                         }
                     }
                 } else {
-                    co.emitThermalPower(each);
+                    ro.emitThermalPower(each);
                 }
             }
         }
     }
 
     protected void updateTidal(double timeStep) {
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             // for each pair of parent-children, compute them
-            if (object.hillMaster != null) {
+            if (object instanceof CelestialObject co && co.hillMaster instanceof CelestialObject master) {
                 // both use a same set of orbit params, 
                 // otherwise the hill master will have too small semi-major
-                tidalBrake(object.hillMaster, object, timeStep);
-                tidalBrake(object, object.hillMaster, timeStep);
+                tidalBrake(master, co, timeStep);
+                tidalBrake(co, master, timeStep);
             }
         }
     }

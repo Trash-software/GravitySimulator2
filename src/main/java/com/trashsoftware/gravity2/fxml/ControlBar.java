@@ -4,6 +4,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.presets.Preset;
 import javafx.application.Platform;
@@ -193,7 +194,7 @@ public class ControlBar implements Initializable {
         massPercentileSlider.setValue(100.0);
     }
 
-    public void setFocus(CelestialObject co, boolean scrollToFocus) {
+    public void setFocus(RealObject co, boolean scrollToFocus) {
         Platform.runLater(() -> {
             clearFocusBtn.setDisable(false);
 

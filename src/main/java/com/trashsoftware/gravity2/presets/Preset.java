@@ -94,7 +94,7 @@ public abstract class Preset {
         }
         double[] barycenter = simulator.barycenter();
 
-        for (CelestialObject co : simulator.getObjects()) {
+        for (RealObject co : simulator.getObjects()) {
             double[] pos = co.getPosition();
             double dtToCenter = VectorOperations.distance(pos, barycenter);
             if (dtToCenter == 0) continue;
@@ -129,7 +129,7 @@ public abstract class Preset {
                 vz = v * Math.cos(theta);
             } else {
                 double massInside = 0;
-                for (CelestialObject other : simulator.getObjects()) {
+                for (RealObject other : simulator.getObjects()) {
                     if (co != other) {
                         double otherDt = VectorOperations.distance(other.getPosition(), barycenter);
                         if (otherDt < dtToCenter) massInside += other.getMass();

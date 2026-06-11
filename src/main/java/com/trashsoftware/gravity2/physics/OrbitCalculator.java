@@ -16,7 +16,7 @@ public class OrbitCalculator {
     /**
      * @return {semi-major, eccentricity}
      */
-    public static double[] computeBasic(CelestialObject small,
+    public static double[] computeBasic(RealObject small,
                                         double[] barycenter,
                                         double totalMass,
                                         double[] v,

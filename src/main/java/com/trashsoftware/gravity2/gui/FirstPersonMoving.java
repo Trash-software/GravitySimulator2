@@ -9,7 +9,7 @@ import com.trashsoftware.gravity2.physics.CelestialObject;
 
 public class FirstPersonMoving {
 
-    protected ObjectModel objectModel;
+    protected SolidModel objectModel;
     protected Node cameraNode = new Node("CameraNode");
     protected Node northNode = new Node("NorthNode");
     private double longitude = 180;
@@ -19,7 +19,7 @@ public class FirstPersonMoving {
     protected double compassAzimuth = 90;
     protected double lookAltitudeDeg = 0;
 
-    FirstPersonMoving(ObjectModel objectModel, double altitude) {
+    FirstPersonMoving(SolidModel objectModel, double altitude) {
         this.objectModel = objectModel;
         this.altitude = altitude;
 

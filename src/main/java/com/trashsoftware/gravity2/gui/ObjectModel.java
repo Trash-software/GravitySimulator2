@@ -3,15 +3,12 @@ package com.trashsoftware.gravity2.gui;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.font.BitmapText;
-import com.jme3.light.AmbientLight;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -19,27 +16,20 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.PointLightShadowFilter;
-import com.jme3.shadow.PointLightShadowRenderer;
-import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
-import com.trashsoftware.gravity2.fxml.units.UnitsUtil;
 import com.trashsoftware.gravity2.physics.CelestialObject;
-import com.trashsoftware.gravity2.physics.HieraticalSystem;
+import com.trashsoftware.gravity2.physics.DustObject;
 import com.trashsoftware.gravity2.physics.OrbitalElements;
-import com.trashsoftware.gravity2.physics.VectorOperations;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.CometTailParams;
-import com.trashsoftware.gravity2.physics.status.Star;
-import com.trashsoftware.gravity2.physics.status.Status;
-import com.trashsoftware.gravity2.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ObjectModel {
+public abstract class ObjectModel {
     public static final int COLOR_GRADIENTS = 16;
     protected static Mesh blank = new Mesh();
 
@@ -48,7 +38,7 @@ public class ObjectModel {
                 BufferUtils.createFloatBuffer(new Vector3f(0, 0, 0)));
     }
 
-    protected final CelestialObject object;
+    protected final RealObject object;
     protected final ColorRGBA color;
     protected final ColorRGBA opaqueColor;
     protected final ColorRGBA darkerColor;
@@ -75,34 +65,25 @@ public class ObjectModel {
     protected Geometry axis;
     private boolean showLabel = true;
     private boolean showApPe = false;
-    private boolean renderLight = true;
+    protected boolean renderLight = true;
     private boolean showHillSphere = false;
-    private boolean showRocheLimit = false;
-    final int samples;
+    protected boolean showRocheLimit = false;  // just leave it here
 
-//    protected PointLight emissionLight;
-    protected AmbientLight surfaceLight;
-
-    protected Vector3f rotationAxis;
-
-    protected FirstPersonMoving firstPersonMoving;
     protected Node barycenterMark;
 
-//    protected PointLightShadowRenderer plsr;
+    //    protected PointLightShadowRenderer plsr;
 //    protected BloomFilter bloom;
     protected PointLightShadowFilter plsf;
 //    protected FilterPostProcessor fpp;
-    
+
     ParticleEmitter cometDustTail;
     Map<CelestialObject, ParticleEmitter> cometIonTails;
 
     protected Quaternion tiltRotation;
     protected double initialRadius;
     protected double displayingEmitLightColorTemp;
-    
-    protected LightSourceModel lightModel;
 
-    public ObjectModel(CelestialObject object, JmeApp jmeApp) {
+    protected ObjectModel(RealObject object, JmeApp jmeApp) {
         this.jmeApp = jmeApp;
         this.object = object;
         this.color = GuiUtils.stringToColor(object.getColorCode());
@@ -110,30 +91,7 @@ public class ObjectModel {
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
 
-        String texturePath = object.getTexturePath();
-        if (texturePath == null) {
-            samples = 32;
-        } else {
-            samples = 64;
-        }
-
-        Sphere sphere = new Sphere(samples, samples * 2, (float) object.getEquatorialRadius());
-        sphere.setTextureMode(Sphere.TextureMode.Projected);
-        initialRadius = object.getEquatorialRadius();
-        model = new Geometry(object.getId(), sphere);
-        // Create a material for the box
-        Material mat = new Material(JmeApp.getInstance().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
-
-        if (texturePath == null) {
-            mat.setBoolean("UseMaterialColors", true);
-            mat.setColor("Diffuse", color);
-            mat.setColor("Ambient", color);
-        } else {
-            Texture texture = jmeApp.getAssetManager().loadTexture(texturePath);
-            mat.setTexture("DiffuseMap", texture);
-        }
-        model.setMaterial(mat);
-        updateLightSource();
+        initialRadius = object.getMajorRadius();
 
         // Create the text label
         labelText = new BitmapText(jmeApp.font);
@@ -151,7 +109,6 @@ public class ObjectModel {
         labelNode.setLocalScale(0.1f);
 
         rotatingNode = new Node("Rotating");
-        rotatingNode.attachChild(model);
         objectNode.attachChild(rotatingNode);
         objectNode.attachChild(labelNode);
 
@@ -186,8 +143,6 @@ public class ObjectModel {
         axis.setMaterial(matLine4);
         rotatingNode.attachChild(axis);
 
-        createAxisMesh();
-
         // Create a geometry, apply the mesh, and set the material
         trace = new Geometry("Trace", blank);
         Material matLine3 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -195,12 +150,22 @@ public class ObjectModel {
         matLine3.setBoolean("VertexColor", true); // Enable vertex colors
         trace.setMaterial(matLine3);
     }
-    
+
+    public static ObjectModel create(RealObject object, JmeApp jmeApp) {
+        if (object instanceof CelestialObject co) {
+            return new SolidModel(co, jmeApp);
+        } else if (object instanceof DustObject duo) {
+            return new DustModel(duo, jmeApp);
+        } else {
+            throw new IllegalArgumentException("Unknown object type: " + object.getClass());
+        }
+    }
+
     private void initCometTails(Comet comet) {
         cometDustTail = new ParticleEmitter("DustTail-" + object.getId(),
                 ParticleMesh.Type.Triangle, 300);
         Material dustTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
-        dustTailMat.setTexture("Texture", 
+        dustTailMat.setTexture("Texture",
                 jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail_mirror.png"));
         cometDustTail.setMaterial(dustTailMat);
         cometDustTail.setImagesX(1);
@@ -210,17 +175,17 @@ public class ObjectModel {
         cometDustTail.setEndColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 0.0f));
         cometDustTail.getParticleInfluencer().setVelocityVariation(0.1f);
         cometDustTail.setFacingVelocity(true);
-        
+
         objectNode.attachChild(cometDustTail);
-        
+
         cometIonTails = new HashMap<>();
         for (var entry : comet.getIonTails().entrySet()) {
 //            CometTailParams ctp = entry.getValue();
-            
+
             ParticleEmitter ionTail = new ParticleEmitter("IonTail-" + object.getId() + "+" + entry.getKey().getId(),
                     ParticleMesh.Type.Triangle, 200);
             Material ionTailMat = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
-            ionTailMat.setTexture("Texture", 
+            ionTailMat.setTexture("Texture",
                     jmeApp.getAssetManager().loadTexture("com/trashsoftware/gravity2/effects/smoketrail_mirror.png"));
             ionTail.setMaterial(ionTailMat);
             ionTail.setImagesX(1);
@@ -244,27 +209,27 @@ public class ObjectModel {
 //            Vector3f tailDirection = GuiUtils.fromDoubleArray(ctp.initDirection);
 //            ionTail.getParticleInfluencer().setInitialVelocity(tailDirection.mult(-100f)); // Fast solar wind speed
 //            ionTail.getParticleInfluencer().setVelocityVariation(0.2f);
-            
+
             cometIonTails.put(entry.getKey(), ionTail);
             objectNode.attachChild(ionTail);
         }
     }
-    
+
     private void adjustCometTails(Comet comet) {
         float scaleF = (float) jmeApp.getScale();
 //        float speedF = (float) jmeApp.getSimulationSpeed();
-        
+
         Vector3f focusMove = jmeApp.getLastFrameScreenMovement().toVector3f();
-        
+
         CometTailParams dust = comet.getDustTail();
         float timeStepF = (float) dust.timeSteps;
 //        float density1 = (float) (dust.tailDensity / 1e5);
-        
+
         Vector3f initVel1 = GuiUtils.fromDoubleArray(dust.velocity)
                 .mult(timeStepF * scaleF * -1);
         initVel1.subtractLocal(focusMove);
         initVel1.multLocal(jmeApp.getFrameRate());
-        
+
         float velMag1 = initVel1.length();
         float dustTailLen = (float) (dust.tailLength * scaleF);
         float life1 = dustTailLen / velMag1;
@@ -272,7 +237,7 @@ public class ObjectModel {
         float particleRate1 = cometDustTail.getMaxNumParticles() / life1;
 //        System.out.println(particleRate1 + " life: " + life1);
         particleRate1 = FastMath.clamp(particleRate1, 5, 50);
-        
+
         float dustSize = (float) (comet.co.getAverageRadius() * scaleF * 50f);
         float dustSize2 = dustTailLen / 200f;
         dustSize = Math.max(dustSize, dustSize2);
@@ -283,29 +248,29 @@ public class ObjectModel {
         cometDustTail.setStartSize(dustSize);
         cometDustTail.setEndSize(dustSize * 20);
         cometDustTail.getParticleInfluencer().setInitialVelocity(initVel1);
-        
+
         for (var entry : comet.getIonTails().entrySet()) {
             CometTailParams ctp = entry.getValue();
             ParticleEmitter ionTail = cometIonTails.get(entry.getKey());
-            
+
 //            float density = (float) (ctp.tailDensity / 3e5);
 
             Vector3f initVel = GuiUtils.fromDoubleArray(ctp.velocity)
                     .mult(timeStepF * scaleF * -1);
             initVel.subtractLocal(focusMove);
             initVel.multLocal(jmeApp.getFrameRate());
-            
+
             float velMag = initVel.length();
             float ionTailLen = (float) (ctp.tailLength * scaleF);
             float life = ionTailLen / velMag;
-            
+
             float particleRate = ionTail.getMaxNumParticles() / life;
             particleRate = FastMath.clamp(particleRate, 5, 50);
 
             float ionSize = (float) (comet.co.getAverageRadius() * scaleF * 10f);
             float ionSize2 = ionTailLen / 500f;
             ionSize = Math.max(ionSize, ionSize2);
-            
+
 //            ionTail.setNumParticles((int) density);
             ionTail.setParticlesPerSec(particleRate);
             ionTail.setLowLife(life * 0.5f);
@@ -322,11 +287,11 @@ public class ObjectModel {
 //                    ", ion tail len: " + UnitsUtil.adaptiveDistance(ctp.tailLength) + 
 //                    ", ion tail speed: " + UnitsUtil.adaptiveSpeed(VectorOperations.magnitude(ctp.velocity)) + 
 //                    ", timeStep: " + ctp.timeSteps);
-            
+
         }
     }
-    
-    private void removeCometTails() {
+
+    protected void removeCometTails() {
         if (cometDustTail != null) {
             objectNode.detachChild(cometDustTail);
         }
@@ -336,14 +301,14 @@ public class ObjectModel {
             }
         }
     }
-    
-    private void updateCometTail(Comet comet) {
+
+    protected void updateCometTail(Comet comet) {
         if (cometDustTail == null) {
             initCometTails(comet);
         }
         adjustCometTails(comet);
     }
-    
+
     public void clearEffects() {
         if (cometDustTail != null) {
             cometDustTail.killAllParticles();
@@ -353,158 +318,6 @@ public class ObjectModel {
                 pe.killAllParticles();
             }
         }
-    }
-    
-    private void updateLightSource() {
-        Material mat = model.getMaterial();
-        Status status = object.getStatus();
-//        boolean emitting = object.isEmittingLight();
-        boolean changed = false;
-        if (renderLight) {
-//            if (bloom == null) {
-//                bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-//                bloom.setBloomIntensity(1.5f); // Adjust intensity for more or less glow
-////                bloom.setBlurScale(10.0f);
-//                jmeApp.filterPostProcessor.addFilter(bloom);
-//            }
-            
-            if (status instanceof Star star) {
-                if (lightModel == null) {
-                    lightModel = new LightSourceModel();
-                    lightModel.addThisTo(jmeApp);
-
-                    surfaceLight = new AmbientLight();
-                    model.addLight(surfaceLight);
-
-                    model.setShadowMode(RenderQueue.ShadowMode.Off);
-                    adjustPointLight(star);
-                    changed = true;
-                }
-                
-//                if (emissionLight == null) {
-//                    mat.setFloat("Shininess", 128);
-//
-//                    emissionLight = new PointLight();
-//                    jmeApp.getRootNode().addLight(emissionLight);
-//
-//                    surfaceLight = new AmbientLight();
-////                surfaceLight.setColor(lightColor);
-//                    model.addLight(surfaceLight);
-//
-//                    // Add shadow renderer
-//                    plsr = new PointLightShadowRenderer(jmeApp.getAssetManager(),
-//                            1024);
-//                    plsr.setLight(emissionLight);
-////                    plsr.setShadowIntensity(0.9f); // Adjust the shadow intensity
-//                    plsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-//                    jmeApp.getViewPort().addProcessor(plsr);
-//
-//                    // Add shadow filter for softer shadows
-////                plsf = new PointLightShadowFilter(jmeApp.getAssetManager(), 1024);
-////                plsf.setLight(emissionLight);
-////                plsf.setEnabled(true);
-////                jmeApp.filterPostProcessor.addFilter(plsf);
-//
-//                    // Add bloom effect to enhance the star's glow
-//                    bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-////                    bloom.setBloomIntensity(3f); // Adjust intensity for more or less glow
-////                    bloom.setExposurePower(5f);
-////                    bloom.setExposureCutOff(0.1f);
-////                    bloom.setDownSamplingFactor(2f);
-//                    jmeApp.filterPostProcessor.addFilter(bloom);
-//
-//                    model.setShadowMode(RenderQueue.ShadowMode.Off);
-//
-//                    adjustPointLight(star);
-//                    changed = true;
-//                }
-            } else {
-                changed = removeEmissionLight() || removeEffectLights();
-                model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-            }
-        } else {
-            changed = removeEmissionLight() || removeEffectLights();
-            model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        }
-        if (changed) {
-            model.setMaterial(mat);
-        }
-    }
-    
-    protected boolean removeEmissionLight() {
-        boolean changed = false;
-        
-        if (lightModel != null) {
-            changed = lightModel.removeThisFrom(jmeApp, object.getId());
-            lightModel = null;
-        }
-        
-//        if (emissionLight != null) {
-//            jmeApp.getRootNode().removeLight(emissionLight);
-//            emissionLight = null;
-//            changed = true;
-//        }
-        if (surfaceLight != null) {
-            model.removeLight(surfaceLight);
-            surfaceLight = null;
-            changed = true;
-        }
-//        if (plsr != null) {
-//            jmeApp.getViewPort().removeProcessor(plsr);
-//            plsr = null;
-//            changed = true;
-//        }
-//        if (bloom != null) {
-//            try {
-//                jmeApp.filterPostProcessor.removeFilter(bloom);
-//            } catch (RuntimeException e) {
-//                System.err.println(object.getId() + " has rendering problem: bloom.");
-//                e.printStackTrace(System.err);
-//            }
-//            bloom = null;
-//            changed = true;
-//        }
-        if (plsf != null) {
-            try {
-                jmeApp.filterPostProcessor.removeFilter(plsf);
-            } catch (RuntimeException e) {
-                System.err.println(object.getId() + " has rendering problem: plsf.");
-                e.printStackTrace(System.err);
-            }
-            plsf = null;
-            changed = true;
-        }
-        return changed;
-    }
-    
-    private boolean removeEffectLights() {
-        return lightModel != null && lightModel.removeEffectLights(jmeApp, object.getId());
-    }
-
-    private void updateEmissionColor(ColorRGBA lightColor) {
-        lightModel.emissionLight.setColor(lightColor);
-        model.getMaterial().setColor("GlowColor", lightColor);
-        surfaceLight.setColor(lightColor);
-    }
-
-    private void adjustPointLight(Star star) {
-        double scale = jmeApp.getScale();
-        double luminosity = object.getLuminosity();
-
-        if (object.getLightColorCode() != null) {
-            ColorRGBA lightColor = GuiUtils.stringToColor(object.getLightColorCode());
-            updateEmissionColor(lightColor);
-        } else {
-            double colorTemp = star.getEmissionColorTemperature();
-            if (colorTemp != displayingEmitLightColorTemp) {
-                displayingEmitLightColorTemp = colorTemp;
-                ColorRGBA lightColor = GuiUtils.stringToColor(GuiUtils.temperatureToRGBString(colorTemp));
-                updateEmissionColor(lightColor);
-            }
-        }
-
-        double radius = Math.pow(scale, 2) * luminosity * 2e-2;
-        lightModel.emissionLight.setRadius((float) radius);
     }
 
     private void createApPeText() {
@@ -525,27 +338,10 @@ public class ObjectModel {
         }
     }
 
-    private void createAxisMesh() {
-        Mesh mesh = new Mesh();
-        Vector3f[] vertices = new Vector3f[2];
-        vertices[0] = new Vector3f(0, 0, 0);
-        vertices[1] = new Vector3f(0, 0, (float) (object.getPolarRadius() * 1.5));
-
-        mesh.setMode(Mesh.Mode.Lines);
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
-        // Set up indices to connect the vertices as line segments
-        short[] indices = new short[]{0, 1};
-        mesh.setBuffer(VertexBuffer.Type.Index, 2, BufferUtils.createShortBuffer(indices));
-
-        mesh.updateBound();
-        mesh.updateCounts();
-
-        axis.setMesh(mesh);
-    }
-
-    private Geometry createTransparentSphere(String name, ColorRGBA baseColor, float opacity) {
+    Geometry createTransparentSphere(String name, ColorRGBA baseColor, float opacity) {
         // Create a sphere mesh
-        Sphere sphereMesh = new Sphere(32, 64, (float) object.getEquatorialRadius());  // 32 segments, radius 1
+//        Sphere sphereMesh = new Sphere(32, 64, (float) object.getEquatorialRadius());  // 32 segments, radius 1
+        Sphere sphereMesh = new Sphere(32, 64, (float) object.getAverageRadius());  // 32 segments, radius 1
         Geometry sphere = new Geometry(name, sphereMesh);
 
         // Create an unshaded material for the sphere
@@ -568,38 +364,13 @@ public class ObjectModel {
         return sphere;
     }
 
-    /**
-     * Notify this model that its owner model may have some internal change
-     */
-    public void notifyObjectChanged() {
-        // set the visual rotation axis
-        double[] axisD = object.getRotationAxis();
-        rotationAxis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
+    protected abstract void updateModelScale(double scale);
 
-        tiltRotation = new Quaternion();
-        tiltRotation.lookAt(rotationAxis, Vector3f.UNIT_Z);
-
-        rotatingNode.setLocalRotation(tiltRotation);
-        
-        updateLightSource();
-    }
+    protected abstract void updateRelatedPosAndScale(double scale, Vector3f xyz);
 
     public void updateModelPosition(double scale) {
-        double baseScale = object.getEquatorialRadius() / initialRadius;
-//        if (object.getEquatorialRadius() != initialRadius) {
-//            updateSphereMesh();
-//        }
-
-        double radiusScale = scale * baseScale;
-        if (object.getEquatorialRadius() * scale < 0.1) {
-            radiusScale = 0.1 / object.getEquatorialRadius();
-        }
-        double ratio = object.getPolarRadius() / object.getEquatorialRadius();
-        float eqScale = (float) radiusScale;
-        float polarScale = (float) (radiusScale * ratio);
-        rotatingNode.setLocalScale(eqScale, eqScale, polarScale);
-
-        float shift = (float) (scale * object.getEquatorialRadius());
+        updateModelScale(scale);
+        float shift = (float) (scale * object.getMajorRadius());
 
         labelNode.setLocalTranslation(shift, shift, 0f);
 
@@ -612,107 +383,14 @@ public class ObjectModel {
 
         objectNode.setLocalTranslation(xyz);
 
-        if (object.getAngularVelocity() != 0) {
-            rotateModel();
-        }
-        if (renderLight && object.getStatus() instanceof Star star) {
-            if (lightModel == null) {
-                updateLightSource();
-            }
-            lightModel.emissionLight.setPosition(xyz);
-            adjustPointLight(star);
-//            System.out.println(object.getName() + " " + emissionLight.getPosition() + " " + emissionLight.getRadius());
-        }
-        if (object.getStatus() instanceof Comet comet) {
-            updateCometTail(comet);
-        } else {
-            if (cometDustTail != null) {
-                removeCometTails();
-            }
-        }
         if (showHillSphere) {
             adjustHillSphereScale((float) scale);
         }
-        if (showRocheLimit) {
-            adjustRocheLimitScale((float) scale);
-        }
-        if (lightModel != null && lightModel.showHabitableZone) {
-            adjustHabitableZoneScale((float) scale);
-        }
+        updateRelatedPosAndScale(scale, xyz);
 //        System.out.println(object.getName() + " " + xyz);
     }
 
-    // Method to calculate the position on the ellipsoid at a given latitude, longitude, and altitude
-    public Vector3d calculateSurfacePosition(double latitude, double longitude, double altitude) {
-        // Convert latitude and longitude to radians
-        double lat = Math.toRadians(latitude);
-        double lon = Math.toRadians(longitude);
-
-        double equatorialRadius = object.getEquatorialRadius();
-        double polarRadius = object.getPolarRadius();
-
-        // Calculate the surface position on the ellipsoid
-        double x = equatorialRadius * Math.cos(lat) * Math.cos(lon); // X-axis
-        double z = polarRadius * Math.sin(lat);                          // Y-axis (polar)
-        double y = equatorialRadius * Math.cos(lat) * Math.sin(lon); // Z-axis
-
-        // Create the surface position vector
-        Vector3d surfacePosition = new Vector3d(x, y, z);
-
-//        return surfacePosition;
-
-        // Calculate the surface normal (for altitude adjustment)
-        Vector3d surfaceNormal = new Vector3d(
-                x / (equatorialRadius * equatorialRadius),
-                y / (polarRadius * polarRadius),
-                z / (equatorialRadius * equatorialRadius)
-        ).normalizeLocal();
-
-        // Adjust the position by altitude (move along the normal)
-        return surfacePosition.add(surfaceNormal.mult(altitude));
-    }
-
-    // Method to calculate the surface normal at the given latitude and longitude on an ellipsoid
-    public Vector3f calculateSurfaceNormal(float latitude, float longitude) {
-        float equatorialRadius = (float) (object.getEquatorialRadius());
-        float polarRadius = (float) (object.getPolarRadius());
-
-        // Convert latitude and longitude to radians
-        float lat = FastMath.DEG_TO_RAD * latitude;
-        float lon = FastMath.DEG_TO_RAD * longitude;
-
-        // Calculate the surface normal on the ellipsoid
-        float x = FastMath.cos(lat) * FastMath.cos(lon); // X-axis
-        float y = FastMath.sin(lat);                    // Y-axis (polar)
-        float z = FastMath.cos(lat) * FastMath.sin(lon); // Z-axis
-
-        return new Vector3f(x / (equatorialRadius * equatorialRadius),
-                y / (polarRadius * polarRadius),
-                z / (equatorialRadius * equatorialRadius)).normalizeLocal();
-    }
-
-    private void rotateModel() {
-        // set the visual rotation axis
-        double[] axisD = object.getRotationAxis();
-        Vector3f axis = new Vector3f((float) axisD[0], (float) axisD[1], (float) axisD[2]).normalizeLocal();
-
-        if (!axis.equals(rotationAxis)) {
-            notifyObjectChanged();
-        }
-
-        // Convert the current rotation degrees to radians
-        float currentRotationRad = FastMath.DEG_TO_RAD * (float) object.getRotationAngle();
-
-        // Create a quaternion representing the current rotation around the Earth's axis (Y-axis)
-        Quaternion rotation = new Quaternion();
-        rotation.fromAngleAxis(currentRotationRad, Vector3f.UNIT_Z);
-
-        // Combine the tilt rotation (23.5 degrees) with the current rotation
-        Quaternion combinedRotation = tiltRotation.mult(rotation);
-
-        // Apply the combined rotation to the sphere geometry
-        rotatingNode.setLocalRotation(combinedRotation);
-    }
+    public abstract void notifyObjectChanged();
 
     public void setShowApPe(boolean showApPe) {
         // todo
@@ -779,30 +457,6 @@ public class ObjectModel {
             }
         }
     }
-    
-    public void setShowHabitableZone(boolean show) {
-        if (lightModel != null) {
-            boolean wasShow = lightModel.showHabitableZone;
-            lightModel.showHabitableZone = show;
-            if (wasShow != show) {
-                if (show) {
-                    if (lightModel.habitableZoneOuter == null) {
-                        lightModel.habitableZoneInner = createTransparentSphere("habitableZoneInner " + object.getId(), 
-                                ColorRGBA.Red,
-                                0.1f);
-                        lightModel.habitableZoneOuter = createTransparentSphere("habitableZoneOuter " + object.getId(),
-                                ColorRGBA.Green,
-                                0.1f);
-                    }
-                    objectNode.attachChild(lightModel.habitableZoneInner);
-                    objectNode.attachChild(lightModel.habitableZoneOuter);
-                } else {
-                    objectNode.detachChild(lightModel.habitableZoneInner);
-                    objectNode.detachChild(lightModel.habitableZoneOuter);
-                }
-            }
-        }
-    }
 
     public void setRenderLight(boolean renderLight) {
         boolean wasRenderLight = this.renderLight;
@@ -813,31 +467,13 @@ public class ObjectModel {
         }
     }
 
+    protected abstract void updateLightSource();
+
     private void adjustHillSphereScale(float baseScale) {
         if (hillSphereModel != null && object.getHillMaster() != null) {
-            float ratio = (float) (object.getHillRadius() / object.getEquatorialRadius());
+            float ratio = (float) (object.getHillRadius() / object.getMajorRadius());
             hillSphereModel.setLocalScale(ratio * baseScale);
 //            System.out.println(hillSphereModel.getWorldTranslation() + " " + hillSphereModel.getWorldScale());
-        }
-    }
-
-    private void adjustRocheLimitScale(float baseScale) {
-        if (rocheLimitModel != null) {
-            float ratio = (float) (object.getApproxRocheLimit() / object.getEquatorialRadius());
-//            System.out.println(object.getName() + ratio);
-            rocheLimitModel.setLocalScale(ratio * baseScale);
-        }
-    }
-    
-    private void adjustHabitableZoneScale(float baseScale) {
-        if (lightModel != null && lightModel.habitableZoneOuter != null) {
-            if (object.getStatus() instanceof Star star) {
-                double[] innerOuter = star.estimateHabitableZone();
-                float innerRatio = (float) (innerOuter[0] / object.getEquatorialRadius());
-                float outerRatio = (float) (innerOuter[1] / object.getEquatorialRadius());
-                lightModel.habitableZoneInner.setLocalScale(innerRatio * baseScale);
-                lightModel.habitableZoneOuter.setLocalScale(outerRatio * baseScale);
-            }
         }
     }
 
@@ -954,7 +590,7 @@ public class ObjectModel {
 //            orbitInfoTexts.get("DN").setText("DN\n" + UnitsUtil.shortFmt.format(oe.ascendingNode));
         }
     }
-    
+
     public void showHyperbolicOrbit(
             double[] barycenter,
             OrbitalElements oe,

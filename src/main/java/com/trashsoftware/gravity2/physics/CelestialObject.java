@@ -14,32 +14,23 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.List;
 
-public class CelestialObject implements Comparable<CelestialObject>, AbstractObject {
+public class CelestialObject extends RealObject {
 
     public static final double REF_HEAT_CAPACITY = 14300.0;
     public static final double STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
     public static final double BOLTZMANN_CONSTANT = 1.380649e-23;
     public static final double PROTON_MASS = 1.6726e-27;
     public static final double WATER_MOLE_MASS = 3e-26;
-
-    protected double[] position;
-    protected double[] velocity;
+    
     protected double[] rotationAxis;
     protected double angularVelocity;
-    protected double mass;
     protected double tidalLoveNumber = 0.15;
     protected double dissipationFunction = 100;
-    protected double emissivity = 0.95;
     protected BodyType bodyType;
     protected double equatorialRadius, polarRadius;
-    protected double internalThermalEnergy;
     protected double surfaceThermalEnergy;
-    protected String id;
-    protected String shownName;
 
     protected transient Status status;
-
-    private boolean exist = true;
 
     /**
      * Status
@@ -47,19 +38,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     private double rotationAngle;
     private double lastBreakTime;
     private double timeInsideRocheLimit;  // the time steps of this inside other's roche limit
-    protected double dieTime = -1;
     private int debrisLevel;
-
-    private String colorCode;
+    
     private String lightColorCode;
     private final String texturePath;
-
-    protected transient double[] lastAcceleration;
-    //    protected transient double[] orbitBasic;  // semi-major, eccentricity
-    protected transient CelestialObject maxGravityObject;
-    protected transient CelestialObject gravityMaster;  // the
-    protected transient CelestialObject hillMaster;
-    protected transient double hillRadius;
+    
     protected transient double possibleRocheLimit;
     protected transient double approxRocheLimit;
 //    protected transient double lastLuminosity;
@@ -76,20 +59,13 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
                     String colorCode,
                     String texturePath,
                     double internalAvgTemp) {
-
-        if (position.length != velocity.length) {
-            throw new IllegalArgumentException("You are in what dimensional world?");
-        }
-        lastAcceleration = new double[position.length];
-
-        this.id = id;
+        super(id, mass, position, velocity, colorCode);
+        
         this.bodyType = bodyType;
         this.mass = mass;
         this.equatorialRadius = equatorialRadius;
         this.polarRadius = polarRadius;
-        this.position = position;
-        this.velocity = velocity;
-        this.colorCode = colorCode;
+        
         this.rotationAxis = VectorOperations.normalize(rotationAxis);
         this.angularVelocity = angularVelocity;
         this.internalThermalEnergy = calculateThermalEnergyByTemperature(REF_HEAT_CAPACITY, mass, internalAvgTemp);
@@ -310,10 +286,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        return json;
     }
 
-    public String getId() {
-        return id;
-    }
-
 //    public void setColor(ColorRGBA color) {
 //        this.color = color;
 //
@@ -321,19 +293,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        material.setDiffuseColor(color);
 //        model.setMaterial(material);
 //    }
-
-    public void setShownName(String shownName) {
-        this.shownName = shownName;
-    }
-
-    public String getShownName() {
-        return shownName;
-    }
-
-    public String getNameShowing() {
-        if (shownName != null) return shownName;
-        else return id;
-    }
 
     public void forceSetBasics(double mass, double avgRadius) {
         double internalTemp = getBodyAverageTemperature();
@@ -379,14 +338,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         else if (rotationAngle < 0) rotationAngle += 360;
     }
 
-    public double transitionalKineticEnergy() {
-        return 0.5 * mass * VectorOperations.dotProduct(velocity, velocity);
-    }
-
     public double rotationalKineticEnergy() {
         return 0.5 * momentOfInertiaRot() * angularVelocity * angularVelocity;
     }
-
+    
     public double momentOfInertiaRot() {
         return momentOfInertiaRot(mass, equatorialRadius);
     }
@@ -413,26 +368,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return VectorOperations.magnitude(totalAngularMomentum) / momentOfInertia;
     }
 
-    public double getX() {
-        return position[0];
-    }
-
-    public double getY() {
-        return position[1];
-    }
-
-    public double getZ() {
-        return position[2];
-    }
-
-    public double estimateAlbedo() {
-        int[] colorRGB = GuiUtils.stringToColorIntRGBA255(colorCode);
-
-        double rgbAvg = (colorRGB[0] + colorRGB[1] + colorRGB[2]) / 3.0 / 256;
-//        System.out.println("Albedo of " + colorCode + ": " + rgbAvg);
-        return rgbAvg * 0.6;
-    }
-
     private double thermalSkinMass(double surfaceArea) {
         double thickness = bodyType.thermalSkinDepth;
         return thickness * surfaceArea * bodyType.thermalSkinDensity;
@@ -453,22 +388,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         surfaceThermalEnergy = kelvin * skinMass * bodyType.thermalSkinHeatCapacity;
     }
 
-    private static double fIncident(double luminosity, double distance) {
-        return luminosity / (4 * Math.PI * Math.pow(distance, 2));
-    }
-
-    public double calculateLightReceived(double luminosity, double distance) {
-        double approxLightArea = Math.pow(getAverageRadius(), 2) * Math.PI;
-        return fIncident(luminosity, distance) * approxLightArea;
-    }
-
-    public void receiveLight(double[] sourcePos, double luminosity, double timeStep) {
-        double albedo = estimateAlbedo();
-        double distance = VectorOperations.distance(sourcePos, position);
-        double received = calculateLightReceived(luminosity, distance);
-        double absorbed = (1 - albedo) * received;
-        // the above are all in 1 unit time
-
+    @Override
+    protected void absorbThermalEnergy(double absorbed, double timeStep) {
         surfaceThermalEnergy += absorbed * timeStep;
     }
 
@@ -507,13 +428,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return totalMlr / iteration;
     }
 
-    /**
-     * The following two emission does not relate to nuclear reaction
-     */
-    private double thermalEmission(double currentSurfaceTemp, double surfaceArea) {
-        return emissivity * STEFAN_BOLTZMANN_CONSTANT * Math.pow(currentSurfaceTemp, 4) * surfaceArea;
-    }
-
     public double getThermalEmission() {
         double surfaceArea = getSurfaceArea();
         return thermalEmission(getSurfaceTemperature(surfaceArea), surfaceArea);
@@ -523,13 +437,10 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return status;
     }
 
+    @Override
     public double getLuminosity() {
         if (status instanceof Star star) return star.getLuminosity();
         return 0;
-    }
-
-    public boolean isEmittingLight() {
-        return getLuminosity() > 0;
     }
 
     protected void updateStatus(boolean updateStars) {
@@ -580,38 +491,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return bodyType;
     }
 
-    /**
-     * @return the star-system level of this, 0 is the most relative star. If no star, the most central is 1
-     */
-    public int getLevelFromStar() {
-        if (isEmittingLight()) return 0;
-
-        if (hillMaster == null) {
-            return 1;
-        } else {
-            return hillMaster.getLevelFromStar() + 1;
-        }
-    }
-
-    @Override
-    public double[] getVelocity() {
-        return velocity;
-    }
-
-    @Override
-    public double[] getPosition() {
-        return position;
-    }
-
-    public double[] getLastRecordedAcceleration() {
-        return lastAcceleration;
-    }
-
-    public double accelerationAlongMovingDirection() {
-        double dot = VectorOperations.dotProduct(lastAcceleration, velocity);
-        return dot / VectorOperations.magnitude(velocity);
-    }
-
     public double getRotationPeriod() {
         return 2 * Math.PI / angularVelocity;
     }
@@ -636,40 +515,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return Math.toDegrees(angleRadians);
     }
 
-    public double getSpeed() {
-        return VectorOperations.magnitude(velocity);
-    }
-
-    protected void setVelocityOverride(double[] velocity) {
-        this.velocity = velocity;
-    }
-
-    public void setVelocity(double[] velocity) {
-        System.arraycopy(velocity, 0, this.velocity, 0, velocity.length);
-    }
-
-    public void setVelocity(Vector3d velocity) {
-        if (this.velocity.length != 3) {
-            throw new IllegalArgumentException("setVelocity(Vector3d) only works for 3d simulation");
-        }
-        this.velocity[0] = velocity.x;
-        this.velocity[1] = velocity.y;
-        this.velocity[2] = velocity.z;
-    }
-
-    protected void setPositionOverride(double[] position) {
-        this.position = position;
-    }
-
-    public void setPosition(double[] position) {
-        System.arraycopy(position, 0, this.position, 0, position.length);
-    }
-
-    @Override
-    public double getMass() {
-        return mass;
-    }
-
     public double getAverageRadius() {
         return (2 * equatorialRadius + polarRadius) / 3;
     }
@@ -680,6 +525,11 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 
     public double getPolarRadius() {
         return polarRadius;
+    }
+
+    @Override
+    public double getMajorRadius() {
+        return getEquatorialRadius();
     }
 
     public void setRadius(double equatorialRadius, double polarRadius) {
@@ -962,10 +812,6 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
 //        System.out.println("Energy difference: " + difference);
         this.internalThermalEnergy += difference;
     }
-
-    public boolean isExist() {
-        return exist;
-    }
     
     public static double volumeOf(double equatorialRadius, double polarRadius) {
         return 4.0 / 3.0 * Math.PI * equatorialRadius * equatorialRadius * polarRadius;
@@ -997,62 +843,8 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return (eqr - getPolarRadius()) / eqr;
     }
 
-    public double getInternalThermalEnergy() {
-        return internalThermalEnergy;
-    }
-
-    public double getBodyAverageTemperature() {
-        return internalThermalEnergy / mass / REF_HEAT_CAPACITY;
-    }
-
-    public static double calculateThermalEnergyByTemperature(double c, double mass, double k) {
-        return c * mass * k;
-    }
-
-    public void destroy(double dieTime) {
-        this.exist = false;
-        this.dieTime = dieTime;
-//        model.setVisible(false);
-        // let them be garbage collected
-//        model = null;
-//        scale = null;
-    }
-
-    public double getDieTime() {
-        return dieTime;
-    }
-
     public String getTexturePath() {
         return texturePath;
-    }
-
-    public CelestialObject getMaxGravityObject() {
-        return maxGravityObject;
-    }
-
-    public CelestialObject getGravityMaster() {
-        return gravityMaster;
-    }
-
-    public CelestialObject getHillMaster() {
-        return hillMaster;
-    }
-
-    public void setHillMaster(CelestialObject hillMaster) {
-        this.hillMaster = hillMaster;
-    }
-
-    public void setMaxGravityObject(CelestialObject maxGravityObject) {
-        this.maxGravityObject = maxGravityObject;
-    }
-
-    @Override
-    public CelestialObject getMaster() {
-        return hillMaster;
-    }
-
-    public double getHillRadius() {
-        return hillRadius;
     }
 
     public double getApproxRocheLimit() {
@@ -1060,15 +852,13 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
     }
 
     @Override
-    public int compareTo(CelestialObject o) {
-        int massCmp = Double.compare(this.mass, o.mass);
-        if (massCmp != 0) return massCmp;
-        return this.id.compareTo(o.id);
+    public String toString() {
+        return "CelestialObject{" + id + "}";
     }
 
     @Override
-    public String toString() {
-        return "CelestialObject{" + id + "}";
+    public double proximityWarningDistance() {
+        return possibleRocheLimit;
     }
 
     public static double radiusOf(double mass, double density) {
@@ -1140,8 +930,4 @@ public class CelestialObject implements Comparable<CelestialObject>, AbstractObj
         return super.hashCode();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj;
-    }
 }

@@ -11,24 +11,25 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.utils.OrbitPlane;
 
 public class SpawningObject {
-    
+
     protected JmeApp jmeApp;
     protected ObjectModel model;
     protected CelestialObject object;
     protected double orbitSpeed;
-    
-    protected CelestialObject spawnRelative;
+
+    protected RealObject spawnRelative;
     protected OrbitPlane orbitPlane;
     protected double axisTilt;
     private double[] planeNormal = new double[]{0, 0, 1};
-    
+
     protected TextLine primaryLine;
     protected TextLine secondaryLine;
-    
-    SpawningObject(JmeApp jmeApp, ObjectModel model, double orbitSpeed, 
+
+    SpawningObject(JmeApp jmeApp, SolidModel model, double orbitSpeed,
                    OrbitPlane orbitPlane, double axisTilt) {
         this.jmeApp = jmeApp;
         this.model = model;
@@ -40,12 +41,16 @@ public class SpawningObject {
         primaryLine = new TextLine(ColorRGBA.Yellow);
         secondaryLine = new TextLine(ColorRGBA.DarkGray);
     }
-    
-    public void updatePlane(CelestialObject reference) {
-        switch (orbitPlane) {
-            case XY -> this.planeNormal = new double[]{0, 0, 1};
-            case EQUATORIAL -> this.planeNormal = reference.getRotationAxis();
-            case ECLIPTIC -> this.planeNormal = reference.getEclipticPlaneNormal();
+
+    public void updatePlane(RealObject reference) {
+        if (reference instanceof CelestialObject coRef) {
+            switch (orbitPlane) {
+                case XY -> this.planeNormal = new double[]{0, 0, 1};
+                case EQUATORIAL -> this.planeNormal = coRef.getRotationAxis();
+                case ECLIPTIC -> this.planeNormal = coRef.getEclipticPlaneNormal();
+            }
+        } else {
+            this.planeNormal = new double[]{0, 0, 1};
         }
     }
 
@@ -53,22 +58,22 @@ public class SpawningObject {
         return planeNormal;
     }
 
-    public CelestialObject getSpawnRelative() {
+    public RealObject getSpawnRelative() {
         if (spawnRelative != null) {
             return spawnRelative;
         } else {
             return object.getHillMaster();
         }
     }
-    
+
     public class TextLine extends Node {
-        
+
         protected Geometry geometry;
         protected Material material;
         protected Mesh mesh;
         protected BitmapText labelText;
         protected Node labelNode;
-        
+
         TextLine(ColorRGBA color) {
             super("TextLine");
 
@@ -92,29 +97,29 @@ public class SpawningObject {
             BillboardControl billboardControl = new BillboardControl();
             labelNode.addControl(billboardControl);
             labelNode.setLocalScale(0.1f);
-            
+
             attachChild(geometry);
             attachChild(labelNode);
         }
-        
+
         void show(Vector3f start, Vector3f end, String text) {
             if (mesh == null) {
                 mesh = new Mesh();
             }
             geometry.setMesh(mesh);
-            
+
             Vector3f[] vertices = new Vector3f[]{start, end};
             // Set the vertices in the mesh
             mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
             mesh.setMode(Mesh.Mode.Lines); // Render as lines
             mesh.updateBound();
             mesh.updateCounts();
-            
+
             Vector3f midPoint = start.add(end).mult(0.5f);
             labelText.setText(text);
             labelText.setLocalTranslation(midPoint.x - labelText.getLineWidth() / 2, midPoint.y, midPoint.z);
         }
-        
+
         void hide() {
             geometry.setMesh(ObjectModel.blank);
         }

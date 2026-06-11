@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 public class HieraticalSystem implements AbstractObject {
-    public final CelestialObject master;
+    public final RealObject master;
     private double[] barycenter;
     private double[] barycenterV;
     private double systemMass;
@@ -21,7 +21,7 @@ public class HieraticalSystem implements AbstractObject {
     transient boolean visited;
     transient SystemStats curStats;
 
-    HieraticalSystem(CelestialObject master) {
+    HieraticalSystem(RealObject master) {
         this.master = master;
     }
 
@@ -80,7 +80,7 @@ public class HieraticalSystem implements AbstractObject {
         return children == null || children.isEmpty();  // children shouldn't be empty if update correctly
     }
 
-    void sortByDistance(List<CelestialObject> hsList) {
+    void sortByDistance(List<RealObject> hsList) {
         hsList.add(master);
         if (children != null) {
             List<HieraticalSystem> dtOrder = new ArrayList<>(children);

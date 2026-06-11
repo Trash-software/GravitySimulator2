@@ -502,17 +502,22 @@ public class SystemPresets {
 
     static void setTemperatureToSystem(Simulator simulator) {
         List<Star> sources = new ArrayList<>();
-        for (CelestialObject co : simulator.getObjects()) {
+        for (RealObject ro : simulator.getObjects()) {
 //            if (co.isEmittingLight()) sources.add(co);
-            if (co.getStatus() instanceof Star star) {
+            if (ro instanceof CelestialObject co && co.getStatus() instanceof Star star) {
                 sources.add(star);
             }
         }
         if (sources.isEmpty()) return;
-        for (CelestialObject co : simulator.getObjects()) {
-            if (!(co.getStatus() instanceof Star)) {
-                double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
-                co.forceSetSurfaceTemperature(temp);
+        for (RealObject ro : simulator.getObjects()) {
+            if (ro instanceof DustObject duo) {
+                // todo: 
+            } else {
+                CelestialObject co = (CelestialObject) ro;
+                if (!(co.getStatus() instanceof Star)) {
+                    double temp = CelestialObject.approxSurfaceTemperatureOf(co, sources);
+                    co.forceSetSurfaceTemperature(temp);
+                }
             }
         }
     }

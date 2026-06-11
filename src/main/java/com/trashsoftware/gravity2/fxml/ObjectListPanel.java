@@ -4,6 +4,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.presets.Preset;
 import com.trashsoftware.gravity2.presets.SystemPresets;
@@ -216,19 +217,19 @@ public class ObjectListPanel extends AbstractObjectPanel {
         totalInternalText.setText(uc.energy(internal));
         totalEnergyText.setText(uc.energy(potential + kinetic + internal));
 
-        List<CelestialObject> objects = simulator.getObjects();
+        List<RealObject> objects = simulator.getObjects();
         nObjectsText.setText(String.format("%,d", objects.size()));
         totalMassText.setText(uc.mass(objects
                 .stream()
-                .map(CelestialObject::getMass)
+                .map(RealObject::getMass)
                 .reduce(0.0, Double::sum)
         ));
     }
 
-    public void reloadInfoPane(Simulator simulator, List<CelestialObject> loadObjects) {
+    public void reloadInfoPane(Simulator simulator, List<RealObject> loadObjects) {
         long t0 = System.currentTimeMillis();
 
-        Map<CelestialObject, ObjectStatsWrapper> infoMap = new HashMap<>();
+        Map<RealObject, ObjectStatsWrapper> infoMap = new HashMap<>();
         for (Node node : celestialListPane.getChildren()) {
             if (node instanceof ObjectStatsWrapper objectStatsWrapper) {
                 infoMap.put(objectStatsWrapper.object, objectStatsWrapper);
@@ -238,12 +239,12 @@ public class ObjectListPanel extends AbstractObjectPanel {
         celestialListPane.getChildren().clear();
 
         Sorting sorting = sortBox.getSelectionModel().getSelectedItem();
-        List<CelestialObject> objectList;
+        List<RealObject> objectList;
         switch (sorting) {
             default -> objectList = loadObjects;
             case MASS -> {
                 objectList = new ArrayList<>(loadObjects);
-                objectList.sort(Comparator.comparingDouble(CelestialObject::getMass));
+                objectList.sort(Comparator.comparingDouble(RealObject::getMass));
                 Collections.reverse(objectList);
             }
             case HIERATICAL -> objectList = simulator.getObjectsSortByHieraticalDistance();
@@ -256,7 +257,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
             }
         }
 
-        for (CelestialObject object : objectList) {
+        for (RealObject object : objectList) {
             ObjectStatsWrapper oi = infoMap.computeIfAbsent(object,
                     o -> new ObjectStatsWrapper(
                             object,
@@ -404,7 +405,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
         return speed;
     }
 
-    public void scrollTo(CelestialObject co) {
+    public void scrollTo(RealObject co) {
         Node root = celestialContainer.getContent();
         if (root == celestialListPane) {
             Node target = null;

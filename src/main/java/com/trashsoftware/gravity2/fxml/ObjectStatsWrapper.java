@@ -8,7 +8,6 @@ import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -28,7 +27,7 @@ public class ObjectStatsWrapper extends HBox {
     @FXML
     Label nameLabel, typeLabel, massLabel, diameterLabel, speedLabel, densityLabel;
     @FXML
-    GridPane starPane, planetPane;
+    GridPane starPane, planetPane, dustPane;
     @FXML
     GridPane detailPane;
 
@@ -45,7 +44,7 @@ public class ObjectStatsWrapper extends HBox {
     Label colorTempLabel, luminosityLabel;
     Label surfaceTempDayLabel, surfaceTempNightLabel, surfaceTempAvgLabel,
             powerReceivedLabel, powerEmittedLabel, albedoLabel;
-    
+
     Label binaryPairPrompt, binaryPairLabel;
 
     @FXML
@@ -54,15 +53,16 @@ public class ObjectStatsWrapper extends HBox {
     private Runnable onFocus, onCollapse;
     private Consumer<ObjectStatsWrapper> onExpand;
     private Consumer<CelestialObject> onLand;
-    CelestialObject object;
+    RealObject object;
     OrbitalElements orbitalElements;
 
     private final ResourceBundle strings;
     boolean hasExpanded = false;
     boolean hasStarPaneExpanded = false;
     boolean hasPlanetPaneExpanded = false;
+    boolean hasDustPaneExpanded = false;
 
-    public ObjectStatsWrapper(CelestialObject celestialObject,
+    public ObjectStatsWrapper(RealObject celestialObject,
                               Simulator simulator,
                               UnitsConverter defaultUnit,
                               Runnable onFocus,
@@ -96,7 +96,7 @@ public class ObjectStatsWrapper extends HBox {
 
     @FXML
     public void landAction() {
-        onLand.accept(object);
+        if (object instanceof CelestialObject co) onLand.accept(co);
     }
 
     @FXML
@@ -104,7 +104,7 @@ public class ObjectStatsWrapper extends HBox {
 
     }
 
-    private void setObject(CelestialObject celestialObject,
+    private void setObject(RealObject celestialObject,
                            Simulator simulator,
                            UnitsConverter defaultUnit,
                            Runnable onFocus,
@@ -156,13 +156,6 @@ public class ObjectStatsWrapper extends HBox {
         planetPane.add(new Separator(), 0, rowIndex, 4, 1);
         rowIndex++;
 
-//        planetPane.add(new Label(strings.getString("surfaceTempDay")), 0, rowIndex);
-//        surfaceTempDayLabel = new Label();
-//        planetPane.add(surfaceTempDayLabel, 1, rowIndex);
-//
-//        planetPane.add(new Label(strings.getString("surfaceTempNight")), 2, rowIndex);
-//        surfaceTempNightLabel = new Label();
-//        planetPane.add(surfaceTempNightLabel, 3, rowIndex);
         planetPane.add(new Label(strings.getString("albedo")), 0, rowIndex);
         albedoLabel = new Label();
         planetPane.add(albedoLabel, 1, rowIndex);
@@ -182,6 +175,10 @@ public class ObjectStatsWrapper extends HBox {
         planetPane.add(new Label(strings.getString("powerEmitted")), 2, rowIndex);
         powerEmittedLabel = new Label();
         planetPane.add(powerEmittedLabel, 3, rowIndex);
+    }
+
+    private void initDustPane() {
+
     }
 
     private void initDetailPane() {
@@ -340,30 +337,34 @@ public class ObjectStatsWrapper extends HBox {
         speedLabel.setText(uc.speed(object.getSpeed()));
 
         if (detailPane.isVisible()) {
-            selfDetail(simulator, uc);
+            if (object instanceof CelestialObject co) {
+                selfDetailSolidObject(co, simulator, uc);
+            } else if (object instanceof DustObject duo) {
+
+            }
             orbitRelated(simulator, uc);
         }
     }
 
-    private void selfDetail(Simulator simulator, UnitsConverter uc) {
-        eqRadiusLabel.setText(uc.radius(object.getEquatorialRadius()));
-        polarRadiusLabel.setText(uc.radius(object.getPolarRadius()));
+    private void selfDetailSolidObject(CelestialObject co, Simulator simulator, UnitsConverter uc) {
+        eqRadiusLabel.setText(uc.radius(co.getEquatorialRadius()));
+        polarRadiusLabel.setText(uc.radius(co.getPolarRadius()));
 
         transKineticLabel.setText(uc.energy(object.transitionalKineticEnergy()));
-        rotKineticLabel.setText(uc.energy(object.rotationalKineticEnergy()));
-        bindingEnergyLabel.setText(uc.energy(simulator.gravitationalBindingEnergyOf(object)));
+        rotKineticLabel.setText(uc.energy(co.rotationalKineticEnergy()));
+        bindingEnergyLabel.setText(uc.energy(simulator.gravitationalBindingEnergyOf(co)));
         thermalEnergyLabel.setText(uc.energy(object.getInternalThermalEnergy()));
-        avgTempLabel.setText(uc.temperature(object.getBodyAverageTemperature()));
+        avgTempLabel.setText(uc.temperature(co.getBodyAverageTemperature()));
 
-        rocheLimitSolidLabel.setText(uc.distance(Simulator.computeRocheLimitSolid(object)));
-        rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(object)));
+        rocheLimitSolidLabel.setText(uc.distance(Simulator.computeRocheLimitSolid(co)));
+        rocheLimitLiquidLabel.setText(uc.distance(Simulator.computeRocheLimitLiquid(co)));
         accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
-        rotationPeriodLabel.setText(uc.time(object.getRotationPeriod()));
+        rotationPeriodLabel.setText(uc.time(co.getRotationPeriod()));
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
-        
-        if (object.getStatus() instanceof Star star) {
+
+        if (co.getStatus() instanceof Star star) {
             if (!hasStarPaneExpanded) {
                 initStarPane();
                 hasStarPaneExpanded = true;
@@ -384,9 +385,23 @@ public class ObjectStatsWrapper extends HBox {
             starPane.setManaged(false);
             planetPane.setVisible(true);
             planetPane.setManaged(true);
-            planetRelated(simulator, uc);
+            planetRelated(simulator, co, uc);
         }
+
     }
+
+    private void selfDetailDustObject(DustObject duo, Simulator simulator, UnitsConverter uc) {
+        if (!hasDustPaneExpanded) {
+            initDustPane();
+            hasDustPaneExpanded = true;
+        }
+
+        starPane.setVisible(false);
+        starPane.setManaged(false);
+        planetPane.setVisible(false);
+        planetPane.setManaged(false);
+    }
+
 
     private void starRelated(Simulator simulator, Star star, UnitsConverter uc) {
         double luminosity = star.getLuminosity();
@@ -396,38 +411,38 @@ public class ObjectStatsWrapper extends HBox {
         colorTempLabel.setText(String.format("%.0fK", colorTemp));
     }
 
-    private void planetRelated(Simulator simulator, UnitsConverter uc) {
+    private void planetRelated(Simulator simulator, CelestialObject co, UnitsConverter uc) {
         double albedo = object.estimateAlbedo();
         double received = 0.0;
-        for (CelestialObject co : simulator.getObjects()) {
-            double luminosity = co.getLuminosity();
-            if (luminosity > 0 && co != object) {  // shouldn't be this, but just for safety
+        for (RealObject ro : simulator.getObjects()) {
+            double luminosity = ro.getLuminosity();
+            if (luminosity > 0 && ro != object) {  // shouldn't be this, but just for safety
                 // is a light source
-                double distance = VectorOperations.distance(co.getPosition(), object.getPosition());
+                double distance = VectorOperations.distance(ro.getPosition(), object.getPosition());
                 received += object.calculateLightReceived(luminosity, distance);
             }
         }
 
-        double emitted = object.getThermalEmission();
+        double emitted = co.getThermalEmission();
 
         albedoLabel.setText(uc.generalNumber(albedo * 100) + "%");
         powerReceivedLabel.setText(UnitsUtil.sciFmt.format(received) + "W");
         powerEmittedLabel.setText(UnitsUtil.sciFmt.format(emitted) + "W");
-        surfaceTempAvgLabel.setText(uc.temperature(object.getSurfaceTemperature()));
+        surfaceTempAvgLabel.setText(uc.temperature(co.getSurfaceTemperature()));
     }
-    
-    private boolean isBinaryRelation(CelestialObject primary, AbstractObject secondary) {
+
+    private boolean isBinaryRelation(RealObject primary, AbstractObject secondary) {
         double[] barycenter = Simulator.barycenterOf(primary.getPosition().length, primary, secondary);
         double dt = VectorOperations.distance(primary.getPosition(), barycenter);
         // whether is outside primary body
         return dt > primary.getAverageRadius();
     }
 
-    private CelestialObject getBinaryStar(HieraticalSystem selfSystem, CelestialObject hillMaster) {
-        if (hillMaster != null && hillMaster.isEmittingLight()) {
+    private CelestialObject getBinaryStar(HieraticalSystem selfSystem, RealObject hillMaster) {
+        if (hillMaster instanceof CelestialObject && hillMaster.isEmittingLight()) {
             // a planet cannot be binary star with its planet
             if (isBinaryRelation(hillMaster, selfSystem)) {
-                return hillMaster;
+                return (CelestialObject) hillMaster;
             }
         }
 
@@ -435,35 +450,35 @@ public class ObjectStatsWrapper extends HBox {
         if (!sortedChildren.isEmpty()) {
             HieraticalSystem firstChild = sortedChildren.get(0);
             if (firstChild.master.isEmittingLight() && isBinaryRelation(object, firstChild)) {
-                return firstChild.master;
+                return (CelestialObject) firstChild.master;
             }
         }
 
         return null;
     }
-    
-    private CelestialObject getBinaryPlanet(HieraticalSystem selfSystem, CelestialObject hillMaster) {
-        if (hillMaster != null && !hillMaster.isEmittingLight()) {
+
+    private CelestialObject getBinaryPlanet(HieraticalSystem selfSystem, RealObject hillMaster) {
+        if (hillMaster instanceof CelestialObject && !hillMaster.isEmittingLight()) {
             // a planet cannot be binary star with its planet
             if (isBinaryRelation(hillMaster, selfSystem)) {
-                return hillMaster;
+                return (CelestialObject) hillMaster;
             }
         }
 
         List<HieraticalSystem> sortedChildren = selfSystem.getChildrenSorted();
         if (!sortedChildren.isEmpty()) {
             HieraticalSystem firstChild = sortedChildren.get(0);
-            if (isBinaryRelation(object, firstChild)) {
-                return firstChild.master;
+            if (firstChild.master instanceof CelestialObject co && isBinaryRelation(object, firstChild)) {
+                return co;
             }
         }
-        
+
         return null;
     }
 
     private void orbitRelated(Simulator simulator, UnitsConverter uc) {
         if (!simulator.isEnableMasterCalculation()) return;
-        CelestialObject parent = object.getHillMaster();
+        RealObject parent = object.getHillMaster();
         HieraticalSystem system = simulator.getHieraticalSystem(object);
 //        childrenCountLabel.setText(String.valueOf(system.nChildren()));
         int level = object.getLevelFromStar();
@@ -521,29 +536,14 @@ public class ObjectStatsWrapper extends HBox {
 
             double[] orbitPlaneNormal = system.getEclipticPlaneNormal();
 
-            double axisTiltToOrbit = Math.acos(VectorOperations.dotProduct(
-                    object.getRotationAxis(),
-                    orbitPlaneNormal
-            ));
-            rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
+            if (object instanceof CelestialObject co) {
+                double axisTiltToOrbit = Math.acos(VectorOperations.dotProduct(
+                        co.getRotationAxis(),
+                        orbitPlaneNormal
+                ));
+                rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(Math.toDegrees(axisTiltToOrbit)));
+            }
 
-//            double[] barycenter = OrbitCalculator.calculateBarycenter(system, parent);
-//            double[] velocity = VectorOperations.subtract(system.getVelocity(), parent.getVelocity());
-//            double[] position = VectorOperations.subtract(system.getPosition(), parent.getPosition());
-//
-//            if (level >= 2) {
-//                // moons
-//                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
-//                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
-//                position = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(position, parent.getRotationAxis());
-//                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
-//                velocity = SystemPresets.rotateFromPlanetEclipticPlaneToEquatorialPlane(velocity, parent.getRotationAxis());
-//            } else {
-//                // planets
-//                double[] parentEclipticNormal = parentSystem.getEclipticPlaneNormal();
-//                position = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(position, parentEclipticNormal);
-//                velocity = SystemPresets.rotateFromXYPlaneToPlanetEclipticPlane(velocity, parentEclipticNormal);
-//            }
             // todo: inclination, etc. relative to parent
             FullOrbitSpec fos = simulator.computeOrbitOf(object, parent, true);
             orbitalElements = fos.elements;
@@ -596,7 +596,9 @@ public class ObjectStatsWrapper extends HBox {
             inclinationLabel.setText("--");
             ascendingNodeLabel.setText("--");
             hillRadiusLabel.setText("--");
-            rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(object.getAxisTiltAngle()));
+            if (object instanceof CelestialObject co) {
+                rotationAxisTiltLabel.setText(uc.angleDegreeDecimal(co.getAxisTiltAngle()));
+            }
         }
     }
 
@@ -611,36 +613,42 @@ public class ObjectStatsWrapper extends HBox {
     }
 
     private String objectType() {
-        BodyType bodyType = object.getBodyType();
-        if (bodyType == BodyType.STAR) {
-            if (object.getStatus() instanceof Star star) {
-                return starType(star.getEmissionColorTemperature());
-            } else {
-                return "";  // should not happen
-            }
-        } else if (bodyType == BodyType.BROWN_DWARF) {
-            return strings.getString("brownDwarf");
-        } else if (bodyType == BodyType.GAS_GIANT) {
-            return strings.getString("gasGiant");
-        } else if (bodyType == BodyType.ICE_GIANT) {
-            return strings.getString("iceGiant");
-        } else {
-            if (object.getStatus() instanceof Comet) {
-                return strings.getString("comet");
-            } else {
-                int level = object.getLevelFromStar();
-                if (level == 0) {
-                    return "";  // should not happen
-                } else if (level == 1) {
-                    if (object.getMass() > SystemPresets.MOON_MASS) {
-                        return strings.getString("terrestrialPlanet");
-                    } else {
-                        return strings.getString("smallPlanet");
-                    }
+        if (object instanceof CelestialObject co) {
+            BodyType bodyType = co.getBodyType();
+            if (bodyType == BodyType.STAR) {
+                if (co.getStatus() instanceof Star star) {
+                    return starType(star.getEmissionColorTemperature());
                 } else {
-                    return strings.getString("levelMoon");
+                    return "";  // should not happen
+                }
+            } else if (bodyType == BodyType.BROWN_DWARF) {
+                return strings.getString("brownDwarf");
+            } else if (bodyType == BodyType.GAS_GIANT) {
+                return strings.getString("gasGiant");
+            } else if (bodyType == BodyType.ICE_GIANT) {
+                return strings.getString("iceGiant");
+            } else {
+                if (co.getStatus() instanceof Comet) {
+                    return strings.getString("comet");
+                } else {
+                    int level = object.getLevelFromStar();
+                    if (level == 0) {
+                        return "";  // should not happen
+                    } else if (level == 1) {
+                        if (object.getMass() > SystemPresets.MOON_MASS) {
+                            return strings.getString("terrestrialPlanet");
+                        } else {
+                            return strings.getString("smallPlanet");
+                        }
+                    } else {
+                        return strings.getString("levelMoon");
+                    }
                 }
             }
+        } else if (object instanceof DustObject duo) {
+            return strings.getString("nebula");
+        } else {
+            return "";  // should not happen
         }
     }
 

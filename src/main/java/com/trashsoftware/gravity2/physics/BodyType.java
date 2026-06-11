@@ -10,6 +10,8 @@ public enum BodyType {
     GAS_GIANT(14300, 1e4, 0.16, true),
     BROWN_DWARF(3e8, 1e5, 1e-6, true),
     STAR(3e8, 1e6, 1e-7, true);
+    
+    public static final double DUST_THERMAL_CAPACITY = 14300;
 
     public final double thermalSkinHeatCapacity;
     public final double thermalSkinDepth;

@@ -6,6 +6,7 @@ import com.trashsoftware.gravity2.fxml.units.OriginalUnitsConverter;
 import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -78,7 +79,7 @@ public class FxApp extends Application {
         // the reload info pane in running, but the jme ui has triggered new simulation steps
         // which modifies the simulators object list
         // causing concurrent modification exception
-        List<CelestialObject> objectsCopy = new ArrayList<>(simulator.getObjects());
+        List<RealObject> objectsCopy = new ArrayList<>(simulator.getObjects());
         System.out.println("Reload triggered!");
         Platform.runLater(() -> {
             if (objectListPanel != null) {

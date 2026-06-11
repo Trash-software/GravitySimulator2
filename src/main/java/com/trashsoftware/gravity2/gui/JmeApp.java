@@ -70,8 +70,8 @@ public class JmeApp extends SimpleApplication {
     private Vector3f worldUp = Vector3f.UNIT_Z;
 
     //    private final Map<CelestialObject, Geometry> lineGeometries = new HashMap<>();
-    private final Map<CelestialObject, ObjectModel> modelMap = new HashMap<>();
-    private final Map<CelestialObject, ObjectModel> diedObjects = new HashMap<>();
+    private final Map<RealObject, ObjectModel> modelMap = new HashMap<>();
+    private final Map<RealObject, ObjectModel> diedObjects = new HashMap<>();
     //    private List<Geometry> tempGeom = new ArrayList<>();
 //    private Node rootLabelNode = new Node("RootLabelNode");
     private Node axisMarkNode;
@@ -86,7 +86,7 @@ public class JmeApp extends SimpleApplication {
     private boolean renderLight = true;
     private boolean eclipticOrbitOnly;
     private double minimumMassShowing;
-    private CelestialObject focusing;
+    private RealObject focusing;
     private FirstPersonMoving firstPersonStar;
     private final FxApp fxApp;
     //    private final Set<Spatial> eachFrameErase = new HashSet<>();
@@ -206,7 +206,7 @@ public class JmeApp extends SimpleApplication {
     private void updateAmbientLight() {
         boolean hasLight = false;
         if (renderLight) {
-            for (CelestialObject co : simulator.getObjects()) {
+            for (RealObject co : simulator.getObjects()) {
                 if (co.isEmittingLight()) {
                     hasLight = true;
                     break;
@@ -353,6 +353,7 @@ public class JmeApp extends SimpleApplication {
 //        saturnRingTest();
 //        rocheEffectTest();
 //        test.toyStarSystemTest();
+        test.toyStarSystemWithGas();
 //        test.harmonicSystemTest();
 //        test.cuteStarSystemWithRaw();
 //        test.cuteStarGasGiantSystem();
@@ -370,7 +371,7 @@ public class JmeApp extends SimpleApplication {
 //        subStarTest();
 //        test.infantStarSystemTest();
 //        chaosSolarSystemTest();
-        test.twoChaosSolarSystemTest();
+//        test.twoChaosSolarSystemTest();
 //        test.twoChaosSystemTest();
 //        jupiterHarmonicTest();
 //        test.threeBodyTest();
@@ -396,8 +397,10 @@ public class JmeApp extends SimpleApplication {
         om.setShowApPe(false);
 
         // left its paths continues alive
-        if (om.lightModel != null) {
-            om.removeEmissionLight();
+        if (om instanceof SolidModel sm) {
+            if (sm.lightModel != null) {
+                sm.removeEmissionLight();
+            }
         }
     }
 
@@ -408,8 +411,8 @@ public class JmeApp extends SimpleApplication {
     }
 
     void reloadObjects() {
-        List<CelestialObject> objects = simulator.getObjects();
-        Set<CelestialObject> objectSet = new HashSet<>(objects);
+        List<RealObject> objects = simulator.getObjects();
+        Set<RealObject> objectSet = new HashSet<>(objects);
 
         // garbage collect for those destroyed things
         for (var iterator = modelMap.entrySet().iterator(); iterator.hasNext(); ) {
@@ -425,10 +428,10 @@ public class JmeApp extends SimpleApplication {
             }
         }
 
-        for (CelestialObject object : objects) {
+        for (RealObject object : objects) {
             ObjectModel om = modelMap.get(object);
             if (om == null) {
-                om = new ObjectModel(object, this);
+                om = ObjectModel.create(object, this);
                 System.out.println("Creating model for " + object.getId());
                 modelMap.put(object, om);
                 rootNode.attachChild(om.objectNode);
@@ -455,7 +458,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     void updateModelPositions() {
-        for (CelestialObject object : simulator.getObjects()) {
+        for (RealObject object : simulator.getObjects()) {
             ObjectModel objectModel = modelMap.get(object);
             if (objectModel == null) throw new RuntimeException(object.getId());
             objectModel.updateModelPosition(
@@ -466,18 +469,22 @@ public class JmeApp extends SimpleApplication {
 
     private double get1stPersonDefaultScale() {
         double totalRadius = 0;
-        for (CelestialObject co : simulator.getObjects()) {
-            totalRadius += co.getEquatorialRadius();
+        int coCount = 0;
+        for (RealObject ro : simulator.getObjects()) {
+            if (ro instanceof CelestialObject co) {
+                totalRadius += co.getEquatorialRadius();
+                coCount++;
+            }
         }
-        double avgRadius = totalRadius / simulator.getObjects().size();
+        double avgRadius = totalRadius / coCount;
         return 100.0 / avgRadius;
     }
 
     /**
      * @return a good scale of closely viewing the object
      */
-    private double get3rdPersonObjectViewScale(CelestialObject object) {
-        double radius = object.getEquatorialRadius();
+    private double get3rdPersonObjectViewScale(RealObject object) {
+        double radius = object.getMajorRadius();
         return 30.0 / radius;
     }
 
@@ -763,7 +770,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private Plane getSpawningPlane() {
-        CelestialObject master = spawning.getSpawnRelative();
+        RealObject master = spawning.getSpawnRelative();
         if (master == null) {
             return new Plane(Vector3f.UNIT_Z, 0);
         } else {
@@ -789,7 +796,7 @@ public class JmeApp extends SimpleApplication {
 
         simulator.addObject(spawning.object);
 
-        CelestialObject master = spawning.object.getHillMaster();
+        RealObject master = spawning.object.getHillMaster();
         double[] axis = SystemPresets.randomAxisToZ(spawning.axisTilt);
         if (master != null) {
             double speed = spawning.orbitSpeed;
@@ -848,7 +855,7 @@ public class JmeApp extends SimpleApplication {
         System.out.println("Clicked on: " + geom.getName() + ", " + geom.getClass());
 
         for (ObjectModel objectModel : modelMap.values()) {
-            CelestialObject object = objectModel.object;
+            RealObject object = objectModel.object;
             if (object.isExist()) {
                 if (object.getId().equals(geom.getName())) {
                     focusOn(object, true);
@@ -868,38 +875,40 @@ public class JmeApp extends SimpleApplication {
 
         enqueue(() -> {
             ObjectModel om = modelMap.get(object);
+            if (om instanceof SolidModel sm) {
 
-            System.out.println("Scale: " + scale);
-            double targetScale = get1stPersonDefaultScale();
-            scale = targetScale;
+                System.out.println("Scale: " + scale);
+                double targetScale = get1stPersonDefaultScale();
+                scale = targetScale;
 //            double factor = targetScale / scale;
 //            scaleScene((float) factor);
-            System.out.println("New scale: " + scale);
+                System.out.println("New scale: " + scale);
 
-            setCamera1stPerson();
-            clearParticleEffects();
+                setCamera1stPerson();
+                clearParticleEffects();
 
-            if (om.firstPersonMoving == null) {
-                om.firstPersonMoving = new FirstPersonMoving(om, 3e5);
-            }
-            firstPersonStar = om.firstPersonMoving;
+                if (sm.firstPersonMoving == null) {
+                    sm.firstPersonMoving = new FirstPersonMoving(sm, 3e5);
+                }
+                firstPersonStar = sm.firstPersonMoving;
 
-            om.rotatingNode.attachChild(firstPersonStar.cameraNode);
-            om.rotatingNode.attachChild(firstPersonStar.northNode);
+                sm.rotatingNode.attachChild(firstPersonStar.cameraNode);
+                sm.rotatingNode.attachChild(firstPersonStar.northNode);
 
-            firstPersonStar.updateCamera(cam);
+                firstPersonStar.updateCamera(cam);
 
-            getFxApp().getControlBar().setLand();
+                getFxApp().getControlBar().setLand();
 
-            screenCenter.set(0, 0, 0);
-            centerRelToFocus.set(0, 0, 0);
-            if (focusing != null) {
-                getFxApp().getControlBar().clearFocusAction();
+                screenCenter.set(0, 0, 0);
+                centerRelToFocus.set(0, 0, 0);
+                if (focusing != null) {
+                    getFxApp().getControlBar().clearFocusAction();
+                }
             }
         });
     }
 
-    public void focusOn(CelestialObject object, boolean scrollToFocus) {
+    public void focusOn(RealObject object, boolean scrollToFocus) {
         enqueue(() -> {
             System.out.println("Focused on " + object.getId());
 
@@ -949,7 +958,7 @@ public class JmeApp extends SimpleApplication {
     private void computeSpawningMaster() {
         HieraticalSystem hillMaster = simulator.findMostProbableHillMaster(spawning.object.getPosition());
         if (hillMaster != null) {
-            CelestialObject dominant = hillMaster.master;
+            RealObject dominant = hillMaster.master;
 
             if (dominant != null && dominant.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
                 spawning.object.setHillMaster(dominant);
@@ -963,7 +972,7 @@ public class JmeApp extends SimpleApplication {
             }
         }
 
-        CelestialObject gravityMaster = simulator.computeGravityMaster(spawning.object);
+        RealObject gravityMaster = simulator.computeGravityMaster(spawning.object);
         if (gravityMaster != null) {
             // this does not consider the mass.
             // but gravityMaster will be wiped once the spawning is placed
@@ -1195,8 +1204,8 @@ public class JmeApp extends SimpleApplication {
 
     private void drawSpawningConnection() {
         if (spawning != null) {
-            CelestialObject hillMaster = spawning.object.getHillMaster();
-            CelestialObject gravityMaster = spawning.object.getGravityMaster();
+            RealObject hillMaster = spawning.object.getHillMaster();
+            RealObject gravityMaster = spawning.object.getGravityMaster();
 
             Vector3f selfPos = panePosition(spawning.object.getPosition());
 
@@ -1225,7 +1234,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void drawOrbits() {
-        for (CelestialObject object : simulator.getObjects()) {
+        for (RealObject object : simulator.getObjects()) {
             if (object.getMass() >= minimumMassShowing) {
                 drawOrbitOf(object);
 //                drawFittedOrbitOf(object);
@@ -1237,7 +1246,7 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void drawSpawningOrbit() {
-        CelestialObject parent = spawning.object.getHillMaster();
+        RealObject parent = spawning.object.getHillMaster();
         if (parent != null && parent.getMass() > spawning.object.getMass() * Simulator.PLANET_MAX_MASS) {
 //            HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
             AbstractObject child = spawning.object;
@@ -1269,60 +1278,17 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void hidePrimaryOrbit(CelestialObject object) {
+    private void hidePrimaryOrbit(RealObject object) {
         ObjectModel om = modelMap.get(object);
         om.orbit.setMesh(ObjectModel.blank);
     }
 
-    private void hideSecondaryOrbit(CelestialObject object) {
+    private void hideSecondaryOrbit(RealObject object) {
         ObjectModel om = modelMap.get(object);
         om.secondaryOrbit.setMesh(ObjectModel.blank);
     }
 
-    private void drawOrbitOf(CelestialObject object, CelestialObject parent, boolean isPrimary) {
-//        AbstractObject child;
-//        if (isPrimary) {
-//            child = simulator.getHieraticalSystem(object);
-//        } else {
-//            child = object;
-//        }
-//        
-//        double[] barycenter = null;
-//        double[] refPos = null;
-//        double[] refVel = null;
-//        double totalMass = 0;
-//        HieraticalSystem parentSystem = simulator.getHieraticalSystem(parent);
-//        if (parentSystem != null && parentSystem.nChildren() > 1) {
-//            double distance = VectorOperations.distance(parent.getPosition(), child.getPosition());
-//            double systemDeviation = VectorOperations.distance(parent.getPosition(), parentSystem.getPosition());
-//            if (distance > systemDeviation) {
-//                // seems like circling around the whole system
-//                double[][] refPositionAndV = parentSystem.getBarycenterAndVelocityWithout(child, simulator);
-//                if (refPositionAndV != null) {
-//                    barycenter = parentSystem.getPosition();
-//                    refPos = refPositionAndV[0];
-//                    refVel = refPositionAndV[1];
-//                    totalMass = parentSystem.getMass();
-//                }
-//            }
-//        }
-//        
-//        if (barycenter == null) {
-//            barycenter = OrbitCalculator.calculateBarycenter(parent, child);
-//            refPos = parent.getPosition();
-//            refVel = parent.getVelocity();
-//            totalMass = parent.getMass() + child.getMass();
-//        }
-//
-//        // velocity relative to parent system's barycenter movement
-//        double[] velocity = VectorOperations.subtract(child.getVelocity(),
-//                refVel);
-//        double[] position = VectorOperations.subtract(child.getPosition(),
-//                refPos);
-//        OrbitalElements specs = OrbitCalculator.computeOrbitSpecs3d(position,
-//                velocity,
-//                totalMass,
-//                simulator.getG());
+    private void drawOrbitOf(RealObject object, RealObject parent, boolean isPrimary) {
         FullOrbitSpec specs = simulator.computeOrbitOf(object, parent, isPrimary);
 
         ObjectModel om = modelMap.get(object);
@@ -1341,8 +1307,8 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    private void drawOrbitOf(CelestialObject object) {
-        CelestialObject parent = object.getHillMaster();
+    private void drawOrbitOf(RealObject object) {
+        RealObject parent = object.getHillMaster();
 
         if (parent == null) {
             parent = object.getMaxGravityObject();
@@ -1354,7 +1320,7 @@ public class JmeApp extends SimpleApplication {
             hidePrimaryOrbit(object);
         } else {
             drawOrbitOf(object, parent, true);
-            CelestialObject maxObj = object.getMaxGravityObject();
+            RealObject maxObj = object.getMaxGravityObject();
             if (maxObj != null && maxObj != parent) {
                 drawOrbitOf(object, maxObj, false);
             } else {
@@ -1392,7 +1358,7 @@ public class JmeApp extends SimpleApplication {
         double[] temp;
         double[] offset = new double[3];
 
-        for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
+        for (Map.Entry<RealObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
             if (obj.getMass() < minimumMassShowing) continue;
             ObjectModel om = getObjectModel(obj);
@@ -1492,7 +1458,7 @@ public class JmeApp extends SimpleApplication {
         RefFrame refFrame = getRefFrame();
         double[] temp;
         double[] offset = new double[3];
-        for (Map.Entry<CelestialObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
+        for (Map.Entry<RealObject, Deque<double[]>> entry : simulator.getRecentPaths().entrySet()) {
             var obj = entry.getKey();
             if (obj.getMass() < minimumMassShowing) continue;
             var path = entry.getValue();
@@ -1612,13 +1578,13 @@ public class JmeApp extends SimpleApplication {
     }
 
     private void updateLabelShowing() {
-        List<CelestialObject> objects = simulator.getObjects();  // sorted from big to small
+        List<RealObject> objects = simulator.getObjects();  // sorted from big to small
 
         // List to keep track of labeled areas
         List<float[]> drawnObjectPoses = new ArrayList<>();
 
         // Attempt to label each object
-        for (CelestialObject co : objects) {
+        for (RealObject co : objects) {
             ObjectModel om = modelMap.get(co);
             if (om == null) {
                 // just for safety
@@ -1857,22 +1823,50 @@ public class JmeApp extends SimpleApplication {
             scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
         }
 
+        private void toyStarSystemWithGas() {
+            scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
+
+            RealObject master = simulator.getObjects().getFirst();
+            double systemRadius = simulator.greatestRadius();
+            double totalMass = simulator.totalMass();
+            int nGas = 50;
+            Random random = new Random();
+            for (int i = 0; i < nGas; i++) {
+                double r = random.nextDouble(0.1, 1) * systemRadius;
+                double theta = random.nextDouble() * Math.PI * 2;
+                double x = Math.cos(theta) * r;
+                double y = Math.sin(theta) * r;
+                double z = random.nextDouble(-1, 1) * systemRadius * 0.05;
+                
+                double radius = random.nextDouble(0.25, 1) * systemRadius / nGas;
+                double mass = random.nextDouble(0.25, 1) * totalMass * 0.01;
+                DustObject dust = new DustObject("Gas" + i,
+                        mass,
+                        new double[]{x, y, z},
+                        new double[3],
+                        "#777777",
+                        radius);
+                simulator.addObject(dust);
+                dust.setVelocity(simulator.computeVelocityOfN(master, dust, 1.0, master.getEclipticPlaneNormal()));
+            }
+        }
+
         private void harmonicSystemTest() {
             scale = Preset.HARMONIC_KITTY_SYSTEM.instantiate(simulator);
         }
-        
+
         private void cuteStarGasGiantSystem() {
             scale = Preset.CUTE_STAR_GAS_GIANT_SYSTEM.instantiate(simulator);
             simulator.setEnableDisassemble(false);
         }
-        
+
         private void starSheepdogRing() {
             scale = Preset.STAR_SHEEPDOG_RING.instantiate(simulator);
             simulator.setEnableDisassemble(false);
         }
-        
+
         private void addDisk(int n) {
-            
+
         }
 
         private void cuteStarSystemWithRaw() {
@@ -1882,7 +1876,7 @@ public class JmeApp extends SimpleApplication {
             double systemRadius = simulator.greatestRadius();
             double systemMass = simulator.totalMass();
             double[] barycenter = simulator.barycenter();
-            CelestialObject master = simulator.getObjects().getFirst();
+            RealObject master = simulator.getObjects().getFirst();
             Random random = new Random();
             int nAsteroids = 0;
             for (int i = 0; i < nAsteroids; i++) {
@@ -2040,7 +2034,7 @@ public class JmeApp extends SimpleApplication {
         }
     }
 
-    protected ObjectModel getObjectModel(CelestialObject object) {
+    protected ObjectModel getObjectModel(RealObject object) {
         ObjectModel om = modelMap.get(object);
         if (om == null) {
             om = diedObjects.get(object);
@@ -2059,7 +2053,7 @@ public class JmeApp extends SimpleApplication {
         return simulator;
     }
 
-    public CelestialObject getFocusing() {
+    public RealObject getFocusing() {
         return focusing;
     }
 
@@ -2073,7 +2067,7 @@ public class JmeApp extends SimpleApplication {
 
     public void clearLand() {
         enqueue(() -> {
-            CelestialObject object = firstPersonStar.objectModel.object;
+            CelestialObject object = (CelestialObject) firstPersonStar.objectModel.object;
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.cameraNode);
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.northNode);
             firstPersonStar = null;
@@ -2158,7 +2152,7 @@ public class JmeApp extends SimpleApplication {
 
     public void setShowHillSphere(boolean show) {
         enqueue(() -> {
-            for (CelestialObject object : simulator.getObjects()) {
+            for (RealObject object : simulator.getObjects()) {
                 ObjectModel om = modelMap.get(object);
                 om.setShowHillSphere(show);
             }
@@ -2167,12 +2161,14 @@ public class JmeApp extends SimpleApplication {
 
     public void setHabitableZone(boolean show) {
         enqueue(() -> {
-            for (CelestialObject object : simulator.getObjects()) {
+            for (RealObject object : simulator.getObjects()) {
                 ObjectModel om = modelMap.get(object);
-                if (object.getStatus() instanceof Star) {
-                    om.setShowHabitableZone(show);
-                } else {
-                    om.setShowHabitableZone(false);
+                if (object instanceof CelestialObject co && om instanceof SolidModel sm) {
+                    if (co.getStatus() instanceof Star) {
+                        sm.setShowHabitableZone(show);
+                    } else {
+                        sm.setShowHabitableZone(false);
+                    }
                 }
             }
         });
@@ -2180,7 +2176,7 @@ public class JmeApp extends SimpleApplication {
 
     public void setShowRocheLimit(boolean show) {
         enqueue(() -> {
-            for (CelestialObject object : simulator.getObjects()) {
+            for (RealObject object : simulator.getObjects()) {
                 ObjectModel om = modelMap.get(object);
                 om.setShowRocheLimit(show);
             }
@@ -2230,8 +2226,8 @@ public class JmeApp extends SimpleApplication {
     public void enterSpawningMode(CelestialObject co, double orbitSpeed,
                                   OrbitPlane orbitPlane, double axisTilt) {
         enqueue(() -> {
-            ObjectModel om = new ObjectModel(co, this);
-            spawning = new SpawningObject(this, om, orbitSpeed, orbitPlane, axisTilt);
+            ObjectModel om = ObjectModel.create(co, this);
+            spawning = new SpawningObject(this, (SolidModel) om, orbitSpeed, orbitPlane, axisTilt);
 
             rootNode.attachChild(spawning.primaryLine);
             rootNode.attachChild(spawning.secondaryLine);
