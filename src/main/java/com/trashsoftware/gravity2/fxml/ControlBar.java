@@ -41,7 +41,7 @@ public class ControlBar implements Initializable {
     @FXML
     RadioButton refStaticBtn, refSystemBtn, refTargetBtn;
     @FXML
-    CheckMenuItem nameOnCanvasCheck, lightShadowCheck, barycenterCheck, hillSpheresCheck, rocheLimitCheck;
+    CheckMenuItem nameOnCanvasCheck, lightShadowCheck, gasCheck, barycenterCheck, hillSpheresCheck, rocheLimitCheck;
     @FXML
     CheckMenuItem ellipticalOnlyCheck;
 
@@ -129,6 +129,12 @@ public class ControlBar implements Initializable {
             JmeApp jmeApp = getJmeApp();
             if (jmeApp == null) return;
             jmeApp.setRenderLight(newValue);
+        });
+        
+        gasCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            JmeApp jmeApp = getJmeApp();
+            if (jmeApp == null) return;
+            jmeApp.toggleGasDustShowing(newValue);
         });
 
         barycenterCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -375,6 +381,7 @@ public class ControlBar implements Initializable {
             if (highPerformanceMode) {
                 lightShadowCheck.setSelected(false);
                 nameOnCanvasCheck.setSelected(false);
+                gasCheck.setSelected(false);
                 orbitShowingGroup.selectToggle(showNoneBtn);
                 JmeApp jmeApp = getJmeApp();
                 if (jmeApp == null) return;

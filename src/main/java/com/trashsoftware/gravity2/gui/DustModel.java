@@ -1,5 +1,6 @@
 package com.trashsoftware.gravity2.gui;
 
+import com.jme3.effect.ParticleEmitter;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -9,16 +10,16 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.trashsoftware.gravity2.physics.DustObject;
 
 public class DustModel extends ObjectModel {
     protected final DustObject object;
+    protected final NebulaEmitter nebulaEmitter;
+    protected ParticleEmitter nebulaParticleEmitter;
 
     public DustModel(DustObject object, JmeApp jmeApp) {
         super(object, jmeApp);
@@ -54,23 +55,38 @@ public class DustModel extends ObjectModel {
 //        
 //        rotatingNode.attachChild(model);
 
-        Material nebulaMat = createNebulaMaterial();
+//        Material nebulaMat = createNebulaMaterial();
+//
+//        Node nebula = createNebula(
+//                new Vector3f(0, 0, -80),
+//                (float) object.getMajorRadius(),
+//                20,
+//                nebulaMat,
+//                15,  // depend on texture png
+//                1
+//        );
+//
+//        rotatingNode.attachChild(nebula);
+//
+//        for (Spatial child : nebula.getChildren()) {
+//            child.lookAt(jmeApp.getCamera().getLocation(), Vector3f.UNIT_Z);
+//            child.rotate(0, 0, 0);
+//        }
 
-        Node nebula = createNebula(
-                new Vector3f(0, 0, -80),
+        nebulaEmitter = new NebulaEmitter(
+                jmeApp.getAssetManager(),
+                object.getId(),
+                new Vector3f(0, 0, 0),
                 (float) object.getMajorRadius(),
                 20,
-                nebulaMat,
-                16,  // depend on texture png
+                "com/trashsoftware/gravity2/effects/Smoke.png",
+                15,
                 1
         );
+        nebulaEmitter.updateNebula(object.getMajorRadius(), object.getDensity());
 
-        rotatingNode.attachChild(nebula);
-
-        for (Spatial child : nebula.getChildren()) {
-            child.lookAt(jmeApp.getCamera().getLocation(), Vector3f.UNIT_Z);
-            child.rotate(0, 0, 0);
-        }
+        nebulaParticleEmitter = nebulaEmitter.getEmitter();
+        rotatingNode.attachChild(nebulaParticleEmitter);
 
         updateLightSource();
     }
@@ -190,6 +206,7 @@ public class DustModel extends ObjectModel {
         if (object.getMajorRadius() * scale < 0.1) {
             radiusScale = 0.1 / object.getMajorRadius();
         }
+        nebulaEmitter.updateNebula(object.getMajorRadius(), object.getDensity());
         rotatingNode.setLocalScale((float) radiusScale);
     }
 

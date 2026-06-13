@@ -8,6 +8,7 @@ import com.trashsoftware.gravity2.physics.status.Star;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -26,6 +27,8 @@ public class ObjectStatsWrapper extends HBox {
     Pane modelPane;
     @FXML
     Label nameLabel, typeLabel, massLabel, diameterLabel, speedLabel, densityLabel;
+    @FXML
+    Button landButton;
     @FXML
     GridPane starPane, planetPane, dustPane;
     @FXML
@@ -62,7 +65,7 @@ public class ObjectStatsWrapper extends HBox {
     boolean hasPlanetPaneExpanded = false;
     boolean hasDustPaneExpanded = false;
 
-    public ObjectStatsWrapper(RealObject celestialObject,
+    public ObjectStatsWrapper(RealObject realObject,
                               Simulator simulator,
                               UnitsConverter defaultUnit,
                               Runnable onFocus,
@@ -86,7 +89,7 @@ public class ObjectStatsWrapper extends HBox {
             throw new RuntimeException(exception);
         }
 
-        setObject(celestialObject, simulator, defaultUnit, onFocus, onExpand, onLand, onCollapse);
+        setObject(realObject, simulator, defaultUnit, onFocus, onExpand, onLand, onCollapse);
     }
 
     @FXML
@@ -118,17 +121,12 @@ public class ObjectStatsWrapper extends HBox {
         this.onLand = onLand;
 
         nameLabel.setText(object.getNameShowing());
-//        GraphicsContext gc = canvas.getGraphicsContext2D();
-//        gc.setFill(object.getColor());
-//
-//        double w = canvas.getWidth();
-//        double h = canvas.getHeight();
-//        gc.fillOval(0, 0, w, h);
-//        StarModel modelCopy = Util.cloneShape(celestialObject.getModel(), 15);
-//        Rotate sideToMe = new Rotate(90, new Point3D(0, 0, 1));
-//        modelCopy.getTransforms().add(sideToMe);
-
-//        modelPane.getChildren().add(modelCopy);
+        
+        if (object instanceof DustObject) {
+            landButton.setDisable(true);
+            landButton.setVisible(false);
+            landButton.setManaged(false);
+        }
 
         update(simulator, defaultUnit);
     }
@@ -178,66 +176,106 @@ public class ObjectStatsWrapper extends HBox {
     }
 
     private void initDustPane() {
+        int rowIndex = 0;
+        dustPane.add(new Separator(), 0, rowIndex, 4, 1);
+        rowIndex++;
 
+        dustPane.add(new Label(strings.getString("powerReceived")), 0, rowIndex);
+        powerReceivedLabel = new Label();
+        dustPane.add(powerReceivedLabel, 1, rowIndex);
+
+        dustPane.add(new Label(strings.getString("powerEmitted")), 2, rowIndex);
+        powerEmittedLabel = new Label();
+        dustPane.add(powerEmittedLabel, 3, rowIndex);
     }
 
     private void initDetailPane() {
         int rowIndex = 0;
 
-        detailPane.add(new Label(strings.getString("eqRadius")), 0, rowIndex);
-        eqRadiusLabel = new Label();
-        detailPane.add(eqRadiusLabel, 1, rowIndex);
+        if (object instanceof CelestialObject) {
+            detailPane.add(new Label(strings.getString("eqRadius")), 0, rowIndex);
+            eqRadiusLabel = new Label();
+            detailPane.add(eqRadiusLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("polarRadius")), 2, rowIndex);
-        polarRadiusLabel = new Label();
-        detailPane.add(polarRadiusLabel, 3, rowIndex);
+            detailPane.add(new Label(strings.getString("polarRadius")), 2, rowIndex);
+            polarRadiusLabel = new Label();
+            detailPane.add(polarRadiusLabel, 3, rowIndex);
 
-        rowIndex++;
+            rowIndex++;
 
-        detailPane.add(new Label(strings.getString("volume")), 0, rowIndex);
-        volumeLabel = new Label();
-        detailPane.add(volumeLabel, 1, rowIndex);
+            detailPane.add(new Label(strings.getString("volume")), 0, rowIndex);
+            volumeLabel = new Label();
+            detailPane.add(volumeLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("rotationPeriod")), 2, rowIndex);
-        rotationPeriodLabel = new Label();
-        detailPane.add(rotationPeriodLabel, 3, rowIndex);
-        rowIndex++;
+            detailPane.add(new Label(strings.getString("rotationPeriod")), 2, rowIndex);
+            rotationPeriodLabel = new Label();
+            detailPane.add(rotationPeriodLabel, 3, rowIndex);
+            rowIndex++;
 
-        detailPane.add(new Label(strings.getString("transKinetic")), 0, rowIndex);
-        transKineticLabel = new Label();
-        detailPane.add(transKineticLabel, 1, rowIndex);
+            detailPane.add(new Label(strings.getString("transKinetic")), 0, rowIndex);
+            transKineticLabel = new Label();
+            detailPane.add(transKineticLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("rotKinetic")), 2, rowIndex);
-        rotKineticLabel = new Label();
-        detailPane.add(rotKineticLabel, 3, rowIndex);
-        rowIndex++;
+            detailPane.add(new Label(strings.getString("rotKinetic")), 2, rowIndex);
+            rotKineticLabel = new Label();
+            detailPane.add(rotKineticLabel, 3, rowIndex);
+            rowIndex++;
 
-        detailPane.add(new Label(strings.getString("thermalEnergy")), 0, rowIndex);
-        thermalEnergyLabel = new Label();
-        detailPane.add(thermalEnergyLabel, 1, rowIndex);
+            detailPane.add(new Label(strings.getString("thermalEnergy")), 0, rowIndex);
+            thermalEnergyLabel = new Label();
+            detailPane.add(thermalEnergyLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("bindingEnergy")), 2, rowIndex);
-        bindingEnergyLabel = new Label();
-        detailPane.add(bindingEnergyLabel, 3, rowIndex);
-        rowIndex++;
+            detailPane.add(new Label(strings.getString("bindingEnergy")), 2, rowIndex);
+            bindingEnergyLabel = new Label();
+            detailPane.add(bindingEnergyLabel, 3, rowIndex);
+            rowIndex++;
 
-        detailPane.add(new Label(strings.getString("avgTemperature")), 0, rowIndex);
-        avgTempLabel = new Label();
-        detailPane.add(avgTempLabel, 1, rowIndex);
+            detailPane.add(new Label(strings.getString("avgTemperature")), 0, rowIndex);
+            avgTempLabel = new Label();
+            detailPane.add(avgTempLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("acceleration")), 2, rowIndex);
-        accelerationLabel = new Label();
-        detailPane.add(accelerationLabel, 3, rowIndex);
-        rowIndex++;
+            detailPane.add(new Label(strings.getString("acceleration")), 2, rowIndex);
+            accelerationLabel = new Label();
+            detailPane.add(accelerationLabel, 3, rowIndex);
+            rowIndex++;
 
-        detailPane.add(new Label(strings.getString("rocheLimitSolid")), 0, rowIndex);
-        rocheLimitSolidLabel = new Label();
-        detailPane.add(rocheLimitSolidLabel, 1, rowIndex);
+            detailPane.add(new Label(strings.getString("rocheLimitSolid")), 0, rowIndex);
+            rocheLimitSolidLabel = new Label();
+            detailPane.add(rocheLimitSolidLabel, 1, rowIndex);
 
-        detailPane.add(new Label(strings.getString("rocheLimitLiquid")), 2, rowIndex);
-        rocheLimitLiquidLabel = new Label();
-        detailPane.add(rocheLimitLiquidLabel, 3, rowIndex);
-        rowIndex++;
+            detailPane.add(new Label(strings.getString("rocheLimitLiquid")), 2, rowIndex);
+            rocheLimitLiquidLabel = new Label();
+            detailPane.add(rocheLimitLiquidLabel, 3, rowIndex);
+            rowIndex++;
+        } else if (object instanceof DustObject) {
+            detailPane.add(new Label(strings.getString("volume")), 0, rowIndex);
+            volumeLabel = new Label();
+            detailPane.add(volumeLabel, 1, rowIndex);
+            rowIndex++;
+            
+            detailPane.add(new Label(strings.getString("transKinetic")), 0, rowIndex);
+            transKineticLabel = new Label();
+            detailPane.add(transKineticLabel, 1, rowIndex);
+
+            detailPane.add(new Label(strings.getString("rotKinetic")), 2, rowIndex);
+            rotKineticLabel = new Label();
+            detailPane.add(rotKineticLabel, 3, rowIndex);
+            rowIndex++;
+            
+            detailPane.add(new Label(strings.getString("thermalEnergy")), 0, rowIndex);
+            thermalEnergyLabel = new Label();
+            detailPane.add(thermalEnergyLabel, 1, rowIndex);
+            rowIndex++;
+            
+            detailPane.add(new Label(strings.getString("avgTemperature")), 0, rowIndex);
+            avgTempLabel = new Label();
+            detailPane.add(avgTempLabel, 1, rowIndex);
+
+            detailPane.add(new Label(strings.getString("acceleration")), 2, rowIndex);
+            accelerationLabel = new Label();
+            detailPane.add(accelerationLabel, 3, rowIndex);
+            rowIndex++;
+        }
 
         // orbit related
         detailPane.add(new Separator(), 0, rowIndex, 4, 1);
@@ -340,7 +378,7 @@ public class ObjectStatsWrapper extends HBox {
             if (object instanceof CelestialObject co) {
                 selfDetailSolidObject(co, simulator, uc);
             } else if (object instanceof DustObject duo) {
-
+                selfDetailDustObject(duo, simulator, uc);
             }
             orbitRelated(simulator, uc);
         }
@@ -351,7 +389,7 @@ public class ObjectStatsWrapper extends HBox {
         polarRadiusLabel.setText(uc.radius(co.getPolarRadius()));
 
         transKineticLabel.setText(uc.energy(object.transitionalKineticEnergy()));
-        rotKineticLabel.setText(uc.energy(co.rotationalKineticEnergy()));
+        rotKineticLabel.setText(uc.energy(object.rotationalKineticEnergy()));
         bindingEnergyLabel.setText(uc.energy(simulator.gravitationalBindingEnergyOf(co)));
         thermalEnergyLabel.setText(uc.energy(object.getInternalThermalEnergy()));
         avgTempLabel.setText(uc.temperature(co.getBodyAverageTemperature()));
@@ -363,6 +401,9 @@ public class ObjectStatsWrapper extends HBox {
 
         double vol = object.getVolume();
         volumeLabel.setText(uc.volume(vol));
+        
+        dustPane.setVisible(false);
+        dustPane.setManaged(false);
 
         if (co.getStatus() instanceof Star star) {
             if (!hasStarPaneExpanded) {
@@ -396,10 +437,35 @@ public class ObjectStatsWrapper extends HBox {
             hasDustPaneExpanded = true;
         }
 
+        transKineticLabel.setText(uc.energy(object.transitionalKineticEnergy()));
+        rotKineticLabel.setText(uc.energy(object.rotationalKineticEnergy()));
+        thermalEnergyLabel.setText(uc.energy(object.getInternalThermalEnergy()));
+//        avgTempLabel.setText(uc.temperature(co.getBodyAverageTemperature()));
+        accelerationLabel.setText(uc.acceleration(object.accelerationAlongMovingDirection()));
+        double vol = object.getVolume();
+        volumeLabel.setText(uc.volume(vol));
+        
+        double received = 0.0;
+        for (RealObject ro : simulator.getObjects()) {
+            double luminosity = ro.getLuminosity();
+            if (luminosity > 0 && ro != object) {  // shouldn't be this, but just for safety
+                // is a light source
+                double distance = VectorOperations.distance(ro.getPosition(), object.getPosition());
+                received += object.calculateLightReceived(luminosity, distance);
+            }
+        }
+
+//        double emitted = duo.getThermalEmission();
+        
+        powerReceivedLabel.setText(UnitsUtil.sciFmt.format(received) + "W");
+//        powerEmittedLabel.setText(UnitsUtil.sciFmt.format(emitted) + "W");
+
         starPane.setVisible(false);
         starPane.setManaged(false);
         planetPane.setVisible(false);
         planetPane.setManaged(false);
+        dustPane.setVisible(true);
+        dustPane.setManaged(true);
     }
 
 

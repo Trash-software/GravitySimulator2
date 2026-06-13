@@ -23,7 +23,9 @@ public class UnitsUtil {
     public static final DecimalFormat shortFmt = new DecimalFormat("0.#");
 
     public static String adaptiveMass(double kg) {
-        if (kg < 1) {
+        if (kg < 1e-3) {
+            return String.format("%5.2e kg", kg);
+        } else if (kg < 1) {
             return stdFmt.format(kg * 1000) + " g";
         } else if (kg < 1000) {
             return stdFmt.format(kg) + " kg";

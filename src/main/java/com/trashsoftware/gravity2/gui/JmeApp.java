@@ -81,6 +81,7 @@ public class JmeApp extends SimpleApplication {
     private GuiTextNode lonLatTextNode;
     private Node telescopeAimingNode;
     private boolean showLabel = true;
+    private boolean showGasDust = true;
     private boolean showBarycenter = false;
     private boolean showTrace, showFullPath, showOrbit;
     private boolean renderLight = true;
@@ -1535,6 +1536,14 @@ public class JmeApp extends SimpleApplication {
         showLabel = showing;
         enqueue(this::updateLabelShowing);
     }
+    
+    public void toggleGasDustShowing(boolean showing) {
+        showGasDust = showing;
+        enqueue(() -> {
+            updateLabelShowing();
+            updateCurvesShowing();
+        });
+    }
 
     public void toggleBarycenterShowing(boolean showing) {
         boolean wasShowing = showBarycenter;
@@ -1554,6 +1563,7 @@ public class JmeApp extends SimpleApplication {
         for (ObjectModel om : modelMap.values()) {
             if (om.object.isExist()) {
                 boolean showMe = om.object.getMass() >= minimumMassShowing;
+                if (om instanceof DustModel && !showGasDust) showMe = false;
 
                 if (showMe && showOrbit) {
                     rootNode.attachChild(om.orbitNode);
@@ -1585,16 +1595,16 @@ public class JmeApp extends SimpleApplication {
         List<float[]> drawnObjectPoses = new ArrayList<>();
 
         // Attempt to label each object
-        for (RealObject co : objects) {
-            ObjectModel om = modelMap.get(co);
+        for (RealObject ro : objects) {
+            ObjectModel om = modelMap.get(ro);
             if (om == null) {
                 // just for safety
                 continue;
             }
-            if (co.getMass() < minimumMassShowing) {
+            if (ro.getMass() < minimumMassShowing || (ro instanceof DustObject && !showGasDust)) {
                 om.setShowLabel(false);
             } else if (showLabel) {
-                Vector3f pos = panePosition(co.getPosition());
+                Vector3f pos = panePosition(ro.getPosition());
                 Vector3f screenPos = cam.getScreenCoordinates(pos);
 
                 float[] canvasPos = new float[]{screenPos.x, screenPos.y};
