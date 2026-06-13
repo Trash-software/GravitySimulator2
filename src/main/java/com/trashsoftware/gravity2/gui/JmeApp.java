@@ -353,7 +353,8 @@ public class JmeApp extends SimpleApplication {
 //        saturnRingTest();
 //        rocheEffectTest();
 //        test.toyStarSystemTest();
-        test.toyStarSystemWithGas();
+//        test.toyStarSystemWithGas();
+        test.formingStarSystemWithGas();
 //        test.harmonicSystemTest();
 //        test.cuteStarSystemWithRaw();
 //        test.cuteStarGasGiantSystem();
@@ -1817,6 +1818,10 @@ public class JmeApp extends SimpleApplication {
             scale = Preset.SINGLE_GALAXY.instantiate(simulator);
 
             getFxApp().getControlBar().highPerformanceMode(true);
+        }
+        
+        private void formingStarSystemWithGas() {
+            scale = Preset.FORMING_STAR_SYSTEM.instantiate(simulator);
         }
 
         private void toyStarSystemTest() {

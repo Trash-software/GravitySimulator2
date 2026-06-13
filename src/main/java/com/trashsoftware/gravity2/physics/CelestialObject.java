@@ -1,6 +1,5 @@
 package com.trashsoftware.gravity2.physics;
 
-import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.Vector3d;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.Star;
@@ -338,6 +337,7 @@ public class CelestialObject extends RealObject {
         else if (rotationAngle < 0) rotationAngle += 360;
     }
 
+    @Override
     public double rotationalKineticEnergy() {
         return 0.5 * momentOfInertiaRot() * angularVelocity * angularVelocity;
     }
@@ -584,14 +584,20 @@ public class CelestialObject extends RealObject {
     public void forceSetMass(double mass) {
         this.mass = mass;
     }
-
-    public void gainMattersFrom(Simulator simulator, CelestialObject object, double timeStep) {
-        if (object.equatorialRadius < 50) return;  // too small
+    
+    public void gainMattersFromRoche(Simulator simulator, CelestialObject object, double timeStep) {
+        if (object.getMajorRadius() < 50) return;  // too small
         if (object.getMass() < 1e6) return;  // too light
+        
         double maxGain = Math.min(getMass() * 3e-7, SystemPresets.MOON_MASS * 1e-3) * timeStep;
         maxGain = Math.min(maxGain, object.getMass() - 5e5);  // half of 1e6
         double gain = Math.random() * maxGain;
-        double transformedRatio = gain / object.getMass();
+        
+        gainMattersFrom(simulator, object, gain, true);
+    }
+
+    public void gainMattersFrom(Simulator simulator, RealObject object, double gainMass, boolean momentumTransfer) {
+        double transformedRatio = gainMass / object.getMass();
 
         double energyBefore = transitionalKineticEnergy() +
                 rotationalKineticEnergy() +
@@ -603,24 +609,35 @@ public class CelestialObject extends RealObject {
                 object.internalThermalEnergy +
                 simulator.potentialEnergyBetween(this, object);
 
-        double[] transferredMomentum = VectorOperations.scale(object.velocity, gain);
+        double[] transferredMomentum = VectorOperations.scale(object.velocity, gainMass);
 
         double objDensity = object.getDensity();
-        object.mass -= gain;
+        object.mass -= gainMass;
         object.internalThermalEnergy *= (1 - transformedRatio);
-        double rad = object.getAverageRadius();
-        object.updateRadiusByMassDensity(objDensity);
-//        System.out.println(object.name + " Radius: " + rad + " " + object.getAverageRadius());
-
-        object.bodyType = object.bodyType.disassemble(object.getMass());
+//        double rad = object.getAverageRadius();
+        
+        if (object instanceof CelestialObject co) {
+            co.updateRadiusByMassDensity(objDensity);
+            co.bodyType = co.bodyType.disassemble(co.getMass());
+        } 
 
         // momentum conservation
-        VectorOperations.addInPlace(velocity, VectorOperations.scale(transferredMomentum, 1 / getMass()));
+        if (momentumTransfer) {
+            VectorOperations.addInPlace(velocity, VectorOperations.scale(transferredMomentum, 1 / getMass()));
+        }
 
-        double thisVolume = getVolume();
-        thisVolume += gain / objDensity;
-        this.mass += gain;
-        setRadiusByVolume(thisVolume);
+        double oldDensity = getDensity();
+        this.mass += gainMass;
+        this.bodyType = bodyType.mergeWithLighter(this.mass);
+        if (bodyType.adaptiveDensity) {
+            double newDensity = BodyType.massiveObjectDensity(this.mass);
+            double newVolume = this.mass / newDensity;
+            setRadiusByVolume(newVolume);
+        } else {
+            double thisVolume = getVolume();
+            thisVolume += gainMass / oldDensity;
+            setRadiusByVolume(thisVolume);
+        }
 
         double energyAfter = transitionalKineticEnergy() +
                 rotationalKineticEnergy() +
@@ -633,6 +650,10 @@ public class CelestialObject extends RealObject {
                 simulator.potentialEnergyBetween(this, object);
         double energyLoss = energyBefore - energyAfter;
         this.internalThermalEnergy += energyLoss;
+        
+        if (object instanceof DustObject duo) {
+            duo.validateDensity();
+        }
     }
 
     public CelestialObject disassemble(Simulator simulator,
@@ -834,10 +855,6 @@ public class CelestialObject extends RealObject {
         return 4 * Math.PI * Math.pow(inside, 1 / p);
     }
 
-    public double getDensity() {
-        return mass / getVolume();
-    }
-
     public double getOblateness() {
         double eqr = getEquatorialRadius();
         return (eqr - getPolarRadius()) / eqr;
@@ -929,5 +946,4 @@ public class CelestialObject extends RealObject {
     public int hashCode() {
         return super.hashCode();
     }
-
 }

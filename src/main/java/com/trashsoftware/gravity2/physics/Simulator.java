@@ -29,7 +29,9 @@ public class Simulator {
     private double timeStepAccumulator = 0;
     private final int dimension;
     protected double tidalEffectFactor = 1;
-//    protected double tidalEffectFactor = 1e25;
+    //    protected double tidalEffectFactor = 1e25;
+    protected double accretionSpeedFactor = 1e4;
+    protected double gasFrictionFactor = 1e4;
 
     protected double G;
     protected double gravityDtPower;
@@ -50,7 +52,7 @@ public class Simulator {
     private transient double[][] forcesBuffer;
     private transient double[] dimDtBuffer;
     private transient final List<CelestialObject> debrisBuffer = new ArrayList<>();
-    private transient final List<CelestialObject> newlyDestroyed = new ArrayList<>();
+    private transient final List<RealObject> newlyDestroyed = new ArrayList<>();
 
     private transient final Map<RealObject, HieraticalSystem> systemMap = new HashMap<>();
     private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
@@ -306,20 +308,66 @@ public class Simulator {
     }
 
     private boolean handleAccretion(List<RealObject> objects, double timeStep) {
-        boolean nebulaExhausted = false;
         int n = objects.size();
+        for (RealObject ro : objects) {
+            if (ro instanceof DustObject duo && ro.hillMaster != null) {
+                double[] velToMaster = VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity());
+                double speed = VectorOperations.magnitude(velToMaster);
+                double dec = speed * speed * Math.sqrt(duo.getDensity()) * gasFrictionFactor * 1e-14 * timeStep;
+                double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
+                ro.accelerate(deceleration);
+
+//                double speedAfter = VectorOperations.magnitude(VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity()));
+//                System.out.printf("%s speed before and after: %f, %f\n", ro.id, speed, speedAfter);
+            }
+        }
+
+        boolean nebulaExhausted = false;
         for (int i = n - 1; i >= 0; i--) {
             RealObject roi = objects.get(i);
             if (roi instanceof CelestialObject coi) {
                 for (int j = n - 1; j >= 0; j--) {
                     if (i == j) continue;
                     RealObject roj = objects.get(j);
-                    if (roj instanceof DustObject doj) {
-                        double distance = VectorOperations.distance(coi.position, doj.position);
-                        boolean enter = distance < coi.getAverageRadius() + doj.getAverageRadius();
+                    if (roj instanceof DustObject dust) {
+                        double distance = VectorOperations.distance(coi.position, dust.position);
+                        boolean enter = distance < coi.getAverageRadius() + dust.getAverageRadius();
                         if (enter) {
-                            // todo
+                            double cloudDensity = dust.getDensity();
+//                            double pureSpeedBefore = VectorOperations.magnitude(coi.velocity);
+//                            double cloudSpeed = VectorOperations.magnitude(dust.velocity);
+                            double[] relativeVel = VectorOperations.subtract(roj.getVelocity(), coi.getVelocity());
+                            double relativeSpeed = VectorOperations.magnitude(relativeVel);
+                            double strong = (coi.getAverageRadius() * coi.getDensity()) / 1e10;
+                            double friction = relativeSpeed * relativeSpeed * gasFrictionFactor * cloudDensity * 1e-9 * timeStep / strong;
+                            double[] frictionAcc = VectorOperations.scale(VectorOperations.normalize(relativeVel), friction);
+//                            System.out.printf("%s: strong: %f, cloud den: %f, friction: %f, friAcc: %s\n", coi.id, strong, cloudDensity, friction, Arrays.toString(frictionAcc));
+                            coi.accelerate(frictionAcc);
+//                            double pureSpeedAfter = VectorOperations.magnitude(coi.velocity);
+//                            System.out.println("Cloud " + (cloudSpeed > pureSpeedBefore ? "faster" : "slower") + " than obj");
+//                            System.out.printf("%s speed before and after: %f, %f\n=====\n", coi.id, pureSpeedBefore, pureSpeedAfter);
                             
+                            // accretion
+                            double accretionSpeed = cloudDensity * coi.mass * accretionSpeedFactor * 1e-6 * timeStep;
+                            boolean drained = false;
+                            if (accretionSpeed > dust.mass * 0.5) {
+                                accretionSpeed = dust.mass;
+                                drained = true;
+                            }
+                            coi.gainMattersFrom(this, dust, accretionSpeed, false);
+
+                            if (drained) {
+                                nebulaExhausted = true;
+                                // Remove the lighter object
+                                objects.remove(dust);
+                                systemMap.remove(dust);
+                                dust.destroy(timeStepAccumulator);
+                                newlyDestroyed.add(dust);
+
+                                System.out.println(dust.id + " drained by " + coi.id);
+
+                                n--;
+                            }
                         }
                     }
                 }
@@ -372,7 +420,7 @@ public class Simulator {
                                             debrisBuffer.add(debris);
                                         }
                                     } else {
-                                        lighter.gainMattersFrom(this, heavier, timeStep);
+                                        lighter.gainMattersFromRoche(this, heavier, timeStep);
                                     }
                                 }
                             }
@@ -389,7 +437,7 @@ public class Simulator {
                                             debrisBuffer.add(debris);
                                         }
                                     } else {
-                                        heavier.gainMattersFrom(this, lighter, timeStep);
+                                        heavier.gainMattersFromRoche(this, lighter, timeStep);
                                     }
                                 }
                             }
@@ -705,11 +753,11 @@ public class Simulator {
         for (RealObject ro : objects) {
             double[] newPos = SystemPresets.rotateToXYPlane(ro.getPosition(), newZAxis);
             double[] newVel = SystemPresets.rotateToXYPlane(ro.getVelocity(), newZAxis);
-            
+
             // code order changed, setters were called after rotation computation. If bug, check this
             ro.setPosition(newPos);
             ro.setVelocity(newVel);
-            
+
             if (ro instanceof CelestialObject co) {
                 double[] newAxis = VectorOperations.normalize(
                         SystemPresets.rotateToXYPlane(co.getRotationAxis(), newZAxis));
@@ -777,6 +825,10 @@ public class Simulator {
         double shape = co.shapeFactor();
         double eqr = Math.pow(co.getEquatorialRadius(), gravityDtPower - 1);
         return -0.6 * G * co.mass * co.mass / eqr * shape;
+    }
+
+    public double gravitationalBindingEnergyOf(RealObject ro) {
+        return 0;  // todo
     }
 
     protected double potentialEnergyBetween(RealObject co1, RealObject co2) {
@@ -1678,7 +1730,7 @@ public class Simulator {
 
         for (int i = 0; i < iteration; i++) {
             for (RealObject ro : objects) {
-                
+
                 double luminosity = ro.getLuminosity();
                 if (luminosity > 0) {
                     // is a light source

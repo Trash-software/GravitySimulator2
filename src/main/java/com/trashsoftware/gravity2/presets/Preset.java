@@ -363,6 +363,71 @@ public abstract class Preset {
         }
     };
 
+    public static Preset FORMING_STAR_SYSTEM = new Preset("FormingStarSystem", 20) {
+
+        @Override
+        public double instantiate(Simulator simulator) {
+            CelestialObject star = SystemPresets.createMainSequenceStar(
+                    "Star",
+                    SOLAR_MASS * 0.25
+            );
+            simulator.addObject(star);
+
+            ObjectInfo[] infos = {
+                    helloKitty
+            };
+            double[] distancesAu = {0.1};
+
+            Map<ObjectInfo, String> names = Map.of(
+                    
+            );
+
+            for (int i = 0; i < infos.length; i++) {
+//                double ecc = random.nextDouble(0, 0.18);
+                double ecc = 0;
+                double ap = distancesAu[i] * AU;
+
+                CelestialObject planet = Preset.addPlanetRandomPosition(simulator,
+                        star,
+                        infos[i],
+                        names.get(infos[i]),
+                        1,
+                        ap,
+                        ecc,
+                        2);
+            }
+
+            double systemRadius = simulator.greatestRadius();
+            double totalMass = simulator.totalMass();
+            int nGas = 16;
+            Random random = new Random();
+            for (int i = 0; i < nGas; i++) {
+                double r = random.nextDouble(0.9, 2.0) * systemRadius;
+                double theta = random.nextDouble() * Math.PI * 2;
+                double x = Math.cos(theta) * r;
+                double y = Math.sin(theta) * r;
+                double z = random.nextDouble(-1, 1) * systemRadius * 0.03;
+
+                double radius = random.nextDouble(0.5, 1.0) * 3 * systemRadius / Math.sqrt(nGas);
+                double density = random.nextDouble(1e-8, 1e-6);
+                double mass = Math.PI * Math.pow(radius, 3) * 0.75 * density;
+                DustObject dust = new DustObject("Gas" + i,
+                        mass,
+                        new double[]{x, y, z},
+                        new double[3],
+                        "#777777",
+                        radius);
+//                System.out.println("Dust " + dust.getId() + " density " + dust.getDensity());
+                simulator.addObject(dust);
+                dust.setVelocity(simulator.computeVelocityOfN(star, dust, 1.0, star.getEclipticPlaneNormal()));
+            }
+
+            setTemperatureToSystem(simulator);
+
+            return 1e-9;
+        }
+    };
+
     public static Preset HARMONIC_KITTY_SYSTEM = new Preset("HarmonicKittySystem", 10) {
         @Override
         public double instantiate(Simulator simulator) {

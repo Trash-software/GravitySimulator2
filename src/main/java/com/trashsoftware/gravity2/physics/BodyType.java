@@ -27,17 +27,21 @@ public enum BodyType {
         this.thermalSkinDensity = thermalSkinDensity;
         this.adaptiveDensity = adaptiveDensity;
     }
+    
+    public static boolean canAccreteGas(double mass) {
+        return mass >= SystemPresets.JUPITER_MASS * 0.03;
+    }
 
     public static BodyType simpleInfer(double mass, double density) {
-        if (mass <= SystemPresets.MOON_MASS * 0.5) {
+        if (mass < SystemPresets.MOON_MASS * 0.5) {
             if (density < 1750) {
                 return ICE;
             } else {
                 return TERRESTRIAL;
             }
-        } else if (mass <= SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
-        else if (mass <= SystemPresets.JUPITER_MASS * 13) return GAS_GIANT;
-        else if (mass <= SystemPresets.JUPITER_MASS * 80) return BROWN_DWARF;
+        } else if (mass < SystemPresets.JUPITER_MASS * 0.03) return TERRESTRIAL;
+        else if (mass < SystemPresets.JUPITER_MASS * 13) return GAS_GIANT;
+        else if (mass < SystemPresets.JUPITER_MASS * 80) return BROWN_DWARF;
         else return STAR;
     }
 
@@ -127,17 +131,23 @@ public enum BodyType {
         double volume = mass / density;
         return Math.pow(3 * volume / (4 * Math.PI), 1.0 / 3);
     }
+    
+    public BodyType mergeWithLighter(double newMass) {
+        if (newMass >= SystemPresets.JUPITER_MASS * 80) {
+            return STAR;
+        } else if (newMass >= SystemPresets.JUPITER_MASS * 13) {
+            return BROWN_DWARF;
+        } else if (newMass >= SystemPresets.JUPITER_MASS * 0.03) {
+            return GAS_GIANT;
+        }
+        return this;
+    }
 
     public BodyType merge(BodyType another, double newMass) {
         int sn = this.ordinal();
         int on = another.ordinal();
         if (sn >= on) {
-            if (newMass >= SystemPresets.JUPITER_MASS * 80) {
-                return STAR;
-            } else if (newMass >= SystemPresets.JUPITER_MASS * 13) {
-                return BROWN_DWARF;
-            }
-            return this;
+            return mergeWithLighter(newMass);
         } else {
             return another.merge(this, newMass);
         }

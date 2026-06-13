@@ -92,6 +92,10 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
         System.arraycopy(position, 0, this.position, 0, position.length);
     }
 
+    public double getDensity() {
+        return mass / getVolume();
+    }
+
     public RealObject getHillMaster() {
         return hillMaster;
     }
@@ -201,6 +205,8 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
     public double transitionalKineticEnergy() {
         return 0.5 * mass * VectorOperations.dotProduct(velocity, velocity);
     }
+    
+    public abstract double rotationalKineticEnergy();
 
     public void receiveLight(double[] sourcePos, double luminosity, double timeStep) {
         double albedo = estimateAlbedo();
@@ -281,5 +287,11 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
     public double accelerationAlongMovingDirection() {
         double dot = VectorOperations.dotProduct(lastAcceleration, velocity);
         return dot / VectorOperations.magnitude(velocity);
+    }
+    
+    public void accelerate(double[] acc) {
+        for (int i = 0; i < velocity.length; i++) {
+            velocity[i] += acc[i];
+        }
     }
 }
