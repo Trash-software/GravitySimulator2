@@ -1,6 +1,7 @@
 package com.trashsoftware.gravity2.utils;
 
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.presets.SystemPresets;
 import org.json.JSONArray;
@@ -68,10 +69,10 @@ public class JsonUtil {
         return instance;
     }
     
-    public static JSONObject objectToJson(Object object) throws IllegalAccessException {
+    public static JSONObject objectToJson(Object object, Class<?> clazz) throws IllegalAccessException {
         JSONObject json = new JSONObject();
-//        System.out.println("Class: " + object.getClass());
-        Field[] fields = object.getClass().getDeclaredFields();
+        json.put("class", clazz.getName());
+        Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             if (field == null) continue;
             try {
@@ -97,7 +98,7 @@ public class JsonUtil {
                 } else {
                     Object obj = field.get(object);
                     if (obj != null) {
-                        JSONObject nested = objectToJson(obj);
+                        JSONObject nested = objectToJson(obj, clazz);
                         json.put(name, nested);
                     }
                 }
@@ -130,7 +131,8 @@ public class JsonUtil {
                 new double[3],
                 1.0
         );
-        JSONObject jo = objectToJson(jup);
+        JSONObject jo = objectToJson(jup, CelestialObject.class);
+        JSONObject joPar = objectToJson(jup, RealObject.class);
         System.out.println(jo.toString(2));
         
         CelestialObject recovered = CelestialObject.fromJson(jo);

@@ -55,6 +55,7 @@ public class JmeApp extends SimpleApplication {
     private double pathLength = 5000.0;
 
     protected Simulator simulator;
+    protected double targetSpeed = 1.0;  // todo
     protected double speed = 1.0;
     protected boolean playing = true;
     private boolean locked = false;
@@ -97,6 +98,7 @@ public class JmeApp extends SimpleApplication {
 
     protected SpawningObject spawning;
     private ContourDataList contourDataList;
+    private float lastSpeedSync;
 
     public static JmeApp getInstance() {
         return instance;
@@ -137,6 +139,11 @@ public class JmeApp extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         if (locked) return;
         if (playing) {
+            if (lastSpeedSync > 1.0) {
+                lastSpeedSync -= 1;
+                syncSpeed();
+            }
+            lastSpeedSync += tpf;
             int nPhysicalFrames = Math.round(tpf * 1000);
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames);
             if (sr == Simulator.SimResult.NUM_CHANGED) {
@@ -145,10 +152,10 @@ public class JmeApp extends SimpleApplication {
                 getFxApp().notifyObjectCountChanged(simulator);
             } else if (sr == Simulator.SimResult.TOO_FAST) {
 //                getFxApp().getControlBar().speedDownAction();
-                speedDownAction();
-                reloadObjects();
-                System.out.println("Trigger: too fast");
-                getFxApp().notifyObjectCountChanged(simulator);
+                internalSpeedDown();
+//                reloadObjects();
+//                System.out.println("Trigger: too fast");
+//                getFxApp().notifyObjectCountChanged(simulator);
             }
 
             updateRefFrame();
@@ -355,7 +362,7 @@ public class JmeApp extends SimpleApplication {
 //        rocheEffectTest();
 //        test.toyStarSystemTest();
 //        test.toyStarSystemWithGas();
-        test.formingStarSystemWithGas();
+//        test.formingStarSystemWithGas();
 //        test.harmonicSystemTest();
 //        test.cuteStarSystemWithRaw();
 //        test.cuteStarGasGiantSystem();
@@ -372,6 +379,8 @@ public class JmeApp extends SimpleApplication {
 //        ellipseClusterTest();
 //        subStarTest();
 //        test.infantStarSystemTest();
+        test.infantStarSystemWithGas();
+//        test.centralSuctionTest();
 //        chaosSolarSystemTest();
 //        test.twoChaosSolarSystemTest();
 //        test.twoChaosSystemTest();
@@ -438,11 +447,6 @@ public class JmeApp extends SimpleApplication {
                 modelMap.put(object, om);
                 rootNode.attachChild(om.objectNode);
 
-                // Initialize the geometry for the curve (we'll reuse this each frame)
-//                rootNode.attachChild(om.path);
-//                rootNode.attachChild(om.orbit);
-//                rootNode.attachChild(om.trace);
-
                 // Synchronize the global label showing status to the new object
                 om.setShowLabel(showLabel);
             }
@@ -457,6 +461,25 @@ public class JmeApp extends SimpleApplication {
 
         updateCurvesShowing();
         updateModelPositions();
+    }
+    
+    public void deepReloadAllModels() {
+        enqueue(() -> {
+            rootNode.detachAllChildren();
+
+            diedObjects.clear();
+            modelMap.clear();
+            
+            reloadObjects();
+            
+            if (isFirstPerson()) {
+                setCamera1stPerson();
+            } else {
+                setCamera3rdPerson();
+            }
+            
+            getFxApp().notifyObjectCountChanged(simulator);
+        });
     }
 
     void updateModelPositions() {
@@ -1978,6 +2001,58 @@ public class JmeApp extends SimpleApplication {
             getFxApp().getControlBar().highPerformanceMode(true);
         }
 
+        private void infantStarSystemWithGas() {
+            scale = Preset.INFANT_STAR_SYSTEM_GAS.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+
+//            getFxApp().getControlBar().highPerformanceMode(true);
+        }
+        
+        private void centralSuctionTest() {
+            double starMass = 5e29;
+            double starDensity = BodyType.massiveObjectDensity(starMass);
+            double starRadius = CelestialObject.radiusOf(starMass, starDensity);
+            
+            String colorCode = GuiUtils.temperatureToRGBString(
+                    CelestialObject.approxColorTemperatureOfStar(
+                            CelestialObject.approxLuminosityOfStar(starMass),
+                            starRadius
+                    )
+            );
+
+            CelestialObject star = CelestialObject.create3d(
+                    "Star",
+                    starMass,
+                    starRadius,
+                    new double[3],
+                    new double[3],
+                    colorCode
+            );
+
+            star.forcedSetRotation(new double[]{0, 0, 1}, 1e-4);
+            simulator.addObject(star);
+
+            Random rand = new Random();
+            for (int i = 0; i < 10; i++) {
+                double mass = 1e28;
+                double density = rand.nextDouble(500, 6000);
+                double radius = CelestialObject.radiusOf(mass, density);
+                CelestialObject planet = CelestialObject.create3d(
+                        "Planet",
+                        mass,
+                        radius,
+                        new double[]{3e9 * (i + 1), 1, 1},
+                        new double[3],
+                        "#BBBBBB"
+                );
+                simulator.addObject(planet);
+                planet.setVelocity(simulator.computeVelocityOfN(star, planet, 1.0, star.getRotationAxis()));
+            }
+            
+            scale = 1e-9;
+            simulator.setEnableDisassemble(false);
+        }
+
         private void twoChaosSolarSystemTest() {
             scale = Preset.TWO_RANDOM_STAR_SYSTEM.instantiate(simulator);
             simulator.setEnableDisassemble(false);
@@ -2082,7 +2157,7 @@ public class JmeApp extends SimpleApplication {
 
     public void clearLand() {
         enqueue(() -> {
-            CelestialObject object = (CelestialObject) firstPersonStar.objectModel.object;
+            CelestialObject object = firstPersonStar.objectModel.object;
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.cameraNode);
             firstPersonStar.objectModel.rotatingNode.detachChild(firstPersonStar.northNode);
             firstPersonStar = null;
@@ -2104,19 +2179,36 @@ public class JmeApp extends SimpleApplication {
     private void setSpeed() {
         simulator.setTimeStep(speed);
     }
+    
+    private void syncSpeed() {
+        if (targetSpeed > speed) {
+            speed *= 2;
+            setSpeed();
+        } else if (targetSpeed < speed) {
+            speed = targetSpeed;
+            setSpeed();
+        }
+    }
 
     public void speedUpAction() {
         enqueue(() -> {
-            speed *= 2;
+            targetSpeed *= 2;
+            syncSpeed();
             setSpeed();
         });
     }
 
     public void speedDownAction() {
         enqueue(() -> {
-            speed /= 2;
+            targetSpeed /= 2;
+            syncSpeed();
             setSpeed();
         });
+    }
+    
+    private void internalSpeedDown() {
+        speed /= 2;
+        setSpeed();
     }
 
     public void setPlaying(boolean playing) {
@@ -2224,6 +2316,10 @@ public class JmeApp extends SimpleApplication {
 
     public double getSimulationSpeed() {
         return speed;
+    }
+
+    public double getTargetSpeed() {
+        return targetSpeed;
     }
 
     public boolean isPlaying() {

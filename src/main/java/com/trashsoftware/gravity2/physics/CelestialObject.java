@@ -211,8 +211,6 @@ public class CelestialObject extends RealObject {
             if ("null".equals(texturePath)) texturePath = null;
         }
 
-//        int dim = position.length;
-
         CelestialObject co = new CelestialObject(
                 json.getString("id"),
                 BodyType.valueOf(json.getString("bodyType")),
@@ -245,10 +243,12 @@ public class CelestialObject extends RealObject {
                 "timeInsideRocheLimit"
         }) {
             try {
-                CelestialObject.class.getDeclaredField(attr).set(co, json.getDouble(attr));
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchFieldException e) {
+                try {
+                    CelestialObject.class.getDeclaredField(attr).set(co, json.getDouble(attr));
+                } catch (NoSuchFieldException nfe) {
+                    RealObject.class.getDeclaredField(attr).set(co, json.getDouble(attr));
+                }
+            } catch (IllegalAccessException | NoSuchFieldException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -260,38 +260,18 @@ public class CelestialObject extends RealObject {
 
     public JSONObject toJson() {
         try {
-            return JsonUtil.objectToJson(this);
+            JSONObject roJson = JsonUtil.objectToJson(this, RealObject.class);
+            JSONObject coJson = JsonUtil.objectToJson(this, CelestialObject.class);
+            for (String key : roJson.keySet()) {
+                if (!coJson.has(key)) {
+                    coJson.put(key, roJson.get(key));
+                }
+            }
+            return coJson;
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-//        JSONObject json = new JSONObject();
-//
-//        json.put("name", name);
-//        json.put("mass", mass);
-//        json.put("equatorialRadius", equatorialRadius);
-//        json.put("polarRadius", polarRadius);
-//        json.put("exist", exist);
-//        json.put("colorCode", colorCode);
-//        json.put("lightColorCode", lightColorCode);
-//        json.put("texturePath", texturePath);
-//        json.put("position", new JSONArray(position));
-//        json.put("velocity", new JSONArray(velocity));
-//        json.put("rotationAxis", new JSONArray(rotationAxis));
-//        json.put("angularVelocity", angularVelocity);
-//        json.put("rotationAngle", rotationAngle);
-//        json.put("internalThermalEnergy", internalThermalEnergy);
-//        json.put("tidalLoveNumber", tidalLoveNumber);
-//
-//        return json;
     }
-
-//    public void setColor(ColorRGBA color) {
-//        this.color = color;
-//
-//        PhongMaterial material = new PhongMaterial();
-//        material.setDiffuseColor(color);
-//        model.setMaterial(material);
-//    }
 
     public void forceSetBasics(double mass, double avgRadius) {
         double internalTemp = getBodyAverageTemperature();
@@ -834,6 +814,18 @@ public class CelestialObject extends RealObject {
         this.internalThermalEnergy += difference;
     }
     
+    public double accretionSpeed(Simulator simulator, double cloudDensity, double timeStep) {
+        double densityMul = cloudDensity / DustObject.MAXIMUM_DENSITY;
+        double baseSpeed = densityMul * mass * simulator.accretionSpeedFactor * 3e-14 * timeStep;
+        if (bodyType.adaptiveDensity) {
+            // Adaptive density means can massive accretion
+            double gasSpeed = Math.sqrt(densityMul) * mass * simulator.accretionSpeedFactor * 3e-15 * timeStep;
+            return Math.max(baseSpeed, gasSpeed);
+        } else {
+            return baseSpeed;
+        }
+    }
+    
     public static double volumeOf(double equatorialRadius, double polarRadius) {
         return 4.0 / 3.0 * Math.PI * equatorialRadius * equatorialRadius * polarRadius;
     }
@@ -875,7 +867,7 @@ public class CelestialObject extends RealObject {
 
     @Override
     public double proximityWarningDistance() {
-        return possibleRocheLimit;
+        return Math.max(getMajorRadius(), possibleRocheLimit / 2);
     }
 
     public static double radiusOf(double mass, double density) {

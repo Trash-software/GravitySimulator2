@@ -6,7 +6,7 @@
 <HBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.trashsoftware.gravity2.fxml.ControlBar"
-      prefHeight="60.0" prefWidth="960.0" spacing="10.0">
+      prefHeight="60.0" prefWidth="1000.0" spacing="10.0">
 
     <padding>
         <Insets topRightBottomLeft="5.0"/>
@@ -18,10 +18,11 @@
                 <ToggleGroup fx:id="orbitShowingGroup"/>
             </fx:define>
 
-            <HBox spacing="5.0" alignment="CENTER_LEFT" prefWidth="360.0">
+            <HBox spacing="5.0" alignment="CENTER_LEFT" prefWidth="400.0">
                 <Button text="⏸" fx:id="playPauseBtn" onAction="#playPauseAction"/>
                 <Label fx:id="timeStepText"/>
                 <Label text="%simSpeed"/>
+                <Label fx:id="tarSpeedLabel" text="1.0x"/>
                 <Label fx:id="speedLabel" text="1.0x"/>
                 <Label fx:id="realSpeedLabel" text="--"/>
             </HBox>

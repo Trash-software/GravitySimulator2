@@ -79,6 +79,9 @@ public class SolidModel extends ObjectModel {
         float eqScale = (float) radiusScale;
         float polarScale = (float) (radiusScale * ratio);
         rotatingNode.setLocalScale(eqScale, eqScale, polarScale);
+//        if (baseScale > 100 || baseScale < 0.01) {
+//            System.out.println(object.getId() + " " + baseScale + " " + eqScale + " " + polarScale);
+//        }
     }
 
     @Override

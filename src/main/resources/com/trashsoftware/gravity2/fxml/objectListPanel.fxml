@@ -17,6 +17,7 @@
         <Menu text="%menuFile">
             <MenuItem text="%menuSave" onAction="#saveAction"/>
             <MenuItem text="%menuLoad" onAction="#loadAction"/>
+            <MenuItem text="%reloadAllModels" onAction="#reloadModelsAction"/>
             <Menu fx:id="presetsMenu" text="%menuPresets">
 
             </Menu>
@@ -47,6 +48,18 @@
         <HBox spacing="10.0" GridPane.rowIndex="3" GridPane.columnIndex="1">
             <Label fx:id="nObjectsText"/>
             <Label fx:id="totalMassText"/>
+        </HBox>
+
+        <Label text="%totalSolidAndMass" GridPane.rowIndex="4"/>
+        <HBox spacing="10.0" GridPane.rowIndex="4" GridPane.columnIndex="1">
+            <Label fx:id="nSolidText"/>
+            <Label fx:id="solidMassText"/>
+        </HBox>
+
+        <Label text="%totalDustAndMass" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+        <HBox spacing="10.0" GridPane.rowIndex="4" GridPane.columnIndex="3">
+            <Label fx:id="nDustText"/>
+            <Label fx:id="dustMassText"/>
         </HBox>
     </GridPane>
 

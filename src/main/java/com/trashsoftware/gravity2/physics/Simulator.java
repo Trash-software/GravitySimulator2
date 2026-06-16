@@ -30,8 +30,8 @@ public class Simulator {
     private final int dimension;
     protected double tidalEffectFactor = 1;
     //    protected double tidalEffectFactor = 1e25;
-    protected double accretionSpeedFactor = 1e4;
-    protected double gasFrictionFactor = 1e4;
+    protected double accretionSpeedFactor = 1e6;
+    protected double gasFrictionFactor = 1e6;
 
     protected double G;
     protected double gravityDtPower;
@@ -50,7 +50,7 @@ public class Simulator {
 
     // temp buffers
     private transient double[][] forcesBuffer;
-    private transient double[] dimDtBuffer;
+//    private transient double[] dimDtBuffer;
     private transient final List<CelestialObject> debrisBuffer = new ArrayList<>();
     private transient final List<RealObject> newlyDestroyed = new ArrayList<>();
 
@@ -87,8 +87,8 @@ public class Simulator {
 
         JSONArray objectsArr = json.getJSONArray("objects");
         for (int i = 0; i < objectsArr.length(); i++) {
-            CelestialObject co = CelestialObject.fromJson(objectsArr.getJSONObject(i));
-            simulator.addObject(co);
+            RealObject ro = RealObject.fromJson(objectsArr.getJSONObject(i));
+            simulator.addObject(ro);
         }
 
         return simulator;
@@ -242,7 +242,7 @@ public class Simulator {
                     // hill master is heavier, so its velocity will be updated earlier
                     double[] relVel = VectorOperations.subtract(object.velocity, object.hillMaster.velocity);
                     if (VectorOperations.magnitude(relVel) * timeStep > object.hillMaster.proximityWarningDistance() * 0.33) {
-                        System.out.println("Too fast: " + object.id);
+//                        System.out.println("Too fast: " + object.id + " with " + object.hillMaster.id);
                         result = SimResult.TOO_FAST;
                     }
                 }
@@ -313,13 +313,22 @@ public class Simulator {
             if (ro instanceof DustObject duo && ro.hillMaster != null) {
                 double[] velToMaster = VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity());
                 double speed = VectorOperations.magnitude(velToMaster);
-                double dec = speed * speed * Math.sqrt(duo.getDensity()) * gasFrictionFactor * 1e-14 * timeStep;
+                double dec = speed * speed * Math.sqrt(duo.getDensity()) * gasFrictionFactor * 2e-16 * timeStep;
                 double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
                 ro.accelerate(deceleration);
 
 //                double speedAfter = VectorOperations.magnitude(VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity()));
 //                System.out.printf("%s speed before and after: %f, %f\n", ro.id, speed, speedAfter);
-            }
+            } 
+//            else {
+//                if (ro.hillMaster != null) {
+//                    double[] velToMaster = VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity());
+//                    double speed = VectorOperations.magnitude(velToMaster);
+//                    double dec = speed * 1e-6 * timeStep;
+//                    double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
+//                    ro.accelerate(deceleration);
+//                }
+//            }
         }
 
         boolean nebulaExhausted = false;
@@ -339,7 +348,7 @@ public class Simulator {
                             double[] relativeVel = VectorOperations.subtract(roj.getVelocity(), coi.getVelocity());
                             double relativeSpeed = VectorOperations.magnitude(relativeVel);
                             double strong = (coi.getAverageRadius() * coi.getDensity()) / 1e10;
-                            double friction = relativeSpeed * relativeSpeed * gasFrictionFactor * cloudDensity * 1e-9 * timeStep / strong;
+                            double friction = relativeSpeed * relativeSpeed * gasFrictionFactor * cloudDensity * 5e-11 * timeStep / strong;
                             double[] frictionAcc = VectorOperations.scale(VectorOperations.normalize(relativeVel), friction);
 //                            System.out.printf("%s: strong: %f, cloud den: %f, friction: %f, friAcc: %s\n", coi.id, strong, cloudDensity, friction, Arrays.toString(frictionAcc));
                             coi.accelerate(frictionAcc);
@@ -348,7 +357,7 @@ public class Simulator {
 //                            System.out.printf("%s speed before and after: %f, %f\n=====\n", coi.id, pureSpeedBefore, pureSpeedAfter);
                             
                             // accretion
-                            double accretionSpeed = cloudDensity * coi.mass * accretionSpeedFactor * 1e-6 * timeStep;
+                            double accretionSpeed = coi.accretionSpeed(this, cloudDensity, timeStep);
                             boolean drained = false;
                             if (accretionSpeed > dust.mass * 0.5) {
                                 accretionSpeed = dust.mass;
@@ -488,46 +497,6 @@ public class Simulator {
         cutOffForce = epsilon * fTypical;
     }
 
-    @Deprecated
-    public double[][] calculateAllForces2(List<CelestialObject> objects) {
-        int n = objects.size();
-        if (forcesBuffer == null || forcesBuffer.length < n || forcesBuffer[0].length != dimension) {
-            forcesBuffer = new double[n][dimension];
-        } else {
-            for (double[] doubles : forcesBuffer) {
-                Arrays.fill(doubles, 0.0);
-            }
-        }
-        if (dimDtBuffer == null || dimDtBuffer.length != dimension) {
-            dimDtBuffer = new double[dimension];
-        } else {
-            Arrays.fill(dimDtBuffer, 0.0);
-        }
-
-        for (int i = 0; i < n; i++) {
-            CelestialObject coi = objects.get(i);
-            for (int j = i + 1; j < n; j++) {
-                CelestialObject coj = objects.get(j);
-                double sqrDt = 0;
-                for (int d = 0; d < dimension; d++) {
-                    dimDtBuffer[d] = coj.position[d] - coi.position[d];
-                    sqrDt += dimDtBuffer[d] * dimDtBuffer[d];
-                }
-                double distance = Math.sqrt(sqrDt);
-                double forceMagnitude = G * coi.mass * coj.mass / Math.pow(distance, gravityDtPower);
-
-                double[] fi = forcesBuffer[i];
-                double[] fj = forcesBuffer[j];
-                for (int d = 0; d < dimension; d++) {
-                    double fAtD = forceMagnitude * dimDtBuffer[d] / distance;
-                    fi[d] += fAtD;
-                    fj[d] -= fAtD;
-                }
-            }
-        }
-        return forcesBuffer;
-    }
-
     public void calculateAllForces(List<RealObject> objects) {
         int n = objects.size();
         if (n == 0) return;
@@ -569,29 +538,93 @@ public class Simulator {
             sqrDt += dimDtBuffer[d] * dimDtBuffer[d];
         }
         double distance = Math.sqrt(sqrDt);
-        double cutOffDistance = calculateCutoffDistance(roi.mass, roj.mass);
-        if (roi instanceof DustObject || roj instanceof DustObject) {
-            // For dust/nebula, do not make distance less than their radius
-            // Otherwise they will be throw away by gravity assist
-            // This is only a simple approximation
-            distance = Math.max(distance, Math.max(roi.getMajorRadius(), roj.getMajorRadius()));
+        for (int d = 0; d < dimension; d++) {
+            dimDtBuffer[d] /= distance;
         }
-
+        double cutOffDistance = calculateCutoffDistance(roi.mass, roj.mass);
+        
         if (distance < cutOffDistance) {
-            // only for potential performance improvement
-            double dtPow = gravityDtPower == 2 ? distance * distance : Math.pow(distance, gravityDtPower);
-            double forceMagnitude = G * roi.mass * roj.mass / dtPow;
-            forceCounter1++;
-
-            double[] fi = forcesBuffer[i];
-            double[] fj = forcesBuffer[j];
-            for (int d = 0; d < dimension; d++) {
-                double fAtD = forceMagnitude * dimDtBuffer[d] / distance;
-                fi[d] += fAtD;
-                fj[d] -= fAtD;
+            if (roi instanceof CelestialObject coi) {
+                if (roj instanceof CelestialObject coj) {
+                    normalUpdateForce(i, j, coi, coj, dimDtBuffer, distance);
+                } else if (roj instanceof DustObject doj) {
+                    solidDustForce(i, j, coi, doj, dimDtBuffer, distance);
+                } else {
+                    throw new RuntimeException("Unexpected object type " + roj.getClass());
+                }
+            } else if (roi instanceof DustObject doi) {
+                if (roj instanceof CelestialObject coj) {
+                    double[] jToI = VectorOperations.reverseVector(dimDtBuffer);
+                    solidDustForce(j, i, coj, doi, jToI, distance);
+                } else if (roj instanceof DustObject doj) {
+                    dustDustForce(i, j, doi, doj, dimDtBuffer, distance);
+                } else {
+                    throw new RuntimeException("Unexpected object type " + roj.getClass());
+                }
+            } else {
+                throw new RuntimeException("Unexpected object type " + roi.getClass());
             }
         } else {
             forceCounter2++;
+        }
+    }
+    
+    private void solidDustForce(int solidIndex, int dustIndex, CelestialObject solid, DustObject dust,
+                                double[] iToJ, double distance) {
+        if (distance >= dust.radius) {
+            // Far, compute normally
+            normalUpdateForce(solidIndex, dustIndex, solid, dust, iToJ, distance);
+        } else {
+            // Inside the gas cloud: only enclosed gas mass contributes
+            double dustRadius = dust.radius;
+            double dtPow = gravityDtPower == 2 ? distance : Math.pow(distance, gravityDtPower - 1);
+            double forceMagnitude = G * solid.mass * dust.mass * dtPow / (dustRadius * dustRadius * dustRadius);
+            distributeForce(solidIndex, dustIndex, forceMagnitude, iToJ);
+        }
+    }
+
+    private void dustDustForce(int i, int j, DustObject doi, DustObject doj, double[] iToJ, double distance) {
+        
+        if (distance >= doi.radius + doj.radius) {
+            // Far, compute normally
+            normalUpdateForce(i, j, doi, doj, iToJ, distance);
+        } else {
+            double reductionI = gasReductionFactor(distance, doi.radius);
+            double reductionJ = gasReductionFactor(distance, doj.radius);
+
+            // Symmetric approximation.
+            // This keeps the force equal-and-opposite when used in pairwise simulation.
+            double reduction = 0.5 * (reductionI + reductionJ);
+            double dtPow = gravityDtPower == 2 ? distance * distance : Math.pow(distance, gravityDtPower);
+            double forceMagnitude = G * doi.mass * doj.mass / dtPow * reduction;
+            distributeForce(i, j, forceMagnitude, iToJ);
+        }
+    }
+
+    private double gasReductionFactor(double distance, double gasRadius) {
+        if (distance >= gasRadius) {
+            return 1.0;
+        }
+
+        double x = distance / gasRadius;
+
+        // Equivalent to enclosed mass ratio for a uniform sphere.
+        return x * x * x;
+    }
+    
+    private void normalUpdateForce(int i, int j, RealObject roi, RealObject roj, 
+                                   double[] iToJ, double distance) {
+        double dtPow = gravityDtPower == 2 ? distance * distance : Math.pow(distance, gravityDtPower);
+        double forceMagnitude = G * roi.mass * roj.mass / dtPow;
+        distributeForce(i, j, forceMagnitude, iToJ);
+    }
+    
+    private void distributeForce(int i, int j, double forceMagnitude, double[] iToJ) {
+        forceCounter1++;
+        for (int d = 0; d < dimension; d++) {
+            double fAtD = forceMagnitude * iToJ[d];
+            forcesBuffer[i][d] += fAtD;
+            forcesBuffer[j][d] -= fAtD;
         }
     }
 
@@ -1544,8 +1577,28 @@ public class Simulator {
 
     public double totalMass() {
         double totalMass = 0.0;
-        for (RealObject co : objects) {
-            totalMass += co.mass;
+        for (RealObject ro : objects) {
+            totalMass += ro.mass;
+        }
+        return totalMass;
+    }
+    
+    public double totalSolidMass() {
+        double totalMass = 0.0;
+        for (RealObject ro : objects) {
+            if (ro instanceof CelestialObject) {
+                totalMass += ro.mass;
+            }
+        }
+        return totalMass;
+    }
+
+    public double totalDustMass() {
+        double totalMass = 0.0;
+        for (RealObject ro : objects) {
+            if (ro instanceof DustObject) {
+                totalMass += ro.mass;
+            }
         }
         return totalMass;
     }

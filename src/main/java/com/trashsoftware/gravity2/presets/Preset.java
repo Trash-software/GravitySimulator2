@@ -157,6 +157,16 @@ public abstract class Preset {
                                    double sizeScale, double starMass,
                                    double planetMass, double planetMassDeviation,
                                    double zScale) {
+        return randomStarSystem(simulator, n, sizeScale, starMass, planetMass, planetMassDeviation, zScale,
+                true, 0, 0);
+    }
+
+    static double randomStarSystem(Simulator simulator, int n,
+                                   double sizeScale, double starMass,
+                                   double planetMass, double planetMassDeviation,
+                                   double zScale,
+                                   boolean includeRealPlanets,
+                                   int gasCount, double gasSpawnRadiusMul) {
         double a = 2e10 * sizeScale;
         double b = 2e10 * sizeScale;
         double c = 2e10 * zScale * sizeScale;
@@ -186,10 +196,15 @@ public abstract class Preset {
         centroid.forcedSetRotation(new double[]{0, 0, 1}, 1e-4);
         simulator.addObject(centroid);
 
-        SystemPresets.ObjectInfo[] presets = new SystemPresets.ObjectInfo[]{
-                mercury, venus, earth, mars,
-                jupiter, saturn, uranus, neptune
-        };
+        SystemPresets.ObjectInfo[] presets;
+        if (includeRealPlanets) {
+            presets = new SystemPresets.ObjectInfo[]{
+                    mercury, venus, earth, mars,
+                    jupiter, saturn, uranus, neptune
+            };
+        } else {
+            presets = new ObjectInfo[0];
+        }
 
         Random rand = new Random();
         for (int i = 0; i < n; i++) {
@@ -233,23 +248,56 @@ public abstract class Preset {
                         cc
                 );
             }
-            double[] velocity = simulator.computeVelocityOfN(centroid,
-                    co,
-                    rand.nextDouble(0.75, 1.25),
-                    new double[]{0, 0, 1});
-            co.setVelocity(velocity);
-
-//            double[] axis = new double[]{rand.nextDouble(0.0, 0.25), 
-//                    rand.nextDouble(0.0, 0.5), 
-//                    rand.nextDouble(0.5, 1.0)};
-//            axis = VectorOperations.normalize(axis);
+//            double[] velocity = simulator.computeVelocityOfN(centroid,
+//                    co,
+//                    rand.nextDouble(0.75, 1.25),
+//                    new double[]{0, 0, 1});
+//            co.setVelocity(velocity);
+            
             double[] axis = new double[]{0, 0, 1};
             double angVel = rand.nextDouble(1e-8, 1e-3);
-//            if (rand.nextDouble() < 0.1) {
-//                axis = VectorOperations.reverseVector(axis);
-//            }
             co.forcedSetRotation(axis, angVel);
             simulator.addObject(co);
+        }
+
+        double systemRadius = simulator.greatestRadius();
+//        double totalMass = simulator.totalMass();
+        Random random = new Random();
+        for (int i = 0; i < gasCount; i++) {
+            double r = random.nextDouble(0.05, gasSpawnRadiusMul) * systemRadius;
+            double theta = random.nextDouble() * Math.PI * 2;
+            double x = Math.cos(theta) * r;
+            double y = Math.sin(theta) * r;
+            double z = random.nextDouble(-1, 1) * systemRadius * 0.03;
+
+            double radius = random.nextDouble(0.5, 1.0) * 3 * systemRadius / Math.sqrt(gasCount);
+            double density = random.nextDouble(5e-7, 3e-6);
+            double mass = Math.PI * Math.pow(radius, 3) * 0.75 * density;
+            DustObject dust = new DustObject("Gas" + i,
+                    mass,
+                    new double[]{x, y, z},
+                    new double[3],
+                    "#777777",
+                    radius);
+//                System.out.println("Dust " + dust.getId() + " density " + dust.getDensity());
+            simulator.addObject(dust);
+//            dust.setVelocity(simulator.computeVelocityOfN(centroid, dust, 1.0, centroid.getEclipticPlaneNormal()));
+        }
+        
+        for (RealObject ro : simulator.getObjects()) {
+            if (ro != centroid) {
+                double orbitRadius = VectorOperations.magnitude(ro.getPosition());
+                double massInside = SystemPresets.massInsideRadius(simulator.getObjects(), orbitRadius, centroid.getPosition());
+                double speed = random.nextDouble(0.75, 1.0);
+                double[] velocity = simulator.computeVelocityOfN(centroid.getPosition(),
+                        massInside,
+                        centroid.getVelocity(),
+                        ro,
+                        speed,
+                        centroid.getRotationAxis());
+                System.out.println(ro.getId() + ", " + Arrays.toString(velocity) + " " + speed);
+                ro.setVelocity(velocity);
+            }
         }
 
         SystemPresets.setTemperatureToSystem(simulator);
@@ -374,12 +422,12 @@ public abstract class Preset {
             simulator.addObject(star);
 
             ObjectInfo[] infos = {
-                    helloKitty
+                    pinkGasGiant
             };
             double[] distancesAu = {0.1};
 
             Map<ObjectInfo, String> names = Map.of(
-                    
+
             );
 
             for (int i = 0; i < infos.length; i++) {
@@ -398,7 +446,7 @@ public abstract class Preset {
             }
 
             double systemRadius = simulator.greatestRadius();
-            double totalMass = simulator.totalMass();
+//            double totalMass = simulator.totalMass();
             int nGas = 16;
             Random random = new Random();
             for (int i = 0; i < nGas; i++) {
@@ -409,7 +457,7 @@ public abstract class Preset {
                 double z = random.nextDouble(-1, 1) * systemRadius * 0.03;
 
                 double radius = random.nextDouble(0.5, 1.0) * 3 * systemRadius / Math.sqrt(nGas);
-                double density = random.nextDouble(1e-8, 1e-6);
+                double density = random.nextDouble(2e-7, 2e-6);
                 double mass = Math.PI * Math.pow(radius, 3) * 0.75 * density;
                 DustObject dust = new DustObject("Gas" + i,
                         mass,
@@ -976,6 +1024,15 @@ public abstract class Preset {
         @Override
         public double instantiate(Simulator simulator) {
             return randomStarSystem(simulator, 100, 5, 2e30, 1e28, 30, 0.05);
+        }
+    };
+
+    public static Preset INFANT_STAR_SYSTEM_GAS = new Preset("InfantStarSystemGas", 151) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            return randomStarSystem(simulator,
+                    50, 50, 1e28, 1e22, 30, 0.05,
+                    false, 100, 1.5);
         }
     };
 

@@ -248,10 +248,18 @@ public abstract class ObjectModel {
         cometDustTail.setStartSize(dustSize);
         cometDustTail.setEndSize(dustSize * 20);
         cometDustTail.getParticleInfluencer().setInitialVelocity(initVel1);
-
-        for (var entry : comet.getIonTails().entrySet()) {
+        
+        var iterator = comet.getIonTails().entrySet().iterator();
+        
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
             CometTailParams ctp = entry.getValue();
             ParticleEmitter ionTail = cometIonTails.get(entry.getKey());
+            if (ionTail == null) {
+                iterator.remove();
+                cometIonTails.remove(entry.getKey());
+                continue;
+            }
 
 //            float density = (float) (ctp.tailDensity / 3e5);
 

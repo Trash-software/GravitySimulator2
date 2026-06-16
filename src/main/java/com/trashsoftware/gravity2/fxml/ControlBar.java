@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
 
 public class ControlBar implements Initializable {
     @FXML
-    Label speedLabel, realSpeedLabel;
+    Label speedLabel, tarSpeedLabel, realSpeedLabel;
     @FXML
     Label timeStepText;
     @FXML
@@ -281,6 +281,10 @@ public class ControlBar implements Initializable {
         
         fxApp.getObjectListPanel().reloadInfoPane(simulator, simulator.getObjects());
     }
+    
+    void reloadAllModels() {
+        getJmeApp().deepReloadAllModels();
+    }
 
     @FXML
     public void clearFocusAction() {
@@ -370,6 +374,7 @@ public class ControlBar implements Initializable {
         realSpeedLabel.setText(UnitsUtil.adaptiveTime(realDiff) + "/s");
         lastRealTimeStep = timeStep;
 
+        tarSpeedLabel.setText(getJmeApp().getTargetSpeed() + "x");
         speedLabel.setText(getJmeApp().getSimulationSpeed() + "x");
 
         timeStepText.setText(uc.dateTime(timeStep, strings));

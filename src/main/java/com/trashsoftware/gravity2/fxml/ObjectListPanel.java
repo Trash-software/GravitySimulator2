@@ -4,6 +4,7 @@ import com.trashsoftware.gravity2.fxml.units.UnitsConverter;
 import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.JmeApp;
 import com.trashsoftware.gravity2.physics.CelestialObject;
+import com.trashsoftware.gravity2.physics.DustObject;
 import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.Simulator;
 import com.trashsoftware.gravity2.presets.Preset;
@@ -27,7 +28,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     GridPane infoPane;
     @FXML
     Label totalKineticText, totalPotentialText, totalInternalText, totalEnergyText,
-            totalMassText, nObjectsText;
+            totalMassText, nObjectsText, solidMassText, nSolidText, dustMassText, nDustText;
     @FXML
     ScrollPane celestialContainer;
     @FXML
@@ -224,6 +225,12 @@ public class ObjectListPanel extends AbstractObjectPanel {
                 .map(RealObject::getMass)
                 .reduce(0.0, Double::sum)
         ));
+        
+        nSolidText.setText(String.format("%,d", objects.stream().filter(obj -> obj instanceof CelestialObject).count()));
+        solidMassText.setText(uc.mass(simulator.totalSolidMass()));
+
+        nDustText.setText(String.format("%,d", objects.stream().filter(obj -> obj instanceof DustObject).count()));
+        dustMassText.setText(uc.mass(simulator.totalDustMass()));
     }
 
     public void reloadInfoPane(Simulator simulator, List<RealObject> loadObjects) {
@@ -309,6 +316,11 @@ public class ObjectListPanel extends AbstractObjectPanel {
     @FXML
     public void presetsAction() {
         
+    }
+    
+    @FXML
+    public void reloadModelsAction() {
+        fxApp.getControlBar().reloadAllModels();
     }
 
     @FXML

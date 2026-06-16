@@ -47,6 +47,17 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
 
         lastAcceleration = new double[position.length];
     }
+    
+    public static RealObject fromJson(JSONObject json) {
+        String className = json.optString("class", null);
+        if (className == null || className.equals(CelestialObject.class.getName())) {
+            return CelestialObject.fromJson(json);
+        } else if (className.equals(DustObject.class.getName())) {
+            return DustObject.fromJson(json);
+        } else {
+            throw new RuntimeException("Unknown class '" + className + "'");
+        }
+    }
 
     @Override
     public double getMass() {

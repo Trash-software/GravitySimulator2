@@ -1128,6 +1128,17 @@ public class SystemPresets {
         double zNew = sinAngle * point[1] + cosAngle * point[2];
         return new double[]{point[0], yNew, zNew};
     }
+    
+    public static double massInsideRadius(Collection<RealObject> objects, double radius, double[] origin) {
+        double massInside = 0;
+        for (RealObject object : objects) {
+            double dt = VectorOperations.distance(object.getPosition(), origin);
+            if (dt <= radius) {
+                massInside += object.getMass();
+            }
+        }
+        return massInside;
+    }
 
     public static void main(String[] args) {
         for (int i = 0; i < 12; i++) System.out.println(refinedTitiusBode(i));
