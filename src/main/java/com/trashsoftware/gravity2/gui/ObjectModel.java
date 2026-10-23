@@ -26,6 +26,7 @@ import com.trashsoftware.gravity2.physics.RealObject;
 import com.trashsoftware.gravity2.physics.status.Comet;
 import com.trashsoftware.gravity2.physics.status.CometTailParams;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public abstract class ObjectModel {
     protected final ColorRGBA opaqueColor;
     protected final ColorRGBA darkerColor;
     protected final JmeApp jmeApp;
-    protected ObjectNode objectNode = new ObjectNode();
+    protected ObjectNode objectNode;
     protected Node rotatingNode;
     protected Geometry model;
     protected Geometry hillSphereModel;
@@ -90,6 +91,8 @@ public abstract class ObjectModel {
         this.opaqueColor = GuiUtils.opaqueOf(this.color, 0.5f);
         this.darkerColor = color.clone();
         darkerColor.interpolateLocal(jmeApp.backgroundColor, 0.9f);
+        
+        this.objectNode = new ObjectNode("ObjectNode{" + object.getId() + "}");
 
         initialRadius = object.getMajorRadius();
 
@@ -389,6 +392,7 @@ public abstract class ObjectModel {
                 jmeApp.paneZ(position[2])
         );
 
+//        System.out.println(object.getId() + " " + Arrays.toString(position) + " " + xyz);
         objectNode.setLocalTranslation(xyz);
 
         if (showHillSphere) {

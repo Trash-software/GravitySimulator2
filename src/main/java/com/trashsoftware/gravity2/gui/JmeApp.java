@@ -29,7 +29,10 @@ import com.trashsoftware.gravity2.utils.OrbitPlane;
 import com.trashsoftware.gravity2.utils.Util;
 import javafx.application.Platform;
 
+import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class JmeApp extends SimpleApplication {
     private static JmeApp instance;
@@ -90,7 +93,7 @@ public class JmeApp extends SimpleApplication {
     private double minimumMassShowing;
     private RealObject focusing;
     private FirstPersonMoving firstPersonStar;
-    private final FxApp fxApp;
+    private final @Nonnull FxApp fxApp;
     //    private final Set<Spatial> eachFrameErase = new HashSet<>();
     private AmbientLight ambientLight;
     protected FilterPostProcessor filterPostProcessor;
@@ -100,14 +103,21 @@ public class JmeApp extends SimpleApplication {
     private ContourDataList contourDataList;
     private float lastSpeedSync;
 
+    private final ReentrantReadWriteLock stateLock =
+            new ReentrantReadWriteLock();
+
+    private final Lock readLock = stateLock.readLock();
+    private final Lock writeLock = stateLock.writeLock();
+
     public static JmeApp getInstance() {
         return instance;
     }
 
-    public JmeApp(FxApp fxApp) {
+    public JmeApp(@Nonnull FxApp fxApp) {
         this.fxApp = fxApp;
     }
 
+    @Nonnull
     public FxApp getFxApp() {
         return fxApp;
     }
@@ -134,10 +144,32 @@ public class JmeApp extends SimpleApplication {
         setCamera3rdPerson();
         updateLabelShowing();
     }
+    
+    public void lock() {
+        locked = true;
+    }
+    
+    public void unlock() {
+        locked = false;
+    }
+
+    private void checkValidity(Spatial spatial) {
+        Vector3f pos = spatial.getLocalTranslation();
+        if (Float.isNaN(pos.x) || Float.isNaN(pos.y) || Float.isNaN(pos.z)) {
+            System.err.println("NaN detected on Spatial: " + spatial.getName() + ", " + pos);
+            // Insert breakpoint here to trace the origin stack
+        }
+        if (spatial instanceof Node) {
+            for (Spatial child : ((Node) spatial).getChildren()) {
+                checkValidity(child);
+            }
+        }
+    }
 
     @Override
     public void simpleUpdate(float tpf) {
         if (locked) return;
+        checkValidity(rootNode);
         if (playing) {
             if (lastSpeedSync > 1.0) {
                 lastSpeedSync -= 1;
@@ -368,7 +400,7 @@ public class JmeApp extends SimpleApplication {
 //        test.cuteStarGasGiantSystem();
 //        test.starSheepdogRing();
 //        orbitTest();
-//        test.solarSystemTest();
+        test.solarSystemTest();
 //        test.solarSystemNoMoonsTest();
 //        test.nestedPlanets();
 //        solarSystemWithCometsTest();
@@ -379,7 +411,8 @@ public class JmeApp extends SimpleApplication {
 //        ellipseClusterTest();
 //        subStarTest();
 //        test.infantStarSystemTest();
-        test.infantStarSystemWithGas();
+//        test.infantStarSystemWithGas();
+//        test.chaosStarSystemWithGas();
 //        test.centralSuctionTest();
 //        chaosSolarSystemTest();
 //        test.twoChaosSolarSystemTest();
@@ -1856,6 +1889,20 @@ public class JmeApp extends SimpleApplication {
         private void formingStarSystemWithGas() {
             scale = Preset.FORMING_STAR_SYSTEM.instantiate(simulator);
         }
+        
+        private void chaosStarSystemWithGas() {
+            scale = Preset.CHAOS_STAR_SYSTEM_WITH_GAS.instantiate(simulator);
+            simulator.setEnableDisassemble(false);
+            
+//            simulator.setEnableMasterCalculation(false);
+//            setPlaying(false);
+        }
+        
+//        private void gasFrictionTest() {
+//            DustObject gas1 = new DustObject("gas1", )
+//            
+//            scale = 1e-11;
+//        }
 
         private void toyStarSystemTest() {
             scale = Preset.TOY_STAR_SYSTEM.instantiate(simulator);
@@ -1880,10 +1927,10 @@ public class JmeApp extends SimpleApplication {
                 double mass = random.nextDouble(0.25, 1) * totalMass * 0.01;
                 DustObject dust = new DustObject("Gas" + i,
                         mass,
+                        radius,
                         new double[]{x, y, z},
                         new double[3],
-                        "#777777",
-                        radius);
+                        "#777777");
                 simulator.addObject(dust);
                 dust.setVelocity(simulator.computeVelocityOfN(master, dust, 1.0, master.getEclipticPlaneNormal()));
             }

@@ -275,10 +275,10 @@ public abstract class Preset {
             double mass = Math.PI * Math.pow(radius, 3) * 0.75 * density;
             DustObject dust = new DustObject("Gas" + i,
                     mass,
+                    radius,
                     new double[]{x, y, z},
                     new double[3],
-                    "#777777",
-                    radius);
+                    "#777777");
 //                System.out.println("Dust " + dust.getId() + " density " + dust.getDensity());
             simulator.addObject(dust);
 //            dust.setVelocity(simulator.computeVelocityOfN(centroid, dust, 1.0, centroid.getEclipticPlaneNormal()));
@@ -454,17 +454,17 @@ public abstract class Preset {
                 double theta = random.nextDouble() * Math.PI * 2;
                 double x = Math.cos(theta) * r;
                 double y = Math.sin(theta) * r;
-                double z = random.nextDouble(-1, 1) * systemRadius * 0.03;
+                double z = random.nextDouble(-1, 1) * systemRadius * 0.9;
 
                 double radius = random.nextDouble(0.5, 1.0) * 3 * systemRadius / Math.sqrt(nGas);
                 double density = random.nextDouble(2e-7, 2e-6);
                 double mass = Math.PI * Math.pow(radius, 3) * 0.75 * density;
                 DustObject dust = new DustObject("Gas" + i,
                         mass,
+                        radius,
                         new double[]{x, y, z},
                         new double[3],
-                        "#777777",
-                        radius);
+                        "#777777");
 //                System.out.println("Dust " + dust.getId() + " density " + dust.getDensity());
                 simulator.addObject(dust);
                 dust.setVelocity(simulator.computeVelocityOfN(star, dust, 1.0, star.getEclipticPlaneNormal()));
@@ -1033,6 +1033,69 @@ public abstract class Preset {
             return randomStarSystem(simulator,
                     50, 50, 1e28, 1e22, 30, 0.05,
                     false, 100, 1.5);
+        }
+    };
+
+    public static Preset CHAOS_STAR_SYSTEM_WITH_GAS = new Preset("ChaosStarSystemWIthGas", 151) {
+        @Override
+        public double instantiate(Simulator simulator) {
+            double radius = 1e13;
+            final int nSolid = 50;
+            final int nGas = 80;
+            Random random = new Random();
+            for (int i = 0; i < nSolid + nGas; i++) {
+                double r = random.nextDouble(radius);
+                double theta = random.nextDouble(Math.PI * 2);
+                double phi = random.nextDouble(Math.PI * 2);
+                double x = r * Math.sin(theta) * Math.cos(phi);
+                double y = r * Math.sin(theta) * Math.sin(phi);
+                double z = r * Math.cos(theta);
+                double[] position = new double[]{x, y, z};
+//                double[] initVel = new double[3];
+                double velRange = 1e5;
+                double[] initVel = new double[]{
+                        random.nextDouble(-velRange, velRange),
+                        random.nextDouble(-velRange, velRange),
+                        random.nextDouble(-velRange, velRange)
+                };
+//                System.out.println(Arrays.toString(position));
+                
+                RealObject object;
+                if (i < nSolid) {
+                    double solidMass = random.nextDouble(1e19, 1e20);
+                    double solidDensity = random.nextDouble(2000, 6000);
+                    double solidRadius = CelestialObject.radiusOf(solidMass, solidDensity);
+                    object = CelestialObject.create3d(
+                            "Planetesimal" + i,
+                            solidMass,
+                            solidRadius,
+                            position,
+                            initVel,
+                            Util.randomCelestialColorCode()
+                    );
+//                    double[] axis = new double[]{0, 0, 1};
+//                    double angVel = random.nextDouble(1e-8, 1e-3);
+//                    ((CelestialObject) object).forcedSetRotation(axis, angVel);
+//                    continue;
+                } else {
+                    double dustRadius = random.nextDouble(0.5, 1.0) * 2 * radius / Math.sqrt(nGas);
+                    double dustDensity = random.nextDouble(1e-7, 1e-6);
+                    double dustMass = Math.PI * Math.pow(radius, 3) * 0.75 * dustDensity;
+                    object = new DustObject(
+                            "Dust" + i,
+                            dustMass,
+                            dustRadius,
+                            position,
+                            initVel,
+                            "#777777"
+                    );
+//                    continue;
+                }
+                simulator.addObject(object);
+//                System.out.println("nimasile" + object.getId() + Arrays.toString(object.getPosition()));
+            }
+            
+            return 30 / radius;
         }
     };
 

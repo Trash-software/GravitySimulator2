@@ -231,12 +231,16 @@ public class FxApp extends Application {
         @Override
         public void run() {
             Platform.runLater(() -> {
+                getJmeApp().lock();
+                
                 if (controlBar != null) {
                     controlBar.oneFrameSlow(textRefreshInterval);
                 }
                 if (objectListPanel != null) {
                     objectListPanel.oneFrameSlow(textRefreshInterval);
                 }
+                
+                getJmeApp().unlock();
             });
         }
     }

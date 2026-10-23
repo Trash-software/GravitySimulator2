@@ -816,10 +816,10 @@ public class CelestialObject extends RealObject {
     
     public double accretionSpeed(Simulator simulator, double cloudDensity, double timeStep) {
         double densityMul = cloudDensity / DustObject.MAXIMUM_DENSITY;
-        double baseSpeed = densityMul * mass * simulator.accretionSpeedFactor * 3e-14 * timeStep;
+        double baseSpeed = densityMul * mass * simulator.accretionSpeedFactor * 3e-15 * timeStep;
         if (bodyType.adaptiveDensity) {
             // Adaptive density means can massive accretion
-            double gasSpeed = Math.sqrt(densityMul) * mass * simulator.accretionSpeedFactor * 3e-15 * timeStep;
+            double gasSpeed = Math.sqrt(densityMul) * mass * simulator.accretionSpeedFactor * 3e-16 * timeStep;
             return Math.max(baseSpeed, gasSpeed);
         } else {
             return baseSpeed;

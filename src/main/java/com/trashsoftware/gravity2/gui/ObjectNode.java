@@ -4,7 +4,7 @@ import com.jme3.scene.Node;
 
 public class ObjectNode extends Node {
 
-    public ObjectNode() {
-        super("Object");
+    public ObjectNode(String name) {
+        super(name);
     }
 }

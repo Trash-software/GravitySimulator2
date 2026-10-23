@@ -13,20 +13,63 @@ public class DustObject extends RealObject {
 
     public DustObject(String id,
                       double mass,
+                      double radius,
                       double[] position,
                       double[] velocity,
-                      String colorCode,
-                      double radius) {
+                      String colorCode) {
         super(id, mass, position, velocity, colorCode);
 
         this.radius = radius;
-        
+
         validateDensity();
     }
 
     @Override
     public String toString() {
         return "DustObject{" + id + "}";
+    }
+
+    public static void twoCloudsFriction(Simulator simulator, DustObject doi, DustObject doj, double timeStep) {
+        double momentumBefore = doi.transitionalKineticEnergy() + doi.rotationalKineticEnergy() +
+                doj.transitionalKineticEnergy() + doj.rotationalKineticEnergy();
+        double sumDensity = doi.getDensity() + doj.getDensity();
+        double[] relativeVel = VectorOperations.subtract(doj.getVelocity(), doi.getVelocity());
+        double[] unitFriction = VectorOperations.normalize(relativeVel);
+        double relativeSpeed = VectorOperations.magnitude(relativeVel);
+        double friction = relativeSpeed * relativeSpeed * simulator.gasFrictionFactor * sumDensity * 1e11 * timeStep;
+        for (int d = 0; d < simulator.getDimension(); d++) {
+            doi.velocity[d] += unitFriction[d] * friction / doi.mass;
+            doj.velocity[d] -= unitFriction[d] * friction / doj.mass;
+        }
+        double momentumAfter = doi.transitionalKineticEnergy() + doi.rotationalKineticEnergy() +
+                doj.transitionalKineticEnergy() + doj.rotationalKineticEnergy();
+        double energyLoss = momentumBefore - momentumAfter;
+        if (energyLoss < 0) {
+//            System.err.println("Inter friction is gaining energy, not correct. Before: " + 
+//                    momentumBefore + ", After: " + momentumAfter + ", Loss by: " + energyLoss);
+        }
+        double totalMass = doi.mass + doj.mass;
+        doi.internalThermalEnergy += doi.mass / totalMass * energyLoss;
+        doj.internalThermalEnergy += doj.mass / totalMass * energyLoss;
+    }
+
+    public void processInternalFriction(Simulator simulator, double timeStep) {
+        double momentumBefore = transitionalKineticEnergy() + rotationalKineticEnergy();
+        double[] velToMaster = VectorOperations.subtract(velocity, hillMaster.getVelocity());
+        double speed = VectorOperations.magnitude(velToMaster);
+        double dec = speed * speed * Math.sqrt(getDensity()) * simulator.gasFrictionFactor * 2e-16 * timeStep;
+        double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
+        accelerate(deceleration);
+
+        double momentumAfter = transitionalKineticEnergy() + rotationalKineticEnergy();
+        double energyLoss = momentumBefore - momentumAfter;
+        if (energyLoss < 0) {
+//            System.err.println("Self friction is accelerating, not correct. Loss: " + energyLoss);
+        }
+        internalThermalEnergy += energyLoss;
+
+//        double speedAfter = VectorOperations.magnitude(VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity()));
+//        System.out.printf("%s speed before and after: %f, %f\n", ro.id, speed, speedAfter);
     }
 
     @Override
@@ -91,10 +134,10 @@ public class DustObject extends RealObject {
         DustObject duo = new DustObject(
                 json.getString("id"),
                 json.getDouble("mass"),
+                json.getDouble("radius"),
                 position,
                 velocity,
-                json.getString("colorCode"),
-                json.getDouble("radius")
+                json.getString("colorCode")
         );
 
         duo.shownName = JsonUtil.optString(json, "shownName", null);
@@ -132,7 +175,7 @@ public class DustObject extends RealObject {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void validateDensity() {
         if (getDensity() > MAXIMUM_DENSITY) {
 //            System.out.println("Old density: " + getDensity() + ", reducing");

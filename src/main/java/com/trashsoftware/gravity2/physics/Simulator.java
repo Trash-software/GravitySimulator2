@@ -54,8 +54,8 @@ public class Simulator {
     private transient final List<CelestialObject> debrisBuffer = new ArrayList<>();
     private transient final List<RealObject> newlyDestroyed = new ArrayList<>();
 
-    private transient final Map<RealObject, HieraticalSystem> systemMap = new HashMap<>();
-    private final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
+    transient final Map<RealObject, HieraticalSystem> systemMap = new HashMap<>();
+    final transient List<HieraticalSystem> rootSystems = new ArrayList<>();
     private transient int forceCounter1, forceCounter2;
 
     private transient final ForkJoinPool forceCalculationPool = new ForkJoinPool();
@@ -180,7 +180,7 @@ public class Simulator {
     /**
      * @return whether the size has changed
      */
-    public SimResult simulate(int nPhysicalFrames) {
+    public synchronized SimResult simulate(int nPhysicalFrames) {
         int nObj = objects.size();
         boolean changeHappen = false;
 
@@ -309,26 +309,28 @@ public class Simulator {
 
     private boolean handleAccretion(List<RealObject> objects, double timeStep) {
         int n = objects.size();
+        // nebula internal friction
         for (RealObject ro : objects) {
             if (ro instanceof DustObject duo && ro.hillMaster != null) {
-                double[] velToMaster = VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity());
-                double speed = VectorOperations.magnitude(velToMaster);
-                double dec = speed * speed * Math.sqrt(duo.getDensity()) * gasFrictionFactor * 2e-16 * timeStep;
-                double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
-                ro.accelerate(deceleration);
-
-//                double speedAfter = VectorOperations.magnitude(VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity()));
-//                System.out.printf("%s speed before and after: %f, %f\n", ro.id, speed, speedAfter);
-            } 
-//            else {
-//                if (ro.hillMaster != null) {
-//                    double[] velToMaster = VectorOperations.subtract(ro.velocity, ro.hillMaster.getVelocity());
-//                    double speed = VectorOperations.magnitude(velToMaster);
-//                    double dec = speed * 1e-6 * timeStep;
-//                    double[] deceleration = VectorOperations.scale(VectorOperations.normalize(velToMaster), -dec);
-//                    ro.accelerate(deceleration);
-//                }
-//            }
+                duo.processInternalFriction(this, timeStep);
+            }
+        }
+        
+        // friction between nebulae
+        for (int i = 0; i < n; i++) {
+            RealObject roi = objects.get(i);
+            if (roi instanceof DustObject doi) {
+                for (int j = i + 1; j < n; j++) {
+                    RealObject roj = objects.get(j);
+                    if (roj instanceof DustObject doj) {
+                        double distance = VectorOperations.distance(doi.position, doj.position);
+                        boolean enter = distance < doi.getAverageRadius() + doj.getAverageRadius();
+                        if (enter) {
+                            DustObject.twoCloudsFriction(this, doi, doj, timeStep);
+                        }
+                    }
+                }
+            }
         }
 
         boolean nebulaExhausted = false;
@@ -349,9 +351,14 @@ public class Simulator {
                             double relativeSpeed = VectorOperations.magnitude(relativeVel);
                             double strong = (coi.getAverageRadius() * coi.getDensity()) / 1e10;
                             double friction = relativeSpeed * relativeSpeed * gasFrictionFactor * cloudDensity * 5e-11 * timeStep / strong;
-                            double[] frictionAcc = VectorOperations.scale(VectorOperations.normalize(relativeVel), friction);
-//                            System.out.printf("%s: strong: %f, cloud den: %f, friction: %f, friAcc: %s\n", coi.id, strong, cloudDensity, friction, Arrays.toString(frictionAcc));
-                            coi.accelerate(frictionAcc);
+                            if (friction > relativeSpeed) {
+                                friction = relativeSpeed;
+                            }
+                            double[] deltaV = VectorOperations.scale(VectorOperations.normalize(relativeVel), friction);
+//                            System.out.printf("%s: strong: %f, cloud den: %f, relSpeed: %f, friction: %f, friAcc: %s\n", 
+//                                    coi.id, strong, cloudDensity, relativeSpeed, friction, Arrays.toString(frictionAcc));
+                            coi.accelerate(deltaV);
+                            // todo: energy conservation, also check rotational energy when change radius
 //                            double pureSpeedAfter = VectorOperations.magnitude(coi.velocity);
 //                            System.out.println("Cloud " + (cloudSpeed > pureSpeedBefore ? "faster" : "slower") + " than obj");
 //                            System.out.printf("%s speed before and after: %f, %f\n=====\n", coi.id, pureSpeedBefore, pureSpeedAfter);
@@ -996,6 +1003,11 @@ public class Simulator {
                 rootSystems.add(hs);
             } else {
                 HieraticalSystem parentSystem = systemMap.get(object.hillMaster);
+                if (parentSystem == null) {
+                    System.err.println("Weird problem: parent system of " + object.getId() + " is " + object.hillMaster.getId() +
+                            " is not in systemMap");
+                    continue;
+                }
                 hs.parent = parentSystem;
                 parentSystem.addChild(hs);
             }
