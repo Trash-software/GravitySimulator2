@@ -62,7 +62,7 @@ public class JmeApp extends SimpleApplication {
     protected double speed = 1.0;
     protected boolean playing = true;
     private boolean locked = false;
-    private boolean busy = false;
+    private boolean fxUpdateRequested;
     protected double scale = 1.0;
     private final Vector3d screenCenterAutoMove = new Vector3d();
     private final Vector3d refOffsetAutoMove = new Vector3d();
@@ -103,12 +103,6 @@ public class JmeApp extends SimpleApplication {
     protected SpawningObject spawning;
     private ContourDataList contourDataList;
     private float lastSpeedSync;
-
-    private final ReentrantReadWriteLock stateLock =
-            new ReentrantReadWriteLock();
-
-    private final Lock readLock = stateLock.readLock();
-    private final Lock writeLock = stateLock.writeLock();
 
     public static JmeApp getInstance() {
         return instance;
@@ -157,9 +151,9 @@ public class JmeApp extends SimpleApplication {
     public boolean isLocked() {
         return locked;
     }
-
-    public boolean isBusy() {
-        return busy;
+    
+    public void requestFxUpdate() {
+        fxUpdateRequested = true;
     }
 
     private void checkValidity(Spatial spatial) {
@@ -186,9 +180,7 @@ public class JmeApp extends SimpleApplication {
             }
             lastSpeedSync += tpf;
             int nPhysicalFrames = Math.round(tpf * 1000);
-            busy = true;
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames);
-            busy = false;
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 reloadObjects();
                 System.out.println("Trigger: num change");
@@ -246,6 +238,15 @@ public class JmeApp extends SimpleApplication {
         }
 //        drawNameTexts();
 //        System.out.println(tpf * 1000);
+        
+        if (fxUpdateRequested) {
+            lock();
+            fxUpdateRequested = false;
+            Platform.runLater(() -> {
+                getFxApp().updateSlow();
+                unlock();
+            });
+        }
     }
 
     private void initLights() {
@@ -411,7 +412,7 @@ public class JmeApp extends SimpleApplication {
 //        test.cuteStarGasGiantSystem();
 //        test.starSheepdogRing();
 //        orbitTest();
-        test.solarSystemTest();
+//        test.solarSystemTest();
 //        test.solarSystemNoMoonsTest();
 //        test.nestedPlanets();
 //        solarSystemWithCometsTest();
@@ -422,7 +423,7 @@ public class JmeApp extends SimpleApplication {
 //        ellipseClusterTest();
 //        subStarTest();
 //        test.infantStarSystemTest();
-//        test.infantStarSystemWithGas();
+        test.infantStarSystemWithGas();
 //        test.chaosStarSystemWithGas();
 //        test.centralSuctionTest();
 //        chaosSolarSystemTest();

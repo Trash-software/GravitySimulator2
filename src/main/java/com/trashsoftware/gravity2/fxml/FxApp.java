@@ -209,6 +209,15 @@ public class FxApp extends Application {
 //        return um == null ? UnitMethod.ADAPTIVE.unitsConverter : um.unitsConverter;
     }
     
+    public void updateSlow() {
+        if (controlBar != null) {
+            controlBar.oneFrameSlow(textRefreshInterval);
+        }
+        if (objectListPanel != null) {
+            objectListPanel.oneFrameSlow();
+        }
+    }
+    
     class UiUpdateTimer extends AnimationTimer {
         
         long lastNano;
@@ -230,22 +239,9 @@ public class FxApp extends Application {
 
         @Override
         public void run() {
-            Platform.runLater(() -> {
-                if (getJmeApp() == null || getJmeApp().isBusy()) {
-                    return;
-                }
-                
-                getJmeApp().lock();
-                
-                if (controlBar != null) {
-                    controlBar.oneFrameSlow(textRefreshInterval);
-                }
-                if (objectListPanel != null) {
-                    objectListPanel.oneFrameSlow();
-                }
-                
-                getJmeApp().unlock();
-            });
+            if (getJmeApp() != null) {
+                getJmeApp().requestFxUpdate();
+            }
         }
     }
 

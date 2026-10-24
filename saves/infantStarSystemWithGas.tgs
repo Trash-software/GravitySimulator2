@@ -1,5 +1,5 @@
 {
-  "timeStepAccumulator": 4.585843E8,
+  "timeStepAccumulator": 7.59562261E8,
   "epsilon": 0,
   "gravityDtPower": 2,
   "timeStep": 2048,
@@ -9,32 +9,32 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "STAR",
-      "polarRadius": 3.424368380493617E8,
+      "polarRadius": 1.104777241679376E9,
       "emissivity": 0.95,
-      "mass": 8.199878904752757E29,
+      "mass": 3.184013177503854E30,
       "velocity": [
-        9108.275173629045,
-        -3432.1831243825095,
-        -668.3265682838978
+        13474.745060802561,
+        5667.277706640925,
+        162.9879689102097
       ],
-      "angularVelocity": 1.5898435327603566E-4,
+      "angularVelocity": 2.171626889050896E-4,
       "exist": true,
-      "surfaceThermalEnergy": 3.137116481274909E27,
+      "surfaceThermalEnergy": 0,
       "rotationAxis": [
-        0.06398327362047007,
-        -0.15443191516395216,
-        0.9859294722623936
+        -0.12363837780510176,
+        -0.14502088228914553,
+        0.9816733139052934
       ],
-      "rotationAngle": 448675.9673603945,
-      "internalThermalEnergy": 7.781393911791702E40,
+      "rotationAngle": 1882565.4662388626,
+      "internalThermalEnergy": 3.2330761009927604E41,
       "dissipationFunction": 100,
-      "equatorialRadius": 3.424368380493617E8,
+      "equatorialRadius": 1.104777241679376E9,
       "colorCode": "#3F1000",
       "debrisLevel": 0,
       "position": [
-        -2.8069979085280286E11,
-        3.1809035003400867E11,
-        2.3638247784673175E11
+        5.061970130395371E12,
+        1.80435139685892E11,
+        -1.649967024352469E11
       ],
       "id": "Star",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
@@ -43,36 +43,1017 @@
       "dieTime": -1
     },
     {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 3.339800937102326E8,
-      "emissivity": 0.95,
-      "mass": 7.947537188479966E29,
-      "velocity": [
-        -7755.273277090152,
-        14329.631039363689,
-        5306.697645533377
-      ],
-      "angularVelocity": 8.150923703496099E-4,
       "exist": true,
-      "surfaceThermalEnergy": 1.467516893546514E27,
-      "rotationAxis": [
-        -0.0336988719694635,
-        -0.01197861534457671,
-        0.9993602447578211
+      "emissivity": 0.95,
+      "mass": 1.7614323901248943E29,
+      "internalThermalEnergy": 8.066384755954461E35,
+      "colorCode": "#777777",
+      "position": [
+        4.375404965703098E12,
+        -2.8300950542425854E12,
+        -5.2146933614838745E10
       ],
-      "rotationAngle": 1.8358700814037926E7,
-      "internalThermalEnergy": 6.130403392204646E40,
+      "velocity": [
+        10195.941730093848,
+        1267.0397931449395,
+        -573.0009201793214
+      ],
+      "id": "Gas10",
+      "radius": 2.949890935590436E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.4211921971494352E29,
+      "internalThermalEnergy": 1.4778700794356003E36,
+      "colorCode": "#777777",
+      "position": [
+        4.3692742459177E12,
+        -2.9726354554027827E12,
+        -5.237336823606803E10
+      ],
+      "velocity": [
+        15378.898224250752,
+        754.2168540064888,
+        -434.34769527883395
+      ],
+      "id": "Gas95",
+      "radius": 2.867826073056553E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.2034315696754173E29,
+      "internalThermalEnergy": 5.984077202629683E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3541596374247627E12,
+        -2.8780253146665674E12,
+        -4.963437487159752E10
+      ],
+      "velocity": [
+        14397.324100659142,
+        5532.441564477188,
+        -415.8835621718073
+      ],
+      "id": "Gas71",
+      "radius": 2.7455462724257697E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.0049751383268442E29,
+      "internalThermalEnergy": 1.865503518119172E36,
+      "colorCode": "#777777",
+      "position": [
+        4.52602098224166E12,
+        -2.7513053541753755E12,
+        -4.835754843129592E10
+      ],
+      "velocity": [
+        11706.552755523022,
+        15508.193753721067,
+        -331.2414051382892
+      ],
+      "id": "Gas16",
+      "radius": 2.6601750174276068E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 9.715010123610398E28,
+      "internalThermalEnergy": 5.28685107293499E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3596610424296333E12,
+        -2.8609602185733477E12,
+        -4.5398117212698166E10
+      ],
+      "velocity": [
+        16763.590377622517,
+        1262.6338559966066,
+        -481.79260593287427
+      ],
+      "id": "Gas43",
+      "radius": 2.582322834661209E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 8.012684387248176E28,
+      "internalThermalEnergy": 3.514438133129176E35,
+      "colorCode": "#777777",
+      "position": [
+        2.336754104367986E12,
+        -1.2817432075144592E12,
+        -1.5422016140677975E11
+      ],
+      "velocity": [
+        14727.596728993789,
+        -1927.9610029123078,
+        -528.8844275081078
+      ],
+      "id": "Gas90",
+      "radius": 2.7613627834254974E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 7.6534971908627385E28,
+      "internalThermalEnergy": 4.497467723045711E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3122734551650815E12,
+        -2.7949607507842188E12,
+        -5.5851276672869835E10
+      ],
+      "velocity": [
+        17268.786492946252,
+        491.5534279680556,
+        -399.38455972038935
+      ],
+      "id": "Gas33",
+      "radius": 2.6142824814334204E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 7.148506490629908E28,
+      "internalThermalEnergy": 8.04750466932966E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3396407658851123E12,
+        -2.760495429167301E12,
+        -5.1738366152851654E10
+      ],
+      "velocity": [
+        8365.249826207337,
+        8443.135149748625,
+        -183.4927016664846
+      ],
+      "id": "Gas68",
+      "radius": 2.2643085724185986E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.725512894148617E28,
+      "internalThermalEnergy": 6.4647616110044435E35,
+      "colorCode": "#777777",
+      "position": [
+        4.928549628644704E12,
+        -1.7439748123317378E12,
+        -1.3804737184547415E11
+      ],
+      "velocity": [
+        20507.597073572306,
+        95.73104310719141,
+        -100.60743035391324
+      ],
+      "id": "Gas47",
+      "radius": 2.43599048166486E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.6312443833986435E28,
+      "internalThermalEnergy": 1.8998350819817377E35,
+      "colorCode": "#777777",
+      "position": [
+        4.323956545122732E12,
+        -2.8621120350851113E12,
+        -5.5905454272246864E10
+      ],
+      "velocity": [
+        15320.951709390209,
+        375.1278928302072,
+        -464.214134479847
+      ],
+      "id": "Gas1",
+      "radius": 2.2912163246566626E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.628663637253859E28,
+      "internalThermalEnergy": 4.366103669004535E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3188680753536245E12,
+        -2.922117876092514E12,
+        -4.994243522874948E10
+      ],
+      "velocity": [
+        22394.455761121655,
+        -402.3110830316357,
+        7.485414910248879
+      ],
+      "id": "Gas23",
+      "radius": 2.782712200206034E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.6239648491118846E28,
+      "internalThermalEnergy": 8.907195079547614E35,
+      "colorCode": "#777777",
+      "position": [
+        4.1176407604910903E12,
+        -2.965010565905245E12,
+        -5.498356288415994E10
+      ],
+      "velocity": [
+        19315.098476487066,
+        -12027.416155191073,
+        -200.17760527812183
+      ],
+      "id": "Gas3",
+      "radius": 2.1251794308788885E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.406676944938338E28,
+      "internalThermalEnergy": 6.104461303124677E28,
+      "colorCode": "#777777",
+      "position": [
+        1.37533176457248E12,
+        4.133126166671252E11,
+        -1.6189085685874017E11
+      ],
+      "velocity": [
+        11851.586748811624,
+        -980.3003287482046,
+        -459.8788827063728
+      ],
+      "id": "Gas93",
+      "radius": 2.2575500366452826E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 4.7444909261397245E28,
+      "internalThermalEnergy": 2.5793656106025825E35,
+      "colorCode": "#777777",
+      "position": [
+        5.095393035578742E12,
+        -1.8012935253210293E12,
+        -1.478899986635242E11
+      ],
+      "velocity": [
+        21234.72461276468,
+        192.64996956349754,
+        -381.04659966944
+      ],
+      "id": "Gas30",
+      "radius": 2.823917007716603E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 3.838648326729746E28,
+      "internalThermalEnergy": 1.9711981286486017E35,
+      "colorCode": "#777777",
+      "position": [
+        4.323591750754217E12,
+        -2.797111525856225E12,
+        -5.1899724411287254E10
+      ],
+      "velocity": [
+        16270.823587575258,
+        -2581.1374199484476,
+        -1275.270858032742
+      ],
+      "id": "Gas66",
+      "radius": 2.2681419723534918E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 3.6692225286178224E28,
+      "internalThermalEnergy": 2.779446265185951E35,
+      "colorCode": "#777777",
+      "position": [
+        5.190635645997419E12,
+        -1.6087411457060283E12,
+        -1.49837638040734E11
+      ],
+      "velocity": [
+        17625.24591691751,
+        -476.66659581980485,
+        -248.23332690289175
+      ],
+      "id": "Gas21",
+      "radius": 2.795681367182608E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 3.2649884760619356E28,
+      "internalThermalEnergy": 1.5566394251392786E35,
+      "colorCode": "#777777",
+      "position": [
+        4.1964087314518735E12,
+        -2.977739203337404E12,
+        -5.689805876625744E10
+      ],
+      "velocity": [
+        17822.08772895415,
+        -6467.123372094173,
+        -1028.574013144026
+      ],
+      "id": "Gas82",
+      "radius": 2.624093617770235E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.787869513200432E28,
+      "internalThermalEnergy": 3.2535082602932344E35,
+      "colorCode": "#777777",
+      "position": [
+        4.583744603148147E12,
+        -3.010832923021423E12,
+        -4.030575583990606E10
+      ],
+      "velocity": [
+        4256.918113416144,
+        -12541.688464055405,
+        2750.206719542743
+      ],
+      "id": "Gas73",
+      "radius": 2.8637236468169763E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.768753316943134E28,
+      "internalThermalEnergy": 2.5443651837135207E35,
+      "colorCode": "#777777",
+      "position": [
+        4.473267366134596E12,
+        -2.858291592446796E12,
+        -4.581721776762975E10
+      ],
+      "velocity": [
+        14492.052562067165,
+        13748.99298478221,
+        -39.05890519380236
+      ],
+      "id": "Gas94",
+      "radius": 2.5851760320532242E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.719786519348213E28,
+      "internalThermalEnergy": 6.495671893002177E34,
+      "colorCode": "#777777",
+      "position": [
+        4.3530281938393613E12,
+        -2.870644154254955E12,
+        -4.493748471054122E10
+      ],
+      "velocity": [
+        17235.314651041794,
+        1607.8419514249329,
+        222.17005800794342
+      ],
+      "id": "Gas18",
+      "radius": 1.861611391820451E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.6511407872266704E28,
+      "internalThermalEnergy": 2.134299483234624E28,
+      "colorCode": "#777777",
+      "position": [
+        7.702792397678996E10,
+        -2.697227553761655E12,
+        -5.420600434976143E10
+      ],
+      "velocity": [
+        12343.568033340234,
+        -51.555335171244316,
+        -274.0384874820098
+      ],
+      "id": "Gas77",
+      "radius": 2.0803719763068723E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.5415667763190005E28,
+      "internalThermalEnergy": 2.5238097082990382E34,
+      "colorCode": "#777777",
+      "position": [
+        9.738537505073315E11,
+        -1.4189380905613926E12,
+        -1.0916349651259966E11
+      ],
+      "velocity": [
+        10701.614236205527,
+        -3829.213997411848,
+        -382.30012515957526
+      ],
+      "id": "Gas55",
+      "radius": 2.6673151997600067E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.258157612625432E28,
+      "internalThermalEnergy": 8.318060502017276E34,
+      "colorCode": "#777777",
+      "position": [
+        4.2882310977411445E12,
+        -2.82879418980827E12,
+        -5.046792865951156E10
+      ],
+      "velocity": [
+        8248.90502945646,
+        4147.65543226956,
+        -1385.8539675041727
+      ],
+      "id": "Gas49",
+      "radius": 2.2128618765587216E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.1913971239827493E28,
+      "internalThermalEnergy": 1.0028544029896477E35,
+      "colorCode": "#777777",
+      "position": [
+        4.3088676464926826E12,
+        -2.837675112227494E12,
+        -5.070517179174766E10
+      ],
+      "velocity": [
+        13366.571453649265,
+        7351.16591446443,
+        -445.2019169086528
+      ],
+      "id": "Gas70",
+      "radius": 1.7565100870863052E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.179765693741347E28,
+      "internalThermalEnergy": 2.252964719061571E35,
+      "colorCode": "#777777",
+      "position": [
+        4.400064385984436E12,
+        -2.740501761425811E12,
+        -5.459067449698368E10
+      ],
+      "velocity": [
+        15992.95876688954,
+        7541.153473454534,
+        195.3433591832897
+      ],
+      "id": "Gas27",
+      "radius": 2.0492350421963824E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.0999144757788807E28,
+      "internalThermalEnergy": 4.201808243688765E34,
+      "colorCode": "#777777",
+      "position": [
+        5.083697029179387E12,
+        -1.7949271640174866E12,
+        -1.5872410155769516E11
+      ],
+      "velocity": [
+        18870.301700687884,
+        -1205.8297296315243,
+        79.86932113764499
+      ],
+      "id": "Gas25",
+      "radius": 2.4924002418004376E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.811036931082348E28,
+      "internalThermalEnergy": 7.36818974483527E34,
+      "colorCode": "#777777",
+      "position": [
+        2.4344637851941724E12,
+        -1.3399126079358289E12,
+        -1.7027349764971298E11
+      ],
+      "velocity": [
+        16140.844093918644,
+        -4992.573833352018,
+        -646.9038886475506
+      ],
+      "id": "Gas99",
+      "radius": 2.4275092720396582E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.77864315676346E28,
+      "internalThermalEnergy": 8.294929411491739E34,
+      "colorCode": "#777777",
+      "position": [
+        2.514314115258405E12,
+        -1.2471339924597495E12,
+        -1.704599005082486E11
+      ],
+      "velocity": [
+        15752.567512584223,
+        -6869.398313870259,
+        -338.07975789649106
+      ],
+      "id": "Gas54",
+      "radius": 2.5202239705125018E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.753580998174823E28,
+      "internalThermalEnergy": 1.2165048541409442E35,
+      "colorCode": "#777777",
+      "position": [
+        4.326867635363333E12,
+        -2.795667023544759E12,
+        -5.730697407559359E10
+      ],
+      "velocity": [
+        12996.901325682938,
+        233.18697619053603,
+        -1155.3797266255835
+      ],
+      "id": "Gas58",
+      "radius": 1.6797607694152676E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.6511011075304432E28,
+      "internalThermalEnergy": 1.899179137616276E35,
+      "colorCode": "#777777",
+      "position": [
+        4.396300469167531E12,
+        -2.977326095437622E12,
+        -6.258529540147144E10
+      ],
+      "velocity": [
+        25488.709678053674,
+        3910.9733640847912,
+        -696.1719324640513
+      ],
+      "id": "Gas80",
+      "radius": 1.7320420789884613E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.4219843887124777E28,
+      "internalThermalEnergy": 2.2800397009656672E28,
+      "colorCode": "#777777",
+      "position": [
+        -1.1488795975674834E12,
+        8.833039505049968E11,
+        -1.3346155027055879E11
+      ],
+      "velocity": [
+        3471.1545174064563,
+        810.6806415530681,
+        -461.4091963848695
+      ],
+      "id": "Gas44",
+      "radius": 2.334583329302062E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.4057324972567615E28,
+      "internalThermalEnergy": 2.340508559978793E35,
+      "colorCode": "#777777",
+      "position": [
+        4.799613540221246E12,
+        3.03520099656074E11,
+        -1.6588258051438086E11
+      ],
+      "velocity": [
+        25452.883194641003,
+        32103.60664071003,
+        -1368.0962300261249
+      ],
+      "id": "Gas74",
+      "radius": 2.2866595423832306E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.2024482086905105E28,
+      "internalThermalEnergy": 5.219040077822808E34,
+      "colorCode": "#777777",
+      "position": [
+        4.0916034834408643E12,
+        -3.246922628561921E12,
+        5.660663524174227E10
+      ],
+      "velocity": [
+        7024.740857762643,
+        5529.13174927512,
+        -324.9246388197781
+      ],
+      "id": "Gas59",
+      "radius": 2.159349593004091E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 7.172149762117178E27,
+      "internalThermalEnergy": 3.105631789546859E34,
+      "colorCode": "#777777",
+      "position": [
+        4.301482008630104E12,
+        -2.857828947605133E12,
+        -5.303544854293651E10
+      ],
+      "velocity": [
+        13988.574701312758,
+        10192.508215199658,
+        -788.5198662273424
+      ],
+      "id": "Gas34",
+      "radius": 1.5079047727078983E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 7.025214294661602E27,
+      "internalThermalEnergy": 1.9417215958690212E34,
+      "colorCode": "#777777",
+      "position": [
+        1.9714164871395505E12,
+        -6.584728232301755E11,
+        -1.5163695239196613E11
+      ],
+      "velocity": [
+        12998.89282935958,
+        -5134.33195734432,
+        -556.0572902229603
+      ],
+      "id": "Gas62",
+      "radius": 1.6262009209543842E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.990080222243397E27,
+      "internalThermalEnergy": 3.6060851885346487E34,
+      "colorCode": "#777777",
+      "position": [
+        3.9611721343850415E12,
+        -1.8723133668889377E12,
+        -2.0479915265036563E11
+      ],
+      "velocity": [
+        22314.298557185957,
+        -4479.036018164602,
+        -40.07134577041389
+      ],
+      "id": "Gas15",
+      "radius": 2.5485125900716693E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.751302048759044E27,
+      "internalThermalEnergy": 2.0185558812971391E34,
+      "colorCode": "#777777",
+      "position": [
+        2.5937681022022183E12,
+        -9.449301583154387E11,
+        -1.7431722840195978E11
+      ],
+      "velocity": [
+        16413.196750943327,
+        -3458.290811210763,
+        -750.6471357647681
+      ],
+      "id": "Gas97",
+      "radius": 1.759923219018177E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.744708061219523E27,
+      "internalThermalEnergy": 2.1247106721894166E29,
+      "colorCode": "#777777",
+      "position": [
+        6.44490660055566E12,
+        2.9816913767426843E11,
+        -1.1333978781734691E11
+      ],
+      "velocity": [
+        530.7482802114691,
+        2582.0816956736035,
+        -392.17517903714565
+      ],
+      "id": "Gas46",
+      "radius": 1.583576835932071E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 5.28684814385482E27,
+      "internalThermalEnergy": 8.919314308945374E33,
+      "colorCode": "#777777",
+      "position": [
+        5.040968193533186E12,
+        -1.759304322663207E12,
+        -1.4417228639009937E11
+      ],
+      "velocity": [
+        16610.3708737738,
+        -744.7596351327658,
+        -274.5737888711391
+      ],
+      "id": "Gas42",
+      "radius": 2.3428806138727246E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 4.841426787781278E27,
+      "internalThermalEnergy": 3.8266757456303873E34,
+      "colorCode": "#777777",
+      "position": [
+        4.488985631097448E12,
+        3.401852935062096E11,
+        -1.5205213176578116E11
+      ],
+      "velocity": [
+        15031.163913540096,
+        -17288.822421989993,
+        -340.1524348127488
+      ],
+      "id": "Gas96",
+      "radius": 2.3064676563745566E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 2.656273648238398E27,
+      "internalThermalEnergy": 1.4525755773473832E34,
+      "colorCode": "#777777",
+      "position": [
+        4.83390388650555E12,
+        3.7700511766650104E11,
+        -1.1091038961725346E11
+      ],
+      "velocity": [
+        10377.883580345964,
+        -11554.770835883897,
+        -1785.840991730322
+      ],
+      "id": "Gas53",
+      "radius": 1.753875446502671E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 9.60487545690263E7,
+      "emissivity": 0.95,
+      "mass": 5.060747307742759E27,
+      "velocity": [
+        14924.905994961427,
+        4649.6195183719365,
+        -551.7260590444132
+      ],
+      "angularVelocity": 9.663564407969327E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 5.043893918398447E25,
+      "rotationAxis": [
+        0,
+        0,
+        1
+      ],
+      "rotationAngle": 3.736871383117117E7,
+      "internalThermalEnergy": 2.4147555196545367E36,
       "dissipationFunction": 100,
-      "equatorialRadius": 3.339800937102326E8,
-      "colorCode": "#141310",
+      "equatorialRadius": 9.60487545690263E7,
+      "colorCode": "#100A0F",
       "debrisLevel": 0,
       "position": [
-        -1.5403310978950858E11,
-        3.997070738770373E11,
-        2.3036035317910672E11
+        4.328789514555169E12,
+        -2.8584621436042104E12,
+        -4.54665921411911E10
       ],
-      "id": "Planet7",
+      "id": "Planet17",
+      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 9.000431586054848E26,
+      "internalThermalEnergy": 4.9901103867300774E33,
+      "colorCode": "#777777",
+      "position": [
+        4.948639314845129E12,
+        3.6711997944894617E11,
+        -1.6732026486299194E11
+      ],
+      "velocity": [
+        -9420.25490392821,
+        4358.898464668072,
+        1273.7447729339556
+      ],
+      "id": "Gas13",
+      "radius": 2.3125396758534537E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.5492297532095705E27,
+      "internalThermalEnergy": 6.485185508294388E33,
+      "colorCode": "#777777",
+      "position": [
+        4.9410709991276E12,
+        -8.200604359631152E11,
+        -2.1078125759562543E11
+      ],
+      "velocity": [
+        22910.841623325097,
+        -2573.2522752256527,
+        -1197.1803620512662
+      ],
+      "id": "Gas91",
+      "radius": 2.2658887808000385E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 1.4275592203080636E27,
+      "internalThermalEnergy": 2.9772589492178195E33,
+      "colorCode": "#777777",
+      "position": [
+        2.4750812484542573E12,
+        -1.3121455281394275E12,
+        -1.604656448823656E11
+      ],
+      "velocity": [
+        15118.110798835882,
+        -2647.250586579716,
+        -366.12683735664143
+      ],
+      "id": "Gas67",
+      "radius": 1.8094310315785626E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 9.644065247091502E26,
+      "internalThermalEnergy": 2.4723956180852075E33,
+      "colorCode": "#777777",
+      "position": [
+        -2.2601957159324995E12,
+        1.1907398058116482E12,
+        -1.2218639654703058E11
+      ],
+      "velocity": [
+        -1579.065109839834,
+        2787.2076122741323,
+        -397.36500133220056
+      ],
+      "id": "Gas22",
+      "radius": 1.8126152320859174E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.279798308543596E7,
+      "emissivity": 0.95,
+      "mass": 9.054462681736249E26,
+      "velocity": [
+        14297.731733143219,
+        4111.42447065947,
+        -320.9751290574637
+      ],
+      "angularVelocity": 2.4380397206102053E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 9.010219520455134E24,
+      "rotationAxis": [
+        0,
+        0,
+        1
+      ],
+      "rotationAngle": 5928118.6077666385,
+      "internalThermalEnergy": 5.507572663626208E35,
+      "dissipationFunction": 100,
+      "equatorialRadius": 6.279798308543596E7,
+      "colorCode": "#DAF4EB",
+      "debrisLevel": 0,
+      "position": [
+        4.3509409506256743E12,
+        -2.945884590258146E12,
+        -5.464789198805741E10
+      ],
+      "id": "Planet39",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -80,33 +1061,33 @@
     },
     {
       "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 2.84960273601186E8,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 6.02362399268554E7,
       "emissivity": 0.95,
-      "mass": 6.517217872789886E29,
+      "mass": 6.94948279131939E26,
       "velocity": [
-        -5675.514831971325,
-        -18488.678696505554,
-        -2278.4901597149874
+        14122.56175017006,
+        4193.787335569373,
+        -331.68052490256986
       ],
-      "angularVelocity": 6.996896905240711E-4,
+      "angularVelocity": 9.17576732975817E-4,
       "exist": true,
-      "surfaceThermalEnergy": 8.369230227095551E26,
+      "surfaceThermalEnergy": 1.329964014267828E25,
       "rotationAxis": [
-        0.5475173556401518,
-        -0.09166731803148086,
-        0.8317582870508299
+        0,
+        0,
+        1
       ],
-      "rotationAngle": 1.436401032495639E7,
-      "internalThermalEnergy": 5.335277250270321E40,
+      "rotationAngle": 3.524619500351334E7,
+      "internalThermalEnergy": -2.825133171703116E34,
       "dissipationFunction": 100,
-      "equatorialRadius": 2.84960273601186E8,
-      "colorCode": "#BFD75B",
+      "equatorialRadius": 6.02362399268554E7,
+      "colorCode": "#5F6465",
       "debrisLevel": 0,
       "position": [
-        -7.862271297855316E11,
-        -8.623386613976796E10,
-        1.0664704624707344E10
+        4.410600479138602E12,
+        -2.822321397928299E12,
+        -3.707448117317035E10
       ],
       "id": "Planet46",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
@@ -115,36 +1096,78 @@
       "dieTime": -1
     },
     {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 2.7260483172379065E8,
-      "emissivity": 0.95,
-      "mass": 6.1659326602737314E29,
-      "velocity": [
-        9025.989058434838,
-        8702.81977634399,
-        -280.6511597820348
-      ],
-      "angularVelocity": 5.700671807112871E-4,
       "exist": true,
-      "surfaceThermalEnergy": 6.296435981102855E26,
-      "rotationAxis": [
-        7.037821769826838E-5,
-        -2.2295916118343002E-4,
-        0.9999999726680592
+      "emissivity": 0.95,
+      "mass": 3.6323750907970536E26,
+      "internalThermalEnergy": 8.353124048677151E32,
+      "colorCode": "#777777",
+      "position": [
+        4.407078472725925E12,
+        9.239636246570597E11,
+        -1.282398423833473E11
       ],
-      "rotationAngle": 1.143631934428066E7,
-      "internalThermalEnergy": 5.283593569695094E40,
+      "velocity": [
+        5683.882483921048,
+        -7790.876886191622,
+        -266.68501127716394
+      ],
+      "id": "Gas39",
+      "radius": 1.7340801938255124E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "exist": true,
+      "emissivity": 0.95,
+      "mass": 3.0674530842181738E26,
+      "internalThermalEnergy": 2.207394024511138E32,
+      "colorCode": "#777777",
+      "position": [
+        4.843435768658711E12,
+        -1.760405127442274E12,
+        -1.3867555970132352E11
+      ],
+      "velocity": [
+        15096.147364876286,
+        -1671.6131350663748,
+        512.3947349543857
+      ],
+      "id": "Gas72",
+      "radius": 1.707027529586906E11,
+      "class": "com.trashsoftware.gravity2.physics.DustObject",
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 5.598369574411186E7,
+      "emissivity": 0.95,
+      "mass": 4.502424223314127E26,
+      "velocity": [
+        15427.92270030499,
+        1293.321238866273,
+        -402.88716955891334
+      ],
+      "angularVelocity": 8.858833740880168E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 9.337067302509786E24,
+      "rotationAxis": [
+        0,
+        0,
+        1
+      ],
+      "rotationAngle": 3.386690915770358E7,
+      "internalThermalEnergy": -4.5454501946244725E34,
       "dissipationFunction": 100,
-      "equatorialRadius": 2.7260483172379065E8,
-      "colorCode": "#6AD975",
+      "equatorialRadius": 5.598369574411186E7,
+      "colorCode": "#706D67",
       "debrisLevel": 0,
       "position": [
-        1.8721966281418438E12,
-        -1.6948383776221025E12,
-        3.688035068052775E10
+        4.2655662721436216E12,
+        -2.9207138363086387E12,
+        -7.275914997220856E10
       ],
-      "id": "Planet25",
+      "id": "Planet16",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -152,69 +1175,33 @@
     },
     {
       "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 1.8737071246088034E8,
+      "bodyType": "GAS_GIANT",
+      "polarRadius": 5.4531123025860965E7,
       "emissivity": 0.95,
-      "mass": 3.8588595875506195E29,
+      "mass": 3.886957021304696E26,
       "velocity": [
-        7966.082167115103,
-        -9430.892919187796,
-        -3163.597777288855
+        15503.630721881673,
+        1345.4932196434993,
+        -401.38420561517114
       ],
-      "angularVelocity": 5.095810054846221E-4,
+      "angularVelocity": 2.2964045845222695E-4,
       "exist": true,
-      "surfaceThermalEnergy": 1.6377504006742146E27,
+      "surfaceThermalEnergy": 1.010581485492878E25,
       "rotationAxis": [
-        -3.949673873881382E-5,
-        1.5638842173274748E-6,
-        0.9999999992187809
+        0,
+        0,
+        1
       ],
-      "rotationAngle": 9849193.439769454,
-      "internalThermalEnergy": 3.108925670736163E40,
+      "rotationAngle": 5311726.576972802,
+      "internalThermalEnergy": 1.2378517429916703E35,
       "dissipationFunction": 100,
-      "equatorialRadius": 1.8737071246088034E8,
-      "colorCode": "#693A79",
+      "equatorialRadius": 5.4531123025860965E7,
+      "colorCode": "#4F2753",
       "debrisLevel": 0,
       "position": [
-        1.796278304146503E12,
-        -1.6166680408324226E12,
-        8.06080697277723E10
-      ],
-      "id": "Planet8",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 1.811714037092193E8,
-      "emissivity": 0.95,
-      "mass": 3.699933364419643E29,
-      "velocity": [
-        -7818.714514704237,
-        -13804.372372339121,
-        1851.5851261554544
-      ],
-      "angularVelocity": 8.474942987286392E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 9.798181420496862E27,
-      "rotationAxis": [
-        -2.496780209804665E-5,
-        6.612328607412548E-6,
-        0.9999999996664429
-      ],
-      "rotationAngle": 1.8727229332627896E7,
-      "internalThermalEnergy": 2.849340866325848E40,
-      "dissipationFunction": 100,
-      "equatorialRadius": 1.811714037092193E8,
-      "colorCode": "#545359",
-      "debrisLevel": 0,
-      "position": [
-        -5.230943727995081E11,
-        3.9229037064398553E11,
-        2.694197327753641E11
+        4.243758407826533E12,
+        -2.9431308358874077E12,
+        -6.873161214952682E10
       ],
       "id": "Planet33",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
@@ -224,450 +1211,33 @@
     },
     {
       "tidalLoveNumber": 0.15,
-      "bodyType": "STAR",
-      "polarRadius": 1.4052153512440845E8,
-      "emissivity": 0.95,
-      "mass": 2.6931494110733085E29,
-      "velocity": [
-        6116.378485356013,
-        25902.158761067716,
-        3081.1580791751576
-      ],
-      "angularVelocity": 8.964858898420005E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 3.0954609187119754E26,
-      "rotationAxis": [
-        -0.011484038437059831,
-        -0.0068460021581676946,
-        0.9999106205634715
-      ],
-      "rotationAngle": 1.9807335120438583E7,
-      "internalThermalEnergy": 1.977356113800336E40,
-      "dissipationFunction": 100,
-      "equatorialRadius": 1.4052153512440845E8,
-      "colorCode": "#47514C",
-      "debrisLevel": 0,
-      "position": [
-        6.8324878506838905E10,
-        2.5302415132639392E11,
-        2.3258686021135696E11
-      ],
-      "id": "Planet10",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "BROWN_DWARF",
-      "polarRadius": 8.583375580768177E7,
-      "emissivity": 0.95,
-      "mass": 1.454301614656801E29,
-      "velocity": [
-        -342.0832174140587,
-        12768.781321653607,
-        -9492.710794569257
-      ],
-      "angularVelocity": 0.0036420100953575506,
-      "exist": true,
-      "surfaceThermalEnergy": 7.914862703488017E25,
-      "rotationAxis": [
-        -0.16133067585205485,
-        0.5415552507215013,
-        -0.8250395890168489
-      ],
-      "rotationAngle": 6.743707927695017E7,
-      "internalThermalEnergy": 6.673978730590302E39,
-      "dissipationFunction": 100,
-      "equatorialRadius": 8.583375580768177E7,
-      "colorCode": "#7D77C2",
-      "debrisLevel": 0,
-      "position": [
-        1.3668339421406235E12,
-        3.3507794655230576E12,
-        -2.9285686975747026E12
-      ],
-      "id": "Planet45",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "BROWN_DWARF",
-      "polarRadius": 8.261530961122419E7,
-      "emissivity": 0.95,
-      "mass": 1.3114551349209641E29,
-      "velocity": [
-        -10263.936632146846,
-        1956.0683742436115,
-        13226.987570348238
-      ],
-      "angularVelocity": 3.006738095845318E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 1.1137283044528709E26,
-      "rotationAxis": [
-        3.6298520258191667E-29,
-        2.414176539881081E-29,
-        1
-      ],
-      "rotationAngle": 4362467.792022264,
-      "internalThermalEnergy": 8.317385213342864E39,
-      "dissipationFunction": 100,
-      "equatorialRadius": 8.261530961122419E7,
-      "colorCode": "#A4A1A3",
-      "debrisLevel": 0,
-      "position": [
-        1.473127061063263E12,
-        -1.704675343803008E12,
-        3.038759882033501E11
-      ],
-      "id": "Planet28",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "BROWN_DWARF",
-      "polarRadius": 8.891020911631554E7,
-      "emissivity": 0.95,
-      "mass": 1.2103784880349459E29,
-      "velocity": [
-        -22901.213999661566,
-        -10651.867676813989,
-        -7895.796676233553
-      ],
-      "angularVelocity": 7.768411512336962E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 5.969427107751593E26,
-      "rotationAxis": [
-        9.391426421862083E-28,
-        -1.8962527970606877E-28,
-        1
-      ],
-      "rotationAngle": 1.687049847653737E7,
-      "internalThermalEnergy": 6.476528489109344E39,
-      "dissipationFunction": 100,
-      "equatorialRadius": 8.891020911631554E7,
-      "colorCode": "#C9C2CD",
-      "debrisLevel": 0,
-      "position": [
-        -1.9305410311719147E11,
-        4.0570357025552216E11,
-        2.6276959791964597E11
-      ],
-      "id": "Planet35",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "BROWN_DWARF",
-      "polarRadius": 9.738375772353925E7,
-      "emissivity": 0.95,
-      "mass": 5.519220067661149E28,
-      "velocity": [
-        51376.100461755166,
-        -27705.918526307174,
-        -18436.244946806804
-      ],
-      "angularVelocity": 2.996336952925929E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 1.0966617633290244E27,
-      "rotationAxis": [
-        0.0773560032696764,
-        0.6148006680202354,
-        0.7848797279583759
-      ],
-      "rotationAngle": 5654252.268293514,
-      "internalThermalEnergy": 1.2335034945552576E39,
-      "dissipationFunction": 100,
-      "equatorialRadius": 9.738375772353925E7,
-      "colorCode": "#3B453F",
-      "debrisLevel": 0,
-      "position": [
-        -7.778641061716038E11,
-        -9.932197321328194E10,
-        6.266532448191428E9
-      ],
-      "id": "Planet0",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "BROWN_DWARF",
-      "polarRadius": 1.0105769135659882E8,
-      "emissivity": 0.95,
-      "mass": 4.414461709022208E28,
-      "velocity": [
-        12692.966164994708,
-        4929.322434819553,
-        -216.2674498371895
-      ],
-      "angularVelocity": 8.9043113076032E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 3.3933203532569084E26,
-      "rotationAxis": [
-        -2.2854578997780932E-29,
-        3.2277480310445765E-29,
-        1
-      ],
-      "rotationAngle": 1.9854348934446536E7,
-      "internalThermalEnergy": 6.967935019864013E38,
-      "dissipationFunction": 100,
-      "equatorialRadius": 1.0105769135659882E8,
-      "colorCode": "#583F21",
-      "debrisLevel": 0,
-      "position": [
-        3.6718109321758887E12,
-        3.003552033319509E12,
-        -4.878519255726154E10
-      ],
-      "id": "Planet6",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 1.3555257829227943E23,
-      "internalThermalEnergy": 1.0916239049009087E29,
-      "colorCode": "#777777",
-      "position": [
-        1.376305323970128E12,
-        -1.6672508565780354E12,
-        7.935659560556325E10
-      ],
-      "velocity": [
-        6868.60669498,
-        -5737.197279010076,
-        1168.7420480568453
-      ],
-      "id": "Gas40",
-      "radius": 1.4791301548923782E11,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
       "bodyType": "GAS_GIANT",
-      "polarRadius": 1.0699060462038518E8,
+      "polarRadius": 4.3142286395812504E7,
       "emissivity": 0.95,
-      "mass": 1.9645978785940274E28,
+      "mass": 1.2333228103077889E26,
       "velocity": [
-        -1566.8136826503858,
-        -6874.018258867725,
-        -3954.334239395169
+        15374.800867633006,
+        -3354.0550528859376,
+        -552.5143053178816
       ],
-      "angularVelocity": 0.0010203693696318233,
+      "angularVelocity": 7.801983302586462E-4,
       "exist": true,
-      "surfaceThermalEnergy": 2.4375694691023147E26,
+      "surfaceThermalEnergy": 4.625047643204889E25,
       "rotationAxis": [
-        -0.29376596921752923,
-        -0.18020675433942543,
-        0.938736960506049
-      ],
-      "rotationAngle": 1.930075701315309E7,
-      "internalThermalEnergy": 9.53276105292346E37,
-      "dissipationFunction": 100,
-      "equatorialRadius": 1.0699060462038518E8,
-      "colorCode": "#9DAB62",
-      "debrisLevel": 0,
-      "position": [
-        3.293783319974559E11,
-        -4.013833077714915E12,
-        -2.6871776781401562E12
-      ],
-      "id": "Planet3",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 9.150650841282642E7,
-      "emissivity": 0.95,
-      "mass": 4.324080275048089E27,
-      "velocity": [
-        13808.582203809252,
-        -4506.651476318471,
-        -899.3735868717953
-      ],
-      "angularVelocity": 4.996243339602397E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 2.274143972196649E26,
-      "rotationAxis": [
-        -2.2660970240340083E-27,
-        -1.5094011996589498E-27,
+        2.7653207218896145E-33,
+        -3.090783015865207E-34,
         1
       ],
-      "rotationAngle": 9588081.86597041,
-      "internalThermalEnergy": 6.490565834094908E36,
+      "rotationAngle": 2.926824650522273E7,
+      "internalThermalEnergy": -2.8249729280518824E33,
       "dissipationFunction": 100,
-      "equatorialRadius": 9.150650841282642E7,
-      "colorCode": "#080705",
+      "equatorialRadius": 4.3142286395812504E7,
+      "colorCode": "#363158",
       "debrisLevel": 0,
       "position": [
-        -7.78780270823576E11,
-        5.676741120872186E11,
-        4.290379583593953E11
-      ],
-      "id": "Planet29",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 8.780206060881487E7,
-      "emissivity": 0.95,
-      "mass": 3.7975080929472983E27,
-      "velocity": [
-        12328.37388848078,
-        -735.2376865087022,
-        930.0410515418339
-      ],
-      "angularVelocity": 2.0160409722835078E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 4.771913059487935E25,
-      "rotationAxis": [
-        -2.2687747614709532E-28,
-        3.6634015189750343E-29,
-        1
-      ],
-      "rotationAngle": 1760856.5545471779,
-      "internalThermalEnergy": 6.303531612551949E36,
-      "dissipationFunction": 100,
-      "equatorialRadius": 8.780206060881487E7,
-      "colorCode": "#0A0C0C",
-      "debrisLevel": 0,
-      "position": [
-        1.1484486031516497E12,
-        -2.157650853880436E12,
-        7.31825711024318E10
-      ],
-      "id": "Planet5",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 7.156453472917484E7,
-      "emissivity": 0.95,
-      "mass": 2.0419192184419703E27,
-      "velocity": [
-        -17322.956795824753,
-        3029.1779501639658,
-        -3236.199508988996
-      ],
-      "angularVelocity": 8.632368425947322E-6,
-      "exist": true,
-      "surfaceThermalEnergy": 9.463840269317735E25,
-      "rotationAxis": [
-        -1.7344446300486963E-27,
-        1.216770100924236E-27,
-        1
-      ],
-      "rotationAngle": 15.005101857808597,
-      "internalThermalEnergy": 2.379222391474935E36,
-      "dissipationFunction": 100,
-      "equatorialRadius": 7.156453472917484E7,
-      "colorCode": "#BBC6B4",
-      "debrisLevel": 0,
-      "position": [
-        -6.093744221464143E11,
-        1.061833036811317E12,
-        4.94144755891527E11
-      ],
-      "id": "Planet37",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 6.854391872552909E7,
-      "emissivity": 0.95,
-      "mass": 1.794128759404891E27,
-      "velocity": [
-        -120062.51845915656,
-        64400.700724639995,
-        -803.6686118128888
-      ],
-      "angularVelocity": 1.271953343993327E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 1.3254305137104665E26,
-      "rotationAxis": [
-        -2.7663553555275367E-23,
-        -3.56932370694482E-23,
-        1
-      ],
-      "rotationAngle": 177650.4080896175,
-      "internalThermalEnergy": 1.950195459028666E36,
-      "dissipationFunction": 100,
-      "equatorialRadius": 6.854391872552909E7,
-      "colorCode": "#29603C",
-      "debrisLevel": 0,
-      "position": [
-        -1.8802993344953777E13,
-        1.0249171120209105E13,
-        -8.847962137707312E10
-      ],
-      "id": "Planet34",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 5.666549698281644E7,
-      "emissivity": 0.95,
-      "mass": 4.8249959310053845E26,
-      "velocity": [
-        14785.149110434199,
-        -23789.33123021193,
-        273.49285025754637
-      ],
-      "angularVelocity": 5.258104973682564E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 6.352023990067481E25,
-      "rotationAxis": [
-        -2.3846986151752533E-29,
-        5.989237063990397E-30,
-        1
-      ],
-      "rotationAngle": 1.0276121867730623E7,
-      "internalThermalEnergy": 9.342872707991293E34,
-      "dissipationFunction": 100,
-      "equatorialRadius": 5.666549698281644E7,
-      "colorCode": "#2E282E",
-      "debrisLevel": 0,
-      "position": [
-        4.1067296966337085E12,
-        -6.385838560160928E12,
-        1.0875797249815608E11
+        2.388346034061461E12,
+        -1.4499592208212495E12,
+        -1.5690446848554623E11
       ],
       "id": "Planet11",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
@@ -678,142 +1248,34 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "GAS_GIANT",
-      "polarRadius": 5.291965332870521E7,
+      "polarRadius": 4.2591642059188664E7,
       "emissivity": 0.95,
-      "mass": 3.303986296478146E26,
+      "mass": 1.1658754488230325E26,
       "velocity": [
-        5330.337283447843,
-        -29736.06350589263,
-        -11035.796238437017
+        15416.99567728941,
+        1247.1177312240984,
+        -445.2185763201121
       ],
-      "angularVelocity": 8.775459413644893E-4,
+      "angularVelocity": 9.548564616143431E-4,
       "exist": true,
-      "surfaceThermalEnergy": 6.2888175117210686E25,
+      "surfaceThermalEnergy": 3.157383679271279E24,
       "rotationAxis": [
-        2.3855125494046023E-28,
-        4.3145996421950144E-29,
+        0,
+        0,
         1
       ],
-      "rotationAngle": 1.9515791292515863E7,
-      "internalThermalEnergy": -5.534498536111266E34,
+      "rotationAngle": 3.686823805106041E7,
+      "internalThermalEnergy": -1.8110747600636883E34,
       "dissipationFunction": 100,
-      "equatorialRadius": 5.291965332870521E7,
-      "colorCode": "#2F4826",
+      "equatorialRadius": 4.2591642059188664E7,
+      "colorCode": "#12050C",
       "debrisLevel": 0,
       "position": [
-        8.729559240315183E11,
-        -9.832176340683338E12,
-        -3.2809593245051904E12
+        4.2366744740936177E12,
+        -2.9274422001666943E12,
+        -6.366171570321248E10
       ],
-      "id": "Planet21",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 5.1825880604535714E7,
-      "emissivity": 0.95,
-      "mass": 2.959716593517666E26,
-      "velocity": [
-        -6492.860013727013,
-        4284.683011348263,
-        133.6700986114705
-      ],
-      "angularVelocity": 4.2341686445651914E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 8.935308668915852E24,
-      "rotationAxis": [
-        -5.933590488283851E-31,
-        -1.6402726973585453E-30,
-        1
-      ],
-      "rotationAngle": 7586094.800667908,
-      "internalThermalEnergy": 4.581994772513213E34,
-      "dissipationFunction": 100,
-      "equatorialRadius": 5.1825880604535714E7,
-      "colorCode": "#040307",
-      "debrisLevel": 0,
-      "position": [
-        1.7784129016823909E12,
-        -1.2365821777483123E12,
-        8.860157708271857E10
-      ],
-      "id": "Planet48",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 4.862392645806265E7,
-      "emissivity": 0.95,
-      "mass": 2.1457349468817524E26,
-      "velocity": [
-        -10453.708474618974,
-        -5938.575208147877,
-        -7698.256549030939
-      ],
-      "angularVelocity": 5.298201612966682E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 4.427421292169736E25,
-      "rotationAxis": [
-        -4.782471142138885E-29,
-        3.342634823666919E-30,
-        1
-      ],
-      "rotationAngle": 1.038147556668192E7,
-      "internalThermalEnergy": 1.7816124903378484E34,
-      "dissipationFunction": 100,
-      "equatorialRadius": 4.862392645806265E7,
-      "colorCode": "#3A2011",
-      "debrisLevel": 0,
-      "position": [
-        2.024912518808026E11,
-        8.90468694760497E11,
-        4.969621630595964E11
-      ],
-      "id": "Planet30",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "GAS_GIANT",
-      "polarRadius": 4.821223043252774E7,
-      "emissivity": 0.95,
-      "mass": 2.0587898004180783E26,
-      "velocity": [
-        7492.40594368368,
-        21357.7891694094,
-        1390.4672457056085
-      ],
-      "angularVelocity": 2.830586625700715E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 7.755799839724167E25,
-      "rotationAxis": [
-        -5.165606332359873E-28,
-        -1.22653043694482E-27,
-        1
-      ],
-      "rotationAngle": 3899990.774090699,
-      "internalThermalEnergy": 3.0090066004816323E34,
-      "dissipationFunction": 100,
-      "equatorialRadius": 4.821223043252774E7,
-      "colorCode": "#938D6D",
-      "debrisLevel": 0,
-      "position": [
-        2.004143242122908E12,
-        -1.249211392922523E12,
-        9.421216693478496E10
-      ],
-      "id": "Planet16",
+      "id": "Planet45",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -822,34 +1284,34 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 9107207.184054922,
+      "polarRadius": 8983179.849430688,
       "emissivity": 0.95,
-      "mass": 1.7978231906983567E25,
+      "mass": 1.1160860880099902E25,
       "velocity": [
-        26737.35969158394,
-        -2160.307604590544,
-        -9610.977367128165
+        15189.668471391651,
+        2403.9295311852024,
+        -62.237606299770476
       ],
-      "angularVelocity": 6.691354883620987E-4,
+      "angularVelocity": 9.447290761954354E-4,
       "exist": true,
-      "surfaceThermalEnergy": 8.64456603859235E22,
+      "surfaceThermalEnergy": 7.397951794416999E22,
       "rotationAxis": [
-        3.340620629107804E-28,
-        4.3130289931367085E-28,
+        0,
+        0,
         1
       ],
-      "rotationAngle": 1.4040898114758167E7,
-      "internalThermalEnergy": 2.3876111778386927E33,
+      "rotationAngle": 3.642785715601192E7,
+      "internalThermalEnergy": 1.1626307439539012E33,
       "dissipationFunction": 100,
-      "equatorialRadius": 9107207.184054922,
-      "colorCode": "#867093",
+      "equatorialRadius": 8983179.849430688,
+      "colorCode": "#39B757",
       "debrisLevel": 0,
       "position": [
-        -5.394771774096096E11,
-        1.863099248322754E11,
-        1.1860699438943498E11
+        4.492468795842083E12,
+        -3.03157873187988E12,
+        -4.202286642411588E10
       ],
-      "id": "Planet20",
+      "id": "Planet8",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -858,91 +1320,34 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 1.823637291817399E7,
+      "polarRadius": 8553829.90586484,
       "emissivity": 0.95,
-      "mass": 1.7209906104003317E25,
+      "mass": 6.123299107589318E24,
       "velocity": [
-        4115.824874834564,
-        11490.919150383867,
-        -29454.462292989672
+        15174.39605423696,
+        -3601.705922822035,
+        -516.7662872223049
       ],
-      "angularVelocity": 4.6499662993245436E-4,
+      "angularVelocity": 1.6917855743982184E-4,
       "exist": true,
-      "surfaceThermalEnergy": 3.5795426852087384E23,
+      "surfaceThermalEnergy": 7.46680067930539E22,
       "rotationAxis": [
-        -6.79476386367344E-29,
-        1.622231765742764E-29,
+        -2.0715274449137853E-31,
+        -1.525503263085832E-31,
         1
       ],
-      "rotationAngle": 8678600.849208554,
-      "internalThermalEnergy": 5.858196919740715E32,
+      "rotationAngle": 2681162.0680553704,
+      "internalThermalEnergy": 5.76221446935734E32,
       "dissipationFunction": 100,
-      "equatorialRadius": 1.823637291817399E7,
-      "colorCode": "#CEC5D5",
+      "equatorialRadius": 8553829.90586484,
+      "colorCode": "#394046",
       "debrisLevel": 0,
       "position": [
-        1.8844891852039873E12,
-        -1.6067099087287634E12,
-        7.97632051911395E10
+        2.453708428155909E12,
+        -1.400431318738331E12,
+        -1.5771130565599252E11
       ],
-      "id": "Planet9",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 6.446202643113786E24,
-      "internalThermalEnergy": 2.781749529197876E30,
-      "colorCode": "#777777",
-      "position": [
-        3.9908312513921636E12,
-        1.1515238474835557E12,
-        3.18564848575925E10
-      ],
-      "velocity": [
-        7582.077859226858,
-        9163.251458854655,
-        63.25724877635293
-      ],
-      "id": "Gas27",
-      "radius": 2.1619229543529456E11,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "TERRESTRIAL",
-      "polarRadius": 7191664.596151902,
-      "emissivity": 0.95,
-      "mass": 6.352589593782633E24,
-      "velocity": [
-        75163.24204402453,
-        -26885.530189818637,
-        1463.7296349318744
-      ],
-      "angularVelocity": 8.975495610603941E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 1.9614101510500043E22,
-      "rotationAxis": [
-        1.9444830249606276E-29,
-        1.5425078556307437E-31,
-        1
-      ],
-      "rotationAngle": 2.0041385298646282E7,
-      "internalThermalEnergy": 2.776623754083009E32,
-      "dissipationFunction": 100,
-      "equatorialRadius": 7191664.596151902,
-      "colorCode": "#BD75BA",
-      "debrisLevel": 0,
-      "position": [
-        1.255034968887981E13,
-        -6.066644430001311E12,
-        3.042266034784886E11
-      ],
-      "id": "Planet39",
+      "id": "Planet2",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -951,34 +1356,34 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 8189471.677442444,
+      "polarRadius": 7353474.885760851,
       "emissivity": 0.95,
-      "mass": 5.011474337268064E24,
+      "mass": 7.053606381611421E24,
       "velocity": [
-        -4201.580226787206,
-        -11949.711334763744,
-        -24239.19259790726
+        14717.515720906375,
+        504.20762865852925,
+        -440.195363248282
       ],
-      "angularVelocity": 1.571239606470316E-4,
+      "angularVelocity": 7.428567873216002E-4,
       "exist": true,
-      "surfaceThermalEnergy": 2.798351699238825E22,
+      "surfaceThermalEnergy": 4.933881466720398E22,
       "rotationAxis": [
-        -1.3283924476257761E-24,
-        1.463553671932887E-25,
+        0,
+        0,
         1
       ],
-      "rotationAngle": 593223.4149065255,
-      "internalThermalEnergy": -4.134468763235042E32,
+      "rotationAngle": 2.7643513317211654E7,
+      "internalThermalEnergy": 7.92465751619248E32,
       "dissipationFunction": 100,
-      "equatorialRadius": 8189471.677442444,
-      "colorCode": "#979798",
+      "equatorialRadius": 7353474.885760851,
+      "colorCode": "#964645",
       "debrisLevel": 0,
       "position": [
-        -2.3950780839892035E11,
-        -1.8079294740613816E12,
-        -4.2653393497522524E12
+        4.2134316491263604E12,
+        -2.8456689217911167E12,
+        -4.68726736859418E10
       ],
-      "id": "Planet14",
+      "id": "Planet35",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -987,32 +1392,68 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 8869147.599499715,
+      "polarRadius": 6710368.636049498,
       "emissivity": 0.95,
-      "mass": 2.0685763023753593E24,
+      "mass": 5.376777222686413E24,
       "velocity": [
-        29152.31091196344,
-        -12053.06281786652,
-        -221.33296811135745
+        14546.534042124245,
+        4596.671501518803,
+        -143.76489359812996
       ],
-      "angularVelocity": 2.4218179778637462E-4,
+      "angularVelocity": 1.5836434707040657E-4,
       "exist": true,
-      "surfaceThermalEnergy": 1.0404514602371498E23,
+      "surfaceThermalEnergy": 4.34617782730923E22,
       "rotationAxis": [
-        7.840964658909842E-30,
-        -9.77860202336071E-30,
+        0,
+        0,
         1
       ],
-      "rotationAngle": 2826313.402540148,
-      "internalThermalEnergy": 5.869434259485711E31,
+      "rotationAngle": 2210530.7490808167,
+      "internalThermalEnergy": 5.173575868131382E32,
       "dissipationFunction": 100,
-      "equatorialRadius": 8869147.599499715,
-      "colorCode": "#E9E9F0",
+      "equatorialRadius": 6710368.636049498,
+      "colorCode": "#34235D",
       "debrisLevel": 0,
       "position": [
-        -2.7735965367371674E11,
-        2.4818982786897183E11,
-        1.1094153948119518E11
+        4.54802456439663E12,
+        -2.98479874412655E12,
+        -2.6465781265771507E10
+      ],
+      "id": "Planet32",
+      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
+      "lastBreakTime": 0,
+      "timeInsideRocheLimit": 0,
+      "dieTime": -1
+    },
+    {
+      "tidalLoveNumber": 0.15,
+      "bodyType": "TERRESTRIAL",
+      "polarRadius": 5079203.183435807,
+      "emissivity": 0.95,
+      "mass": 1.6630559137983276E24,
+      "velocity": [
+        15353.85835087937,
+        1924.8034488012086,
+        -29.758760945402617
+      ],
+      "angularVelocity": 4.5353390068162775E-4,
+      "exist": true,
+      "surfaceThermalEnergy": 2.1595141803322116E22,
+      "rotationAxis": [
+        0,
+        0,
+        1
+      ],
+      "rotationAngle": 1.5053704664035236E7,
+      "internalThermalEnergy": 1.2596315323211947E32,
+      "dissipationFunction": 100,
+      "equatorialRadius": 5079203.183435807,
+      "colorCode": "#F8E27A",
+      "debrisLevel": 0,
+      "position": [
+        4.487236095896062E12,
+        -3.08284113037369E12,
+        -3.7217418871931725E10
       ],
       "id": "Planet31",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
@@ -1023,34 +1464,34 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 3539731.531590298,
+      "polarRadius": 2925255.519827208,
       "emissivity": 0.95,
-      "mass": 1.0840971197145604E24,
+      "mass": 2.2314285169602326E23,
       "velocity": [
-        18186.92612917885,
-        7111.6800161737965,
-        1755.648410515522
+        8066.698332537838,
+        -9132.864777474359,
+        -456.8158829600676
       ],
-      "angularVelocity": 5.539903369343845E-5,
+      "angularVelocity": 7.760240061375513E-4,
       "exist": true,
-      "surfaceThermalEnergy": 8.548805410755535E21,
+      "surfaceThermalEnergy": 5.376268603779552E21,
       "rotationAxis": [
-        -9.147324815219026E-28,
-        -2.204467631822343E-27,
+        -5.298424081044016E-36,
+        -6.082903643389807E-36,
         1
       ],
-      "rotationAngle": 486.5600775493417,
-      "internalThermalEnergy": 4.38301627192981E31,
+      "rotationAngle": 2.908658112237618E7,
+      "internalThermalEnergy": 1.4939158843114356E31,
       "dissipationFunction": 100,
-      "equatorialRadius": 3539731.531590298,
-      "colorCode": "#8E7876",
+      "equatorialRadius": 2925255.519827208,
+      "colorCode": "#050909",
       "debrisLevel": 0,
       "position": [
-        1.0463582682396772E12,
-        3.372373083446093E11,
-        1.6310375252930652E11
+        2.1989107050138352E12,
+        -8.386995604914834E12,
+        -2.817488160364967E11
       ],
-      "id": "Planet4",
+      "id": "Planet9",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
@@ -1059,220 +1500,37 @@
     {
       "tidalLoveNumber": 0.15,
       "bodyType": "TERRESTRIAL",
-      "polarRadius": 2022350.9532973333,
+      "polarRadius": 2386221.766029948,
       "emissivity": 0.95,
-      "mass": 1.5919277456699758E23,
+      "mass": 1.4862174463506616E23,
       "velocity": [
-        -13122.345599914946,
-        1065.6142351251674,
-        -3476.3407548433865
+        479.268322918433,
+        -1500.5185083014082,
+        -443.3237142232301
       ],
-      "angularVelocity": 2.081676912853396E-4,
+      "angularVelocity": 9.877616966121852E-5,
       "exist": true,
-      "surfaceThermalEnergy": 2.684244778382481E21,
+      "surfaceThermalEnergy": 4.381413615278104E21,
       "rotationAxis": [
-        -8.836347747404023E-31,
-        2.9608614197707444E-31,
+        1.9898165852073313E-32,
+        -2.5375570831014567E-33,
         1
       ],
-      "rotationAngle": 1933314.6270094153,
-      "internalThermalEnergy": 8.505077482030904E30,
+      "rotationAngle": 310.43959552932955,
+      "internalThermalEnergy": 1.0286675958900855E31,
       "dissipationFunction": 100,
-      "equatorialRadius": 2022350.9532973333,
-      "colorCode": "#0D191D",
+      "equatorialRadius": 2386221.766029948,
+      "colorCode": "#1C271B",
       "debrisLevel": 0,
       "position": [
-        -1.1467746385528093E12,
-        1.2732566330366855E12,
-        -3.5161540158919525E11
+        -6.98864616977114E11,
+        7.809731000848494E11,
+        -1.0682204401857452E11
       ],
-      "id": "Planet40",
+      "id": "Planet15",
       "class": "com.trashsoftware.gravity2.physics.CelestialObject",
       "lastBreakTime": 0,
       "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "tidalLoveNumber": 0.15,
-      "bodyType": "TERRESTRIAL",
-      "polarRadius": 1579276.8902188623,
-      "emissivity": 0.95,
-      "mass": 7.780217973838223E22,
-      "velocity": [
-        3189.4116244060515,
-        -13299.391038016325,
-        7622.731215837889
-      ],
-      "angularVelocity": 9.796197827693252E-4,
-      "exist": true,
-      "surfaceThermalEnergy": 1.0002157970766387E21,
-      "rotationAxis": [
-        -1.8943384318903047E-30,
-        -1.2134006554270457E-30,
-        1
-      ],
-      "rotationAngle": 2.2197775855341196E7,
-      "internalThermalEnergy": 2.2458401924446946E30,
-      "dissipationFunction": 100,
-      "equatorialRadius": 1579276.8902188623,
-      "colorCode": "#F4C7E8",
-      "debrisLevel": 0,
-      "position": [
-        1.7191433480742114E12,
-        -2.9480337711424453E12,
-        2.315138725656413E12
-      ],
-      "id": "Planet32",
-      "class": "com.trashsoftware.gravity2.physics.CelestialObject",
-      "lastBreakTime": 0,
-      "timeInsideRocheLimit": 0,
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 1.9840453561264867E22,
-      "internalThermalEnergy": 2.0644535466552318E28,
-      "colorCode": "#777777",
-      "position": [
-        2.3767977816596732E11,
-        1.7740560734654788E11,
-        4.6865815918680133E11
-      ],
-      "velocity": [
-        -10222.526120716042,
-        14289.900723670802,
-        -4349.804056087475
-      ],
-      "id": "Gas25",
-      "radius": 8.308026036484595E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 1.057935857317716E22,
-      "internalThermalEnergy": 1.234037513391499E28,
-      "colorCode": "#777777",
-      "position": [
-        -6.7500885985026E11,
-        1.723773183356555E11,
-        2.6879081045397528E11
-      ],
-      "velocity": [
-        -4020.2247459919563,
-        -12976.950069505498,
-        -381.06360575731753
-      ],
-      "id": "Gas61",
-      "radius": 6.321064802075773E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 1.0540425907226565E22,
-      "internalThermalEnergy": 4.735305874213564E27,
-      "colorCode": "#777777",
-      "position": [
-        6.437757511396222E11,
-        3.645923193212668E12,
-        1.2638696810224445E11
-      ],
-      "velocity": [
-        -6112.961870788306,
-        13314.05975577757,
-        153.60398702809724
-      ],
-      "id": "Gas53",
-      "radius": 6.313301306652208E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 4.756973403481892E21,
-      "internalThermalEnergy": 5.083682053207339E27,
-      "colorCode": "#777777",
-      "position": [
-        1.8563580499190828E12,
-        -1.9124760998735842E12,
-        2.7893338221057247E10
-      ],
-      "velocity": [
-        -8586.31335058627,
-        -15825.757491662625,
-        -7711.829377927074
-      ],
-      "id": "Gas89",
-      "radius": 4.842623493713183E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 5.662196210617719E21,
-      "internalThermalEnergy": 5.493871938509232E27,
-      "colorCode": "#777777",
-      "position": [
-        1.8610368118164392E12,
-        -1.9407653611514067E12,
-        1.769112388237408E11
-      ],
-      "velocity": [
-        23775.636286438188,
-        7307.3154055551995,
-        -2140.1498820993884
-      ],
-      "id": "Gas59",
-      "radius": 5.132143231769669E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 2.475138408771149E21,
-      "internalThermalEnergy": 6.815135586578736E26,
-      "colorCode": "#777777",
-      "position": [
-        9.872614389799031E12,
-        -2.0166951526630005E11,
-        -2.906588244138077E11
-      ],
-      "velocity": [
-        29758.439709544604,
-        3575.60985285621,
-        -958.5623536473478
-      ],
-      "id": "Gas56",
-      "radius": 3.894965603292145E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
-      "dieTime": -1
-    },
-    {
-      "exist": true,
-      "emissivity": 0.95,
-      "mass": 1.2898067070908093E20,
-      "internalThermalEnergy": 1.0446725417970544E26,
-      "colorCode": "#777777",
-      "position": [
-        -1.2126622925377336E12,
-        2.87719757439853E11,
-        9.050347722995244E10
-      ],
-      "velocity": [
-        -751.6523886698469,
-        -16324.466642622921,
-        -4775.550458494556
-      ],
-      "id": "Gas68",
-      "radius": 1.4548291932712362E10,
-      "class": "com.trashsoftware.gravity2.physics.DustObject",
       "dieTime": -1
     }
   ],
