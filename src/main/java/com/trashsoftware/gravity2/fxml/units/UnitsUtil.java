@@ -15,6 +15,7 @@ public class UnitsUtil {
     private static final double EARTH_VOLUME = 1.08321e12; // in km³
     private static final double JUPITER_VOLUME = 1.43128e15; // in km³
     private static final double SUN_VOLUME = 1.412e18; // in km³
+    private static final double SQR_AU_IN_KM2 = SystemPresets.AU / 1e-6 * SystemPresets.AU;  // in km²
 
     private static final LocalDate EPOCH = Instant.EPOCH.atZone(ZoneOffset.UTC).toLocalDate();
 
@@ -123,6 +124,27 @@ public class UnitsUtil {
             return stdFmt.format(km / ly) + " ly";
         } else {
             return sciFmt.format(km / ly) + " ly";
+        }
+    }
+
+    public static String adaptiveArea(double sqrMeter) {
+        double sqrKm = sqrMeter * 1e-6; // Convert m² to km²
+        
+        if (sqrMeter < 1e-4) {
+            return stdFmt.format(sqrMeter * 1e6) + " mm²";
+        } else if (sqrMeter < 1) {
+            return stdFmt.format(sqrMeter * 1e4) + " cm²";
+        } else if (sqrMeter < 1e3) {
+            return stdFmt.format(sqrMeter) + " m²";
+        } else if (sqrKm < SQR_AU_IN_KM2 * 1e-1) {
+            return sqrKm < 1000
+                    ? stdFmt.format(sqrKm) + " km²"
+                    : sciFmt.format(sqrKm) + " km²";
+        } else {
+            double sqrAu = sqrKm / SQR_AU_IN_KM2;
+            return sqrAu < 1000
+                    ? stdFmt.format(sqrAu) + " AU²"
+                    : sciFmt.format(sqrAu) + " AU²";
         }
     }
 

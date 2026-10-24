@@ -4,6 +4,9 @@ import com.trashsoftware.gravity2.gui.GuiUtils;
 import com.trashsoftware.gravity2.gui.Vector3d;
 import org.json.JSONObject;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import static com.trashsoftware.gravity2.physics.CelestialObject.REF_HEAT_CAPACITY;
 import static com.trashsoftware.gravity2.physics.CelestialObject.STEFAN_BOLTZMANN_CONSTANT;
 
@@ -27,6 +30,8 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
     protected transient RealObject maxGravityObject;
     protected transient RealObject gravityMaster;  // the
     protected transient RealObject hillMaster;
+    
+    protected transient Deque<ArcRecord> recentArcs = new ArrayDeque<>();
 
     protected transient double hillRadius;
     protected double dieTime = -1;
@@ -130,6 +135,27 @@ public abstract class RealObject implements Comparable<RealObject>, AbstractObje
     @Override
     public RealObject getMaster() {
         return hillMaster;
+    }
+
+    public Deque<ArcRecord> getRecentArcs() {
+        return recentArcs;
+    }
+    
+    public double approxUnitTimeArcArea() {
+        if (recentArcs.size() < 2) return 0.0;
+        double arcArea = 0;
+        double time = recentArcs.getLast().tick() - recentArcs.getFirst().tick();
+        double[] lastVec = null;
+        for (ArcRecord ar : recentArcs) {
+            double[] v1 = VectorOperations.subtract(ar.pos(), ar.barycenter());
+            if (lastVec != null) {
+                double avgRadius = (VectorOperations.magnitude(v1) + VectorOperations.magnitude(lastVec)) / 2;
+                double theta = VectorOperations.angleBetween(lastVec, v1);
+                arcArea += avgRadius * avgRadius * theta * 2 / Math.PI;
+            }
+            lastVec = v1;
+        }
+        return arcArea / time;
     }
 
     @Override

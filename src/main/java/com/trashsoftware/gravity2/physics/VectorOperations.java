@@ -66,6 +66,42 @@ public class VectorOperations {
         return Math.sqrt(sum);
     }
 
+    public static double angleBetween(double[] p1, double[] p2) {
+        if (p1 == null || p2 == null || p1.length != p2.length) {
+            throw new IllegalArgumentException("Points must have the same dimension.");
+        }
+
+        if (p1.length != 2 && p1.length != 3) {
+            throw new IllegalArgumentException("Only 2D or 3D points are supported.");
+        }
+
+        double dot = 0.0;
+        double norm1 = 0.0;
+        double norm2 = 0.0;
+
+        for (int i = 0; i < p1.length; i++) {
+            dot += p1[i] * p2[i];
+            norm1 += p1[i] * p1[i];
+            norm2 += p2[i] * p2[i];
+        }
+
+        norm1 = Math.sqrt(norm1);
+        norm2 = Math.sqrt(norm2);
+
+        if (norm1 == 0.0 || norm2 == 0.0) {
+            throw new IllegalArgumentException(
+                    "The angle is undefined for a point at the origin."
+            );
+        }
+
+        double cos = dot / (norm1 * norm2);
+
+        // Avoid numerical errors such as 1.0000000000000002
+        cos = Math.clamp(cos, -1.0, 1.0);
+
+        return Math.acos(cos);
+    }
+
     public static double[] crossProduct(double[] a, double[] b) {
         if (a.length < b.length) throw new ArithmeticException("Cannot cross product");
         

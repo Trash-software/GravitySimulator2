@@ -302,6 +302,23 @@ public class Simulator {
 
         if (enableMasterCalculation) {
             updateMasters();
+            
+            for (RealObject ro : objects) {
+                RealObject hm = ro.getHillMaster();
+                HieraticalSystem selfSystem = getHieraticalSystem(ro);
+                HieraticalSystem masterSystem = getHieraticalSystem(hm);
+                if (masterSystem != null) {
+                    double[] masterPos = masterSystem.getPosition();
+                    double[] pos = selfSystem == null ? ro.getPosition() : selfSystem.getPosition();
+                    ro.recentArcs.addLast(new ArcRecord(timeStepAccumulator, 
+                            Arrays.copyOf(masterPos, masterPos.length),
+                            Arrays.copyOf(pos, pos.length)));
+                    
+                    while (ro.recentArcs.size() > 16) {
+                        ro.recentArcs.removeFirst();
+                    }
+                }
+            }
         }
 
         return result;

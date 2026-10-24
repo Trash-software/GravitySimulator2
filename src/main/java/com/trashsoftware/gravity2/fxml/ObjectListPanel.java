@@ -73,7 +73,7 @@ public class ObjectListPanel extends AbstractObjectPanel {
     }
 
     @Override
-    public void oneFrameSlow(double frameTimeMs) {
+    public void oneFrameSlow() {
         Simulator simulator = fxApp.getSimulator();
         if (simulator == null) return;
 

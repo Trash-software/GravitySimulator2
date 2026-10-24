@@ -27,7 +27,7 @@ public abstract class AbstractObjectPanel implements Initializable {
         return window;
     }
 
-    public abstract void oneFrameSlow(double frameTimeMs);
+    public abstract void oneFrameSlow();
 
     public enum Sorting {
         DEFAULT("sortDefault"),

@@ -38,7 +38,7 @@ public class AdaptiveUnitsConverter implements UnitsConverter {
 
     @Override
     public String area(double m2) {
-        return "";
+        return UnitsUtil.adaptiveArea(m2);
     }
 
     @Override

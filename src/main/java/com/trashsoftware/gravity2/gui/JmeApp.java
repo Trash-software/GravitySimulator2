@@ -62,6 +62,7 @@ public class JmeApp extends SimpleApplication {
     protected double speed = 1.0;
     protected boolean playing = true;
     private boolean locked = false;
+    private boolean busy = false;
     protected double scale = 1.0;
     private final Vector3d screenCenterAutoMove = new Vector3d();
     private final Vector3d refOffsetAutoMove = new Vector3d();
@@ -153,6 +154,14 @@ public class JmeApp extends SimpleApplication {
         locked = false;
     }
 
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public boolean isBusy() {
+        return busy;
+    }
+
     private void checkValidity(Spatial spatial) {
         Vector3f pos = spatial.getLocalTranslation();
         if (Float.isNaN(pos.x) || Float.isNaN(pos.y) || Float.isNaN(pos.z)) {
@@ -177,7 +186,9 @@ public class JmeApp extends SimpleApplication {
             }
             lastSpeedSync += tpf;
             int nPhysicalFrames = Math.round(tpf * 1000);
+            busy = true;
             Simulator.SimResult sr = simulator.simulate(nPhysicalFrames);
+            busy = false;
             if (sr == Simulator.SimResult.NUM_CHANGED) {
                 reloadObjects();
                 System.out.println("Trigger: num change");

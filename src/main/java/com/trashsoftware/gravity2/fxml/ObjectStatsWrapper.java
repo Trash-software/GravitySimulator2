@@ -37,7 +37,7 @@ public class ObjectStatsWrapper extends HBox {
     Label parentLabel, orbitStatusLabel, distanceLabel, avgDistanceLabel, periodLabel, eccLabel,
             hillRadiusLabel, aphelionLabel, perihelionLabel,
             inclinationLabel, ascendingNodeLabel,
-            semiMajorLabel, hieraticalLabel,
+            semiMajorLabel, hieraticalLabel, unitTimeArcAreaLabel,
             rotationPeriodLabel, rotationAxisTiltLabel, transKineticLabel, rotKineticLabel,
             bindingEnergyLabel, thermalEnergyLabel, avgTempLabel,
             volumeLabel, accelerationLabel, eqRadiusLabel, polarRadiusLabel,
@@ -348,6 +348,10 @@ public class ObjectStatsWrapper extends HBox {
         detailPane.add(new Label(strings.getString("period")), 0, rowIndex);
         periodLabel = new Label();
         detailPane.add(periodLabel, 1, rowIndex);
+        
+        detailPane.add(new Label(strings.getString("orbitArcArea")), 2, rowIndex);  // fixme
+        unitTimeArcAreaLabel = new Label();
+        detailPane.add(unitTimeArcAreaLabel, 3, rowIndex);
 
         rowIndex++;
 
@@ -640,10 +644,12 @@ public class ObjectStatsWrapper extends HBox {
                 avgDistanceLabel.setText(uc.distance(mean));
                 periodLabel.setText(uc.time(orbitalElements.period));
                 aphelionLabel.setText(uc.distance(aph));
+                unitTimeArcAreaLabel.setText(uc.area(object.approxUnitTimeArcArea()));
             } else {
                 avgDistanceLabel.setText("--");
                 periodLabel.setText("--");
                 aphelionLabel.setText("--");
+                unitTimeArcAreaLabel.setText("--");
             }
 
             perihelionLabel.setText(uc.distance(per));
@@ -655,6 +661,7 @@ public class ObjectStatsWrapper extends HBox {
             distanceLabel.setText("--");
             avgDistanceLabel.setText("--");
             periodLabel.setText("--");
+            unitTimeArcAreaLabel.setText("--");
             semiMajorLabel.setText("--");
             eccLabel.setText("--");
             aphelionLabel.setText("--");
